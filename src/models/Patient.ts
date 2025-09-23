@@ -12,6 +12,7 @@ export interface IPatient extends Document {
     name: string;
     phone: string;
   };
+  _id:Schema.Types.ObjectId|any
   appointments: [Schema.Types.ObjectId]; // Add reference to Appointments
 }
 

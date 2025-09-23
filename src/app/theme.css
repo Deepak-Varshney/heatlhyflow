@@ -28,23 +28,24 @@ body {
 
 .theme-default,
 .theme-default-scaled {
-  --primary: var(--color-neutral-600);
-  --primary-foreground: var(--color-neutral-50);
-
-  @variant dark {
-    --primary: var(--color-neutral-500);
-    --primary-foreground: var(--color-neutral-50);
-  }
-}
-
-.theme-blue,
-.theme-blue-scaled {
   --primary: var(--color-blue-600);
   --primary-foreground: var(--color-blue-50);
 
   @variant dark {
     --primary: var(--color-blue-500);
     --primary-foreground: var(--color-blue-50);
+  }
+}
+
+.theme-gray,
+.theme-blue-scaled {
+
+  --primary: var(--color-neutral-600);
+  --primary-foreground: var(--color-neutral-50);
+
+  @variant dark {
+    --primary: var(--color-neutral-500);
+    --primary-foreground: var(--color-neutral-50);
   }
 }
 

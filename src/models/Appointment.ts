@@ -1,24 +1,59 @@
 // models/Appointment.ts
+
 import { Schema, model, models, Document } from "mongoose";
 
 export interface IAppointment extends Document {
-  patient: Schema.Types.ObjectId;  // Reference to the Patient model
-  date: Date;                      // Date and time of the appointment
-  doctorName: string;              // Doctor handling the appointment
-  reasonForVisit: string;          // Reason for the visit
-  status: "Scheduled" | "Completed" | "Cancelled"; // Appointment status
+  patient: Schema.Types.ObjectId;
+  doctor: Schema.Types.ObjectId;
+  availabilitySlot: Schema.Types.ObjectId;
+  startTime: Date;
+  endTime: Date;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  reason?: string;
+  notes?: string;
 }
 
 const AppointmentSchema = new Schema<IAppointment>(
   {
-    patient: { type: Schema.Types.ObjectId, ref: 'Patient', required: true },
-    date: { type: Date, required: true },
-    doctorName: { type: String, required: true },
-    reasonForVisit: { type: String, required: true },
+    patient: {
+      type: Schema.Types.ObjectId,
+      ref: 'Patient',
+      required: true,
+    },
+    doctor: {
+      type: Schema.Types.ObjectId,
+      ref: 'Doctor',
+      required: true,
+    },
+    // Reference to the exact slot that was booked
+    availabilitySlot: {
+        type: Schema.Types.ObjectId,
+        ref: 'Availability',
+        required: true,
+        unique: true, // Ensures one slot cannot be booked multiple times
+    },
+    // We store startTime/endTime here too for faster queries
+    startTime: {
+      type: Date,
+      required: true,
+    },
+    endTime: {
+      type: Date,
+      required: true,
+    },
     status: {
       type: String,
-      enum: ["Scheduled", "Completed", "Cancelled"],
-      default: "Scheduled",
+      required: true,
+      enum: ['scheduled', 'completed', 'cancelled', 'no-show'],
+      default: 'scheduled',
+    },
+    reason: {
+      type: String,
+      trim: true,
+    },
+    notes: {
+      type: String,
+      trim: true,
     },
   },
   {
@@ -26,9 +61,9 @@ const AppointmentSchema = new Schema<IAppointment>(
   }
 );
 
-// Create index for better query performance
-AppointmentSchema.index({ patient: 1 });
-AppointmentSchema.index({ date: 1 });
+// Add indexes for common queries
+AppointmentSchema.index({ doctor: 1, startTime: 1 });
+AppointmentSchema.index({ patient: 1, startTime: 1 });
 
 const Appointment = models.Appointment || model<IAppointment>("Appointment", AppointmentSchema);
 

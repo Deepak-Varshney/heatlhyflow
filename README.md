@@ -1,4 +1,5 @@
-# ERP Solution for Healthcare Management
+# HealthyFlow
+## ERP Solution for Healthcare Management
 
 ## Overview
 
@@ -25,58 +26,11 @@ This project is a healthcare management ERP system designed to handle patient re
 ## Tech Stack
 
 * **Frontend**: Next.js (React.js)
-* **Backend**: Node.js, MongoDB
+* **Backend**: Node.js, MongoDB 
 * **Authentication**: Clerk (for user authentication)
 * **UI**: ShadCN UI (UI component library for a seamless user experience)
 * **State Management**: React Context API (or Zustand)
 * **Styling**: Tailwind CSS (for utility-first styling)
-
----
-
-## Installation
-
-### Prerequisites
-
-* Node.js (v16+ recommended)
-* MongoDB (running locally or via a cloud provider)
-* Clerk account for authentication setup
-
-### Clone the Repository
-
-Clone the project from GitHub:
-
-```bash
-git clone <your-repository-url>
-cd <your-project-folder>
-```
-
-### Install Dependencies
-
-Run the following command to install the required dependencies:
-
-```bash
-npm install
-```
-
-### Setup Environment Variables
-
-Create a `.env.local` file in the root directory and add the following variables:
-
-```
-MONGODB_URI=<your-mongodb-connection-string>
-CLERK_FRONTEND_API=<your-clerk-frontend-api-key>
-CLERK_API_KEY=<your-clerk-api-key>
-```
-
-### Run the Development Server
-
-To run the project locally, use the following command:
-
-```bash
-npm run dev
-```
-
-This will start the application on [http://localhost:3000](http://localhost:3000).
 
 ---
 
@@ -94,12 +48,6 @@ This will start the application on [http://localhost:3000](http://localhost:3000
   * Prescribe medication from a list of available medicines.
   * Schedule tests and doses with dropdowns and checkboxes.
   * Generate OPD card PDFs after completing treatment.
-
----
-
-## Contributing
-
-Feel free to fork the repository and submit pull requests for any improvements or features you'd like to contribute. Ensure all code adheres to the project's coding standards.
 
 ---
 

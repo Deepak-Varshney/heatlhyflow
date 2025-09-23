@@ -15,6 +15,18 @@ interface GetPatientParams {
     status?: string;
 }
 
+export async function getAllPatients() {
+    await connectDB()
+    const rawpatients = await Patient.find({}).lean()
+
+    // .populate({
+    //   path: "appointments", // Populate the appointments
+    //   select: "date doctorName reasonForVisit status", // Fields to populate
+    //   match: { status: { $in: ["Scheduled", "Completed"] } }, // Optional filter on appointments
+    // })
+    const patients = serialize(rawpatients)
+    return patients
+}
 export async function getPatients({
     page = 1,
     limit = 10,
