@@ -57,7 +57,7 @@ export function DoctorCombobox({
             <CommandEmpty className="py-4 px-2 text-center text-sm">
                 <p className="mb-2">No doctor found.</p>
                 {/* Embed your "Add New Doctor" dialog here */}
-                <DoctorRegistrationDialog />
+                {/* <DoctorRegistrationDialog /> */}
             </CommandEmpty>
             <CommandGroup>
               {doctors.map((doctor) => (

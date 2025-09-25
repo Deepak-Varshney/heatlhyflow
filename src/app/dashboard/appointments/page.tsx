@@ -6,6 +6,7 @@ import { Separator } from '@/components/ui/separator';
 import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
 import PatientListingPage from '@/features/patients/components/patient-listing';
 import { searchParamsCache, serialize } from '@/lib/searchparams';
+import { getAllAppointments } from '@/utilties/appointments';
 import { getAllDoctors } from '@/utilties/doctors';
 import { getAllPatients, getPatients } from '@/utilties/patients';
 import { IconPlus } from '@tabler/icons-react';
@@ -30,6 +31,8 @@ export default async function Page(props: pageProps) {
     // const key = serialize({ ...searchParams });
     const patients = await getAllPatients()
     const doctors = await getAllDoctors()
+    const appointments = await getAllAppointments()
+    console.log(appointments)
     return (
         <PageContainer scrollable={false}>
             <div className='flex flex-1 flex-col space-y-4'>
