@@ -302,7 +302,7 @@ const OnboardingPage = async () => {
   // Check if the user is already part of an organization
   // const organizationMemberships = user;
   const client = await clerkClient();
-  const organizationMemberships = await client.organizations.getOrganization
+  const organizationMemberships = client.organizations.getOrganization
   const isMemberOfOrg = organizationMemberships && organizationMemberships.length > 0;
   console.log(organizationMemberships)
 
@@ -311,7 +311,8 @@ const OnboardingPage = async () => {
       <div className="w-full max-w-4xl p-8">
         <div className="text-center mb-10">
           <h1 className="text-4xl font-bold mb-2">Welcome to the Clinic Platform</h1>
-          <p className="text-muted-foreground">Let's get your account set up.</p>
+          <p className="text-muted-foreground">{`Let's get your account set up.`}</p>
+
         </div>
 
         {isMemberOfOrg ? (
