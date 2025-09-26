@@ -1,66 +1,52 @@
-// // import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-// // import { NextResponse } from "next/server";
+// // middleware.ts
 
-// // const isProtectedRoute = createRouteMatcher([
-// //   "/doctors(.*)",
-// //   "/onboarding(.*)",
-// //   "/doctor(.*)",
-// //   "/admin(.*)",
-// //   "/video-call(.*)",
-// //   "/appointments(.*)",
-// //   "/"
-// // ]);
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
-// // export default clerkMiddleware(async (auth, req) => {
-// //   const { userId } = await auth();
+const isPublicRoute = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)", "/api/webhooks/clerk(.*)"]);
 
-// //   if (!userId && isProtectedRoute(req)) {
-// //     const { redirectToSignIn } = await auth();
-// //     return redirectToSignIn();
-// //   }
+export default clerkMiddleware(async (auth, req) => {
+  const { pathname } = req.nextUrl;
 
-// //   return NextResponse.next();
-// // });
+  if (!isPublicRoute(req)) {
+    const { userId, redirectToSignIn } = await auth();
+    if (!userId) {
+      return redirectToSignIn({ returnBackUrl: req.url });
+    }
+  }
 
-// // export const config = {
-// //   matcher: [
-// //     // Skip Next.js internals and all static files, unless found in search params
-// //     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-// //     // Always run for API routes
-// //     "/(api|trpc)(.*)",
-// //   ],
-// // };
+  const { userId, sessionClaims } = await auth();
 
+  if (userId) {
+    const role = (sessionClaims as any)?.metadata?.role as string | undefined;
+    const verificationStatus = (sessionClaims as any)?.metadata?.verificationStatus as string | undefined;
 
-// import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-// import { NextRequest } from 'next/server';
+    if (role === "UNASSIGNED" && pathname !== "/onboarding") {
+      const onboardingUrl = new URL("/onboarding", req.url);
+      return NextResponse.redirect(onboardingUrl);
+    }
 
-// const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
+    if (verificationStatus === "PENDING") {
+      if (pathname !== "/awaiting-verification") {
+        const verificationUrl = new URL("/awaiting-verification", req.url);
+        return NextResponse.redirect(verificationUrl);
+      }
+    }
 
-// export default clerkMiddleware(async (auth, req: NextRequest) => {
-//   if (isProtectedRoute(req)) await auth.protect();
-// });
-// export const config = {
-//   matcher: [
-//     // Skip Next.js internals and all static files, unless found in search params
-//     '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-//     // Always run for API routes
-//     '/(api|trpc)(.*)'
-//   ]
-// };
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextRequest } from 'next/server';
+    if (verificationStatus !== "PENDING" && (pathname === "/awaiting-verification" || pathname === "/onboarding")) {
+      const dashboardUrl = new URL("/dashboard", req.url);
+      return NextResponse.redirect(dashboardUrl);
+    }
 
-const isProtectedRoute = createRouteMatcher(['/dashboard(.*)']);
+    if (pathname.startsWith("/superadmin") && role !== "SUPERADMIN") {
+      const dashboardUrl = new URL("/dashboard", req.url);
+      return NextResponse.redirect(dashboardUrl);
+    }
+  }
 
-export default clerkMiddleware(async (auth, req: NextRequest) => {
-  if (isProtectedRoute(req)) await auth.protect();
+  return NextResponse.next();
 });
+
 export const config = {
-  matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    // Always run for API routes
-    '/(api|trpc)(.*)'
-  ]
+  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
 };
