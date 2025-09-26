@@ -18,8 +18,8 @@ export default clerkMiddleware(async (auth, req) => {
   const { userId, sessionClaims } = await auth();
 
   if (userId) {
-    const role = (sessionClaims as any)?.metadata?.role as string | undefined;
-    const verificationStatus = (sessionClaims as any)?.metadata?.verificationStatus as string | undefined;
+    const role = (sessionClaims as any)?.publicMetadata?.role as string | undefined;
+    const verificationStatus = (sessionClaims as any)?.publicMetadata?.verificationStatus as string | undefined;
 
     if (role === "UNASSIGNED" && pathname !== "/onboarding") {
       const onboardingUrl = new URL("/onboarding", req.url);
