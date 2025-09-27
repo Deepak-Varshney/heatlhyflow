@@ -17,7 +17,7 @@ const AwaitingVerificationPage = async () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-lg max-h-lg">
         <CardHeader className="text-center">
           <AlertCircle className="mx-auto h-12 w-12 text-yellow-500" />
           <CardTitle className="mt-4">Verification Pending</CardTitle>

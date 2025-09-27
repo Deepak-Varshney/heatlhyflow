@@ -128,6 +128,7 @@ export async function POST(req: Request) {
       firstName: first_name,
       lastName: last_name,
       imageUrl: image_url,
+      role: "UNASSIGNED",
     });
   }
 
@@ -162,7 +163,7 @@ export async function POST(req: Request) {
     const { id, name } = evt.data;
     await Organization.findOneAndUpdate({ clerkOrgId: id }, { name: name });
   }
-  
+
   if (eventType === "organization.deleted") {
     const { id } = evt.data;
     // For safety, you might want to soft-delete (set status to "DELETED")
@@ -175,8 +176,8 @@ export async function POST(req: Request) {
     const { public_user_data } = evt.data;
     // When a user is removed from an org, we reset their role to UNASSIGNED.
     await User.findOneAndUpdate(
-        { clerkUserId: public_user_data.user_id },
-        { role: 'UNASSIGNED' }
+      { clerkUserId: public_user_data.user_id },
+      { role: 'UNASSIGNED' }
     );
   }
 
