@@ -21,8 +21,6 @@ const OnboardingPage = () => {
   // The '?? []' provides a safe empty array if the property doesn't exist.
   const organizationMemberships = user?.organizationMemberships ?? [];
   const isMemberOfOrg = organizationMemberships.length > 0;
-  console.log(organizationMemberships)
-  console.log(user)
   return (
     <div className="flex items-center justify-center min-h-screen">
       <div className="w-full max-w-4xl p-8">

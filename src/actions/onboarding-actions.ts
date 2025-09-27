@@ -44,7 +44,7 @@ export async function updateUserOnboarding(data: OnboardingData) {
     });
 
     // Redirect to the new status page instead of the dashboard
-    return { success: true, redirectUrl: "/awaiting-verification" };
+    return { success: true, redirectUrl: "/dashboard/awaiting-verification" };
 
   } catch (error) {
     console.error("Onboarding Error:", error);

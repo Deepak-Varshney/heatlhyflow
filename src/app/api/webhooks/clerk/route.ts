@@ -83,7 +83,7 @@
 
 import { Webhook } from "svix";
 import { headers } from "next/headers";
-import { WebhookEvent } from "@clerk/nextjs/server";
+import { clerkClient, WebhookEvent } from "@clerk/nextjs/server";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Organization from "@/models/Organization";
@@ -118,10 +118,17 @@ export async function POST(req: Request) {
 
   const eventType = evt.type;
   await connectDB();
+  const client = await clerkClient()
 
   // --- USER EVENTS ---
   if (eventType === "user.created") {
     const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+    await client.users.updateUserMetadata(id, {
+      publicMetadata: {
+        role: "UNASSIGNED",
+        verificationStatus: "PENDING"
+      }
+    });
     await User.create({
       clerkUserId: id,
       email: email_addresses[0].email_address,
@@ -130,6 +137,8 @@ export async function POST(req: Request) {
       imageUrl: image_url,
       role: "UNASSIGNED",
     });
+
+
   }
 
   if (eventType === "user.updated") {

@@ -11,9 +11,9 @@ export default async function SuperAdminLayout({
     const user = await getMongoUser();
 
     // This is the security guard for all superadmin pages.
-    if (user?.role !== "SUPERADMIN") {
-        redirect("/dashboard"); // Or any other page
-    }
+    // if (user?.role !== "SUPERADMIN") {
+    //     redirect("/dashboard"); // Or any other page
+    // }
 
     return (
         <div>

@@ -26,20 +26,17 @@ const AwaitingVerificationPage = async () => {
           <p className="text-muted-foreground mb-2">
             Thank you for completing your profile.
           </p>
-          {mongoUser.role === 'DOCTOR' && (
+        
              <p className="text-muted-foreground">
                 Your doctor profile has been submitted and is currently under review by an administrator.
              </p>
-          )}
-           {mongoUser.role === 'RECEPTIONIST' && (
+          
              <p className="text-muted-foreground">
                 Your request to join as a receptionist is awaiting approval from an administrator.
              </p>
-          )}
           <div className="mt-6">
             <p>Your current status is:</p>
             <Badge variant="destructive" className="mt-2 text-lg">
-              {mongoUser.verificationStatus}
             </Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-8">
