@@ -272,8 +272,8 @@
 //     return NextResponse.redirect(signInUrl);
 //   }
 //   // If user is logged in, enforce onboarding / verification logic
-//   const role = (sessionClaims as any)?.publicMetadata?.role;
-//   const verificationStatus = (sessionClaims as any)?.publicMetadata?.verificationStatus;
+// const role = (sessionClaims as any)?.publicMetadata?.role;
+// const verificationStatus = (sessionClaims as any)?.publicMetadata?.verificationStatus;
 
 //   // Rule 1: Handles new users (path is now top-level)
 //   if ((!role || role === "UNASSIGNED") && pathname !== "/onboarding") {
@@ -317,7 +317,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks/(.*)",
 ]);
 
-export default clerkMiddleware(async(auth, req) => {
+export default clerkMiddleware(async (auth, req) => {
   if (isPublicRoute(req)) {
     return NextResponse.next();
   }
@@ -332,8 +332,8 @@ export default clerkMiddleware(async(auth, req) => {
     return NextResponse.redirect(signInUrl);
   }
 
-  const role = sessionClaims?.publicMetadata?.role as string;
-  const verificationStatus = sessionClaims?.publicMetadata?.verificationStatus as string;
+  const role = (sessionClaims as any)?.publicMetadata?.role;
+  const verificationStatus = (sessionClaims as any)?.publicMetadata?.verificationStatus;
 
   if ((!role || role === "UNASSIGNED") && !pathname.startsWith("/onboarding")) {
     return NextResponse.redirect(new URL("/onboarding", req.url));
@@ -359,5 +359,5 @@ export default clerkMiddleware(async(auth, req) => {
 });
 
 export const config = {
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)", "/dashboard/manage-client(.*)"],
 };
