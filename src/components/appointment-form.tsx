@@ -27,7 +27,6 @@ import { DoctorCombobox } from "./doctor-combobox";
 import { PatientCombobox } from "./patient-combobox";
 import { bookAppointment } from "@/actions/appointment-actions";
 import { IUser } from "@/models/User";
-
 export default function AppointmentBooking({
     patients,
     doctors,
@@ -82,12 +81,12 @@ export default function AppointmentBooking({
 
         // You might want to add a loading state here
         const result = await bookAppointment
-        ({
-            patientId: selectedPatient._id,
-            doctorId: selectedDoctor._id,
-            availabilitySlotId: selectedSlot._id,
-            // reason: "Optional reason from another form field"
-        });
+            ({
+                patientId: selectedPatient._id,
+                doctorId: selectedDoctor._id,
+                availabilitySlotId: selectedSlot._id,
+                // reason: "Optional reason from another form field"
+            });
 
         if (result.success) {
             toast.success(
