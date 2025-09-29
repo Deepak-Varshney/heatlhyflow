@@ -11,9 +11,9 @@ const getDashboardStats = async () => {
     upcomingAppointments: 8,
     totalPatients: 124,
     recentActivity: [
-      { id: 1, text: "New patient 'Alice Smith' registered." },
-      { id: 2, text: "Appointment with 'John Doe' confirmed for tomorrow." },
-      { id: 3, text: "Received new message from 'Bob Johnson'." },
+      { id: 1, text: "New patient Alice Smith registered." },
+      { id: 2, text: "Appointment with John Doe confirmed for tomorrow." },
+      { id: 3, text: "Received new message from Bob Johnson." },
     ],
   };
 };
@@ -33,7 +33,7 @@ const DoctorDashboardPage = async () => {
           </Avatar>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Welcome back, Dr. {user?.lastName}!</h1>
-            <p className="text-muted-foreground">Here's a summary of your clinic's activity today.</p>
+            <p className="text-muted-foreground">Here is a summary of your clinic activity today.</p>
           </div>
         </div>
         <Button asChild>

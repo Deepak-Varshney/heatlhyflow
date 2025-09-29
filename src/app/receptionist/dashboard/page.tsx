@@ -44,7 +44,7 @@ const ReceptionistDashboard = async () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Today's Appointments</CardTitle>
+          <CardTitle>{`Today's Appointments`}</CardTitle>
           <CardDescription>
             A list of all appointments scheduled for today.
           </CardDescription>
