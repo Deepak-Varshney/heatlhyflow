@@ -30,7 +30,7 @@ const ReceptionistDashboard = async () => {
   const doctors = await getAllDoctors();
 
   return (
-    <div className="space-y-8">
+    <div className="m-4 flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Receptionist Dashboard</h1>

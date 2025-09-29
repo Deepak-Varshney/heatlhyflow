@@ -26,13 +26,14 @@ import { getAvailableSlots } from "@/actions/availability-actions"; // Import ou
 import { DoctorCombobox } from "./doctor-combobox";
 import { PatientCombobox } from "./patient-combobox";
 import { bookAppointment } from "@/actions/appointment-actions";
+import { IUser } from "@/models/User";
 
 export default function AppointmentBooking({
     patients,
     doctors,
 }: {
     patients: IPatient[];
-    doctors: IDoctor[];
+    doctors: IUser[];
 }) {
     const [open, setOpen] = useState(false);
 

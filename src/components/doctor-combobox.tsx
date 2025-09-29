@@ -21,11 +21,12 @@ import {
 } from "@/components/ui/popover";
 import { IDoctor } from "@/models/Doctor";
 import DoctorRegistrationDialog from "./doctor-registration";
+import { IUser } from "@/models/User";
 
 interface DoctorComboboxProps {
-  doctors: IDoctor[];
-  selectedDoctor: IDoctor | null;
-  onSelectDoctor: (doctor: IDoctor | null) => void;
+  doctors: IUser[];
+  selectedDoctor: IUser | any;
+  onSelectDoctor: (doctor: IUser | any) => void;
 }
 
 export function DoctorCombobox({
@@ -45,7 +46,7 @@ export function DoctorCombobox({
           className="w-full justify-between"
         >
           {selectedDoctor
-            ? `${selectedDoctor.firstName} ${selectedDoctor.lastName} - ${selectedDoctor.specialization}`
+            ? `${selectedDoctor.firstName} ${selectedDoctor.lastName} - ${selectedDoctor.specialty}`
             : "Select doctor..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -63,7 +64,7 @@ export function DoctorCombobox({
               {doctors.map((doctor) => (
                 <CommandItem
                   key={doctor._id}
-                  value={`${doctor.firstName} ${doctor.lastName} ${doctor.specialization}`}
+                  value={`${doctor.firstName} ${doctor.lastName} ${doctor.specialty}`}
                   onSelect={() => {
                     onSelectDoctor(doctor);
                     setOpen(false);
@@ -79,7 +80,7 @@ export function DoctorCombobox({
                   />
                   <div>
                     <p>{`${doctor.firstName} ${doctor.lastName}`}</p>
-                    <p className="text-xs text-muted-foreground">{doctor.specialization}</p>
+                    <p className="text-xs text-muted-foreground">{doctor.specialty}</p>
                   </div>
                 </CommandItem>
               ))}

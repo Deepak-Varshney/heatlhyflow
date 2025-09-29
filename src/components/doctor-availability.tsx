@@ -18,8 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { CalendarClock, Loader2 } from "lucide-react";
+import { getDoctorAvailability, updateDoctorAvailability } from "@/actions/availability-actions";
 // Import your real server actions here
-// import { getDoctorAvailability, updateDoctorAvailability } from "@/actions/availability-actions";
 
 // Zod schema for validation
 const availabilitySchema = z.object({
@@ -36,24 +36,10 @@ const weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 
 // This is a placeholder for your actual server action.
 // In your real code, this would fetch data from your database.
-const getDoctorAvailability = async () => {
-  console.log("Fetching existing schedule...");
-  // Simulate a network delay
-  await new Promise(resolve => setTimeout(resolve, 1000)); 
-  // Simulate a doctor who works Mon, Wed, Fri
-  return [
-    { dayOfWeek: 'Monday', startTime: '09:00', endTime: '17:00' },
-    { dayOfWeek: 'Wednesday', startTime: '10:00', endTime: '18:00' },
-    { dayOfWeek: 'Friday', startTime: '09:00', endTime: '13:00' },
-  ];
-};
+
 
 // Placeholder for the update action
-const updateDoctorAvailability = async (schedule: any) => {
-    console.log("Updating schedule with:", schedule);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return { success: true };
-}
+
 
 
 export default function ManageAvailabilityDialog() {
@@ -82,7 +68,7 @@ export default function ManageAvailabilityDialog() {
 
           // 2. Create a full week's schedule, merging the existing data
           const mergedSchedule = weekDays.map(day => {
-            const existingDay = currentSchedule.find(d => d.dayOfWeek === day);
+            const existingDay = currentSchedule.find((d:any) => d.dayOfWeek === day);
             if (existingDay) {
               return { ...existingDay, enabled: true };
             }

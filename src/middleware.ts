@@ -23,8 +23,7 @@ export default clerkMiddleware(async(auth, req) => {
   const role = (sessionClaims as any)?.publicMetadata?.role as string;
   const verificationStatus = (sessionClaims as any)?.publicMetadata?.verificationStatus as string;
 
-  // --- Onboarding & Verification Flow ---
-  // This section remains the same, as it must run for all users first.
+  // --- Onboarding & Verification Flow (This part runs first and is correct) ---
   if ((!role || role === "UNASSIGNED") && !pathname.startsWith("/onboarding")) {
     return NextResponse.redirect(new URL("/onboarding", req.url));
   }
@@ -37,31 +36,29 @@ export default clerkMiddleware(async(auth, req) => {
     return NextResponse.redirect(new URL(dashboardUrl, req.url));
   }
 
-  // --- NEW: Role-Based Route Protection (with Admin rules) ---
+  // --- Role-Based Route Protection (Only for VERIFIED users) ---
 
-  // Rule 1: SUPERADMIN has access to everything.
-  if (role === "SUPERADMIN") {
-    return NextResponse.next();
-  }
-
-  // Rule 2: Block all other roles from accessing the superadmin area.
-  if (pathname.startsWith("/superadmin")) {
-    // Since we already handled SUPERADMIN, anyone else reaching this point is unauthorized.
-    return NextResponse.redirect(new URL("/dashboard", req.url)); 
-  }
-
-  // Rule 3: ADMIN has access to everything except the superadmin area (which we just handled).
-  if (role === "ADMIN") {
-    return NextResponse.next();
-  }
-
-  // Rule 4: Specific rules for other roles (run only if user is not SUPERADMIN or ADMIN)
-  if (role === "DOCTOR" && !pathname.startsWith("/doctor")) {
-      return NextResponse.redirect(new URL("/doctor/dashboard", req.url));
-  }
-
-  if (role === "RECEPTIONIST" && !pathname.startsWith("/receptionist")) {
-      return NextResponse.redirect(new URL("/receptionist/dashboard", req.url));
+  // THE FIX: We wrap all role-based rules in a check to ensure the user is NOT pending.
+  if (verificationStatus !== "PENDING") {
+    // SUPERADMIN can access everything.
+    if (role === "SUPERADMIN") {
+      return NextResponse.next();
+    }
+    // Block access to superadmin area for everyone else.
+    if (pathname.startsWith("/superadmin")) {
+      return NextResponse.redirect(new URL("/dashboard", req.url)); 
+    }
+    // ADMIN can access everything except superadmin.
+    if (role === "ADMIN") {
+      return NextResponse.next();
+    }
+    // Specific rules for other roles.
+    if (role === "DOCTOR" && !pathname.startsWith("/doctor")) {
+        return NextResponse.redirect(new URL("/doctor/dashboard", req.url));
+    }
+    if (role === "RECEPTIONIST" && !pathname.startsWith("/receptionist")) {
+        return NextResponse.redirect(new URL("/receptionist/dashboard", req.url));
+    }
   }
 
   return NextResponse.next();

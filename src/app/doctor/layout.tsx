@@ -39,9 +39,10 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 
 import DashboardSidebar from "@/components/layout/dashboard-sidebar";
+import { doctorNavItems } from '@/constants/data';
 
 export const metadata: Metadata = {
-  title: 'Healthyflow',
+  title: 'Healthyflow | Doctor',
   description: 'Management Solution For Healthcare Departments'
 };
 
@@ -56,7 +57,7 @@ const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
   return (
     <KBar>
       <SidebarProvider defaultOpen={defaultOpen}>
-        <AppSidebar />
+        <AppSidebar navItems={doctorNavItems}/>
         <SidebarInset>
           <Header />
           {/* page main content */}

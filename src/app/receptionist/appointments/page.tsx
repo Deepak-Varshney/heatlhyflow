@@ -6,6 +6,8 @@ import { Separator } from '@/components/ui/separator';
 import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
 import PatientListingPage from '@/features/patients/components/patient-listing';
 import { searchParamsCache, serialize } from '@/lib/searchparams';
+import { IPatient } from '@/models/Patient';
+import { IUser } from '@/models/User';
 import { getAllAppointments } from '@/utilties/appointments';
 import { getAllDoctors } from '@/utilties/doctors';
 import { getAllPatients, getPatients } from '@/utilties/patients';
@@ -29,8 +31,8 @@ export default async function Page(props: pageProps) {
 
     // This key is used for invoke suspense if any of the search params changed (used for filters).
     // const key = serialize({ ...searchParams });
-    const patients = await getAllPatients()
-    const doctors = await getAllDoctors()
+    const patients:IPatient[] = await getAllPatients()
+    const doctors:IUser[] = await getAllDoctors()
     const appointments = await getAllAppointments()
     console.log(appointments)
     return (

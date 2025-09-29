@@ -67,4 +67,155 @@ export const navItems: NavItem[] = [
     ]
   },
 ];
+export const doctorNavItems: NavItem[] = [
+  {
+    title: 'Dashboard',
+    url: '/doctor/dashboard',
+    icon: 'dashboard',
+    isActive: false,
+    shortcut: ['d', 'd'],
+    items: [] // Empty array as there are no child items for Dashboard
+  },
+  {
+    title: 'Pateints',
+    url: '/doctor/patients',
+    icon: 'patient',
+    shortcut: ['p', 'p'],
+    isActive: false,
+    items: [] // No child items
+  },
+  {
+    title: 'Appopintments',
+    url: '/doctor/appointments',
+    icon: 'page',
+    shortcut: ['a', 'a'],
+    isActive: false,
+    items: [] // No child items
+  },
+  {
+    title: 'Profile',
+    url: '/doctor/profile',
+    icon: 'userPen',
+    shortcut: ['m', 'm']
+  },
+]
 
+
+
+export const superAdminNavItems: NavItem[] = [
+  {
+    title: 'Dashboard',
+    url: '/superadmin/dashboard',
+    icon: 'dashboard',
+    isActive: false,
+    shortcut: ['d', 'd'],
+    items: [] // Empty array as there are no child items for Dashboard
+  },
+  {
+    title: 'Pateints',
+    url: '/receptionist/patients',
+    icon: 'patient',
+    shortcut: ['p', 'p'],
+    isActive: false,
+    items: [] // No child items
+  },
+  {
+    title: 'Appopintments',
+    url: '/dashboard/appointments',
+    icon: 'page',
+    shortcut: ['a', 'a'],
+    isActive: false,
+    items: [] // No child items
+  },
+  {
+    title: 'Organization',
+    url: '/dashboard/manage-client',
+    icon: 'page',
+    shortcut: ['a', 'a'],
+    isActive: false,
+    items: [] // No child items
+  },
+  {
+    title: 'Account',
+    url: '#', // Placeholder as there is no direct link for the parent
+    icon: 'billing',
+    isActive: true,
+
+    items: [
+      {
+        title: 'Profile',
+        url: '/dashboard/profile',
+        icon: 'userPen',
+        shortcut: ['m', 'm']
+      },
+      {
+        title: 'Login',
+        shortcut: ['l', 'l'],
+        url: '/',
+        icon: 'login'
+      },
+      {
+        title: 'Dashboard',
+        url: '/receptionist/dashboard',
+        icon: 'dashboard',
+        isActive: false,
+        shortcut: ['d', 'd'],
+        items: [] // Empty array as there are no child items for Dashboard
+      },
+      {
+        title: 'Pateints',
+        url: '/receptionist/patients',
+        icon: 'patient',
+        shortcut: ['p', 'p'],
+        isActive: false,
+        items: [] // No child items
+      },
+      {
+        title: 'Appopintments',
+        url: '/receptionist/appointments',
+        icon: 'page',
+        shortcut: ['a', 'a'],
+        isActive: false,
+        items: [] // No child items
+      },
+      {
+        title: 'Profile',
+        url: '/receptionist/profile',
+        icon: 'userPen',
+        shortcut: ['m', 'm']
+      },
+    ]
+  },
+];
+export const receptionistNavItems: NavItem[] = [
+  {
+    title: 'Dashboard',
+    url: '/receptionist/dashboard',
+    icon: 'dashboard',
+    isActive: false,
+    shortcut: ['d', 'd'],
+    items: [] // Empty array as there are no child items for Dashboard
+  },
+  {
+    title: 'Pateints',
+    url: '/receptionist/patients',
+    icon: 'patient',
+    shortcut: ['p', 'p'],
+    isActive: false,
+    items: [] // No child items
+  },
+  {
+    title: 'Appopintments',
+    url: '/receptionist/appointments',
+    icon: 'page',
+    shortcut: ['a', 'a'],
+    isActive: false,
+    items: [] // No child items
+  },
+  {
+    title: 'Profile',
+    url: '/receptionist/profile',
+    icon: 'userPen',
+    shortcut: ['m', 'm']
+  },
+];

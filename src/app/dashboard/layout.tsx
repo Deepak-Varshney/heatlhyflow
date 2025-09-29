@@ -5,38 +5,12 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 
-import DashboardSidebar from "@/components/layout/dashboard-sidebar";
+import { navItems } from '@/constants/data';
 
-// export const metadata: Metadata = {
-//   title: 'Healthyflow',
-//   description: 'Management Solution For Healthcare Departments'
-// };
-
-// export default async function DashboardLayout({
-//   children
-// }: {
-//   children: React.ReactNode;
-// }) {
-// // Persisting the sidebar state in the cookie.
-// const cookieStore = await cookies();
-// const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
-//   return (
-//     <KBar>
-//       <SidebarProvider defaultOpen={defaultOpen}>
-//         <AppSidebar />
-//         <SidebarInset>
-//           <Header />
-//           {/* page main content */}
-//           {children}
-//           {/* page main content ends */}
-//         </SidebarInset>
-//       </SidebarProvider>
-//     </KBar>
-//   );
-// }
-
-
-// app/dashboard/layout.tsx
+export const metadata: Metadata = {
+  title: 'Healthyflow',
+  description: 'Management Solution For Healthcare Departments'
+};
 
 
 export default async function DashboardLayout({
@@ -55,7 +29,7 @@ export default async function DashboardLayout({
         <KBar>
           <SidebarProvider defaultOpen={defaultOpen}>
 
-            <AppSidebar />
+            <AppSidebar navItems={navItems} />
             <SidebarInset>
 
               <Header />

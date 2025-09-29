@@ -29,7 +29,6 @@ import {
   SidebarRail
 } from '@/components/ui/sidebar';
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
-import { navItems } from '@/constants/data';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useUser } from '@clerk/nextjs';
 import {
@@ -47,6 +46,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import { Icons } from '../icons';
 import { OrgSwitcher } from '../org-switcher';
+import { NavItem } from '@/types';
 export const company = {
   name: 'Acme Inc',
   logo: IconPhotoUp,
@@ -59,7 +59,7 @@ const tenants = [
   { id: '3', name: 'Gamma Ltd' }
 ];
 
-export default function AppSidebar() {
+export default function AppSidebar({navItems}:{navItems:NavItem[]}) {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
   const { user } = useUser();
