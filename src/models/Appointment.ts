@@ -11,6 +11,7 @@ export interface IAppointment extends Document {
   status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
   reason?: string;
   notes?: string;
+  prescription?: Schema.Types.ObjectId;
 }
 
 const AppointmentSchema = new Schema<IAppointment>(
@@ -27,10 +28,10 @@ const AppointmentSchema = new Schema<IAppointment>(
     },
     // Reference to the exact slot that was booked
     availabilitySlot: {
-        type: Schema.Types.ObjectId,
-        ref: 'Availability',
-        required: true,
-        unique: true, // Ensures one slot cannot be booked multiple times
+      type: Schema.Types.ObjectId,
+      ref: 'Availability',
+      required: true,
+      unique: true, // Ensures one slot cannot be booked multiple times
     },
     // We store startTime/endTime here too for faster queries
     startTime: {
@@ -51,6 +52,7 @@ const AppointmentSchema = new Schema<IAppointment>(
       type: String,
       trim: true,
     },
+    prescription: { type: Schema.Types.ObjectId, ref: 'Prescription' },
     notes: {
       type: String,
       trim: true,
