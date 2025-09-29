@@ -196,6 +196,7 @@ import { clerkClient, WebhookEvent } from "@clerk/nextjs/server";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Organization from "@/models/Organization";
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
     const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -209,7 +210,7 @@ export async function POST(req: Request) {
     const svix_timestamp = headerPayload.get("svix-timestamp");
     const svix_signature = headerPayload.get("svix-signature");
     if (!svix_id || !svix_timestamp || !svix_signature) {
-        return new Response("Error: no svix headers", { status: 400 });
+        return NextResponse.json("Error: no svix headers", { status: 400 });
     }
     const payload = await req.json();
     const body = JSON.stringify(payload);
@@ -222,7 +223,7 @@ export async function POST(req: Request) {
             "svix-signature": svix_signature,
         }) as WebhookEvent;
     } catch (err) {
-        return new Response("Error verifying webhook", { status: 400 });
+        return NextResponse.json("Error verifying webhook", { status: 400 });
     }
 
     const eventType = evt.type;
@@ -238,7 +239,7 @@ export async function POST(req: Request) {
             imageUrl: image_url,
             role: "UNASSIGNED",
         });
-        return new Response(res, { status: 200 });
+        return NextResponse.json(res, { status: 200 });
 
 
     }
@@ -254,7 +255,7 @@ export async function POST(req: Request) {
                 imageUrl: image_url,
             }
         );
-        return new Response(res, { status: 200 });
+        return NextResponse.json(res, { status: 200 });
 
     }
 
@@ -294,5 +295,8 @@ export async function POST(req: Request) {
     //     );
     //   }
 
-    return new Response("", { status: 200 });
+    return NextResponse.json("", { status: 200 });
+}
+export async function GET(){
+    return NextResponse.json("WORKING")
 }
