@@ -32,7 +32,7 @@ export async function updateOrganizationStatus(
 import { clerkClient } from "@clerk/nextjs/server";
 // ... other imports
 
-export async function approveUserVerification(userId: string) { // userId is the MongoDB _id
+export async function manageUserVerification(userId: string, status: string) { // userId is the MongoDB _id
   // Security Check: Ensure the current user is a SUPERADMIN
   const currentUser = await getMongoUser();
   if (currentUser?.role !== "SUPERADMIN") {
@@ -43,23 +43,23 @@ export async function approveUserVerification(userId: string) { // userId is the
 
   const userToVerify = await User.findById(userId);
   if (!userToVerify) {
-    throw new Error("User to verify not found.");
+    throw new Error("User to update not found.");
   }
 
   // 1. Update their status in our DB
-  userToVerify.verificationStatus = "VERIFIED";
+  userToVerify.verificationStatus = status.toUpperCase();
   await userToVerify.save();
 
   // 2. Update their public metadata in Clerk for the middleware
   const client = await clerkClient();
-  
+
   client.users.updateUserMetadata(userToVerify.clerkUserId, {
     publicMetadata: {
       role: userToVerify.role, // Keep their chosen role
-      verificationStatus: "VERIFIED",
+      verificationStatus: status.toUpperCase(),
     },
   });
 
-  revalidatePath("/superadmin/users");
+  revalidatePath("/superadmin");
   return { success: true };
 }

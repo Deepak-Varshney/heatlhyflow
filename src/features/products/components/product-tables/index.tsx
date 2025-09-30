@@ -12,7 +12,7 @@ interface ProductTableParams<TData, TValue> {
   totalItems: number;
   columns: ColumnDef<TData, TValue>[];
 }
-export function ProductTable<TData, TValue>({
+export function ServerDataTable<TData, TValue>({
   data,
   totalItems,
   columns

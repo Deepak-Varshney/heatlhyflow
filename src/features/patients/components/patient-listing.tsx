@@ -1,4 +1,4 @@
-import { ProductTable } from '@/features/products/components/product-tables';
+import { ServerDataTable } from '@/features/products/components/product-tables';
 import { searchParamsCache } from '@/lib/searchparams';
 import { columns } from './columns';
 import { getPatients } from '@/utilties/patients';
@@ -24,7 +24,7 @@ export default async function PatientListingPage({}: PatientListingPage) {
   const patients: any[] = data.patients;
 
   return (
-    <ProductTable
+    <ServerDataTable
       data={patients}
       totalItems={totalpatients}
       columns={columns}
