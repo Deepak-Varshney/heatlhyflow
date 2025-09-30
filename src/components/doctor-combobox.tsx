@@ -19,8 +19,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { IDoctor } from "@/models/Doctor";
-import DoctorRegistrationDialog from "./doctor-registration";
 import { IUser } from "@/models/User";
 
 interface DoctorComboboxProps {
