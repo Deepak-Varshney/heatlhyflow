@@ -2,7 +2,7 @@
 // import { Schema, model, models, Document } from "mongoose";
 
 // export interface IUser extends Document {
-//   _id:Schema.Types.ObjectId|any;
+// _id:Schema.Types.ObjectId|any;
 //   firstName: string;
 //   lastName: string;
 //   email: string;
@@ -115,7 +115,8 @@ export interface IUser extends Document {
   lastName: string;
   imageUrl?: string;
   role: "UNASSIGNED" | "RECEPTIONIST" | "DOCTOR" | "ADMIN" | "SUPERADMIN";
-  
+  _id: Schema.Types.ObjectId | any;
+
   // Doctor-specific fields
   specialty?: string;
   experience?: number;
@@ -156,7 +157,7 @@ const UserSchema = new Schema<IUser>(
     },
     // THE FIX: Yeh field ab "availabilities" ki jagah "weeklyAvailability" hai
     // aur yeh references (ObjectId) ki jagah poore objects ko store karta hai.
-    weeklyAvailability: [AvailabilityRuleSchema], 
+    weeklyAvailability: [AvailabilityRuleSchema],
     appointments: [{ type: Schema.Types.ObjectId, ref: "Appointment" }],
   },
   { timestamps: true }

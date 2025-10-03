@@ -113,7 +113,7 @@ export const superAdminNavItems: NavItem[] = [
   },
   
   {
-    title: 'Dashboard',
+    title: 'Users',
     url: '/superadmin/users',
     icon: 'dashboard',
     isActive: false,
