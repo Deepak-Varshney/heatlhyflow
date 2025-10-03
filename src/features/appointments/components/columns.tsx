@@ -6,11 +6,21 @@ import { Column, ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
 import { IAppointment } from '@/models/Appointment';
 import { format } from 'date-fns';
+import { CheckCircle2, Text, XCircle } from 'lucide-react';
+import Image from 'next/image';
 
 export const columns: ColumnDef<IAppointment | any>[] = [
   {
+    accessorKey:'patient',
     header: 'Patient',
-    cell: ({ row }) => <div>{row.original.patient.firstName} {row.original.patient.lastName}</div>
+    cell: ({ row }) => <div>{row.original.patientDetails.firstName} {row.original.patientDetails.lastName}</div>
+    , meta: {
+      label: 'Name',
+      placeholder: 'Search name...',
+      variant: 'text',
+      icon: Text
+    },
+    enableColumnFilter: true
   },
   {
     header: 'Slot',
@@ -18,7 +28,7 @@ export const columns: ColumnDef<IAppointment | any>[] = [
   },
   {
     header: 'Doctor',
-    cell: ({ row }) => <div>{row.original.doctor.firstName} {row.original.doctor.lastName}</div>
+    cell: ({ row }) => <div>{row.original.doctorDetails.firstName} {row.original.doctorDetails.lastName}</div>
   },
   {
     id: 'status',

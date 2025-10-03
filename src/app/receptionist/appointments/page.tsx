@@ -4,15 +4,11 @@ import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
 import AppointmentListingPage from '@/features/appointments/components/appointment-listing';
-import { columns } from '@/features/appointments/components/columns';
-import { ServerDataTable } from '@/features/products/components/product-tables';
-import { searchParamsCache, serialize } from '@/lib/searchparams';
+import { searchParamsCache } from '@/lib/searchparams';
 import { IPatient } from '@/models/Patient';
 import { IUser } from '@/models/User';
-import { getAllAppointments } from '@/utilties/appointments';
 import { getAllDoctors } from '@/utilties/doctors';
-import { getAllPatients, getPatients } from '@/utilties/patients';
-import { IconPlus } from '@tabler/icons-react';
+import { getAllPatients } from '@/utilties/patients';
 import { SearchParams } from 'nuqs/server';
 import { Suspense } from 'react';
 

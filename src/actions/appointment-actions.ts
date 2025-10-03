@@ -6,6 +6,7 @@ import connectDB from "@/lib/mongodb";
 import Appointment from "@/models/Appointment";
 import Patient from "@/models/Patient";
 import User from "@/models/User"; // Doctor model ki jagah User model ka istemaal karein
+import { parseSortParameter } from "@/lib/utils"; // We'll create this helper
 
 // Naye parameters: ab humein slotId nahi, startTime aur endTime chahiye
 interface BookAppointmentParams {
@@ -78,3 +79,90 @@ export async function bookAppointment(params: BookAppointmentParams) {
     session.endSession();
   }
 }
+
+interface GetAppointmentsParams {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  search?: string;
+  status?: string;
+  patientName?: string;
+  doctorName?: string;
+}
+
+export async function getAppointments({
+  page = 1,
+  limit = 10,
+  sort,
+  search,
+  status,
+  patientName,
+  doctorName,
+}: GetAppointmentsParams) {
+  await connectDB();
+
+  const offset = (page - 1) * limit;
+  const sortQuery = parseSortParameter(sort);
+  const pipeline: mongoose.PipelineStage[] = [];
+
+  // Step 1: Join (lookup) with patients and users (doctors) collections
+  pipeline.push(
+    { $lookup: { from: 'patients', localField: 'patient', foreignField: '_id', as: 'patientDetails' } },
+    { $lookup: { from: 'users', localField: 'doctor', foreignField: '_id', as: 'doctorDetails' } },
+    { $unwind: '$patientDetails' },
+    { $unwind: '$doctorDetails' }
+  );
+
+  // Step 2: Build the match query
+  const matchQuery: any = {};
+  if (status) matchQuery.status = status;
+  if (patientName) {
+    matchQuery['$or'] = [
+        { 'patientDetails.firstName': { $regex: patientName, $options: 'i' } },
+        { 'patientDetails.lastName': { $regex: patientName, $options: 'i' } },
+    ]
+  }
+  if (doctorName) {
+    matchQuery['$or'] = [
+        { 'doctorDetails.firstName': { $regex: doctorName, $options: 'i' } },
+        { 'doctorDetails.lastName': { $regex: doctorName, $options: 'i' } },
+    ]
+  }
+  if (search) {
+    matchQuery['$or'] = [
+        { 'patientDetails.firstName': { $regex: search, $options: 'i' } },
+        { 'patientDetails.lastName': { $regex: search, $options: 'i' } },
+        { 'doctorDetails.firstName': { $regex: search, $options: 'i' } },
+        { 'doctorDetails.lastName': { $regex: search, $options: 'i' } },
+        { 'status': { $regex: search, $options: 'i' } },
+    ]
+  }
+  if(Object.keys(matchQuery).length > 0) {
+      pipeline.push({ $match: matchQuery });
+  }
+
+  // Step 3: Use $facet for pagination and total count in one query
+  pipeline.push({
+    $facet: {
+      metadata: [{ $count: 'total' }],
+      data: [
+        { $sort: sortQuery },
+        { $skip: offset },
+        { $limit: limit },
+      ],
+    },
+  });
+
+  const result = await Appointment.aggregate(pipeline);
+  
+  const data = result[0].data;
+  const total = result[0].metadata[0]?.total || 0;
+
+  return {
+    data: JSON.parse(JSON.stringify(data)),
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+  };
+}
+

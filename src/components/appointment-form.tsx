@@ -19,7 +19,6 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { IDoctor } from "@/models/Doctor";
 import { IPatient } from "@/models/Patient";
 import { IAvailability } from "@/models/Availability"; // Import the availability type
 import { getAvailableSlots } from "@/actions/availability-actions"; // Import our new server action
@@ -38,7 +37,7 @@ export default function AppointmentBooking({
 
     // Form State
     const [selectedPatient, setSelectedPatient] = useState<IPatient | null>(null);
-    const [selectedDoctor, setSelectedDoctor] = useState<IDoctor | null>(null);
+    const [selectedDoctor, setSelectedDoctor] = useState<IUser | null>(null);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const [selectedSlot, setSelectedSlot] = useState<IAvailability | null>(null);
 

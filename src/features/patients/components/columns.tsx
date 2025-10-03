@@ -1,32 +1,77 @@
 'use client';
-import { Badge } from '@/components/ui/badge';
+import { ColumnDef } from '@tanstack/react-table';
+import { CellAction } from './cell-action'; // We will create this component
+import { IPatient } from '@/models/Patient';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
-import { Product } from '@/constants/data';
-import { Column, ColumnDef } from '@tanstack/react-table';
-import { CellAction } from './cell-action';
-import { format } from 'date-fns';
 
-
-export const columns: ColumnDef<any>[] = [
+export const columns: ColumnDef<IPatient>[] = [
   {
-    header: 'Full Name',
-    cell: ({ row }) => <div>{row.original.firstName} {row.original.lastName}</div>
-
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
   },
   {
-    header: 'DOB',
-    cell: ({ row }) => <div>{format(new Date(row.original.dateOfBirth), "dd/MM/yyyy")}</div>
+    accessorKey: 'firstName',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Full Name" />
+    ),
+    cell: ({ row }) => {
+      const patient = row.original;
+      return <div>{`${patient.firstName} ${patient.lastName}`}</div>;
+    },
+    // We enable filtering on a virtual 'name' field in the server action
+    meta: {
+      label: 'Patient Name',
+      placeholder: 'Search name...',
+      variant: 'text',
+    },
+    enableColumnFilter: true,
+  },
+  {
+    accessorKey: 'email',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Email" />
+    ),
   },
   {
     accessorKey: 'phoneNumber',
-    header: "Phone"
+    header: 'Phone Number',
+    meta: {
+      label: 'Patient Name',
+      placeholder: 'Search number...',
+      variant: 'text',
+    },
+    enableColumnFilter: true,
   },
   {
-    accessorKey: 'address',
-    header: "Address"
+    accessorKey: 'dateOfBirth',
+    header: 'Date of Birth',
+    cell: ({ cell }) => {
+      const date = cell.getValue<string>();
+      return <span>{new Date(date).toLocaleDateString()}</span>;
+    },
   },
   {
     id: 'actions',
-    cell: ({ row }) => <CellAction data={row.original} />
-  }
+    cell: ({ row }) => <CellAction data={row.original} />,
+  },
 ];
+

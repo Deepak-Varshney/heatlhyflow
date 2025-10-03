@@ -1,7 +1,8 @@
 import { ServerDataTable } from '@/features/products/components/product-tables';
 import { searchParamsCache } from '@/lib/searchparams';
 import { columns } from './columns';
-import { getPatients } from '@/utilties/patients';
+import { getPatients } from '@/actions/patient-actions';
+import { IPatient } from '@/models/Patient';
 
 type PatientListingPage = {};
 
@@ -11,17 +12,20 @@ export default async function PatientListingPage({}: PatientListingPage) {
   const search = searchParamsCache.get('name');
   const pageLimit = searchParamsCache.get('perPage');
   const categories = searchParamsCache.get('category');
+  const phoneNumber = searchParamsCache.get('phoneNumber')
 
   const filters = {
     page,
+    phoneNumber,
     limit: pageLimit,
+    ...(phoneNumber&&{phoneNumber}),
     ...(search && { search }),
     ...(categories && { categories: categories })
   };
 
   const data = await getPatients(filters);
-  const totalpatients = data.totalPatients;
-  const patients: any[] = data.patients;
+  const totalpatients = data.total;
+  const patients: IPatient[] = data.data;
 
   return (
     <ServerDataTable
