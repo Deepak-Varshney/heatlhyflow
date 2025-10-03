@@ -7,6 +7,9 @@ import Appointment from "@/models/Appointment";
 import Patient from "@/models/Patient";
 import User from "@/models/User"; // Doctor model ki jagah User model ka istemaal karein
 import { parseSortParameter } from "@/lib/utils"; // We'll create this helper
+import { startOfDay, endOfDay } from "date-fns";
+import Prescription from "@/models/Prescription";
+import { getMongoUser } from "@/lib/CheckUser";
 
 // Naye parameters: ab humein slotId nahi, startTime aur endTime chahiye
 interface BookAppointmentParams {
@@ -164,5 +167,123 @@ export async function getAppointments({
     totalPages: Math.ceil(total / limit),
     currentPage: page,
   };
+}
+
+
+
+
+/**
+ * Fetches the complete details for a single appointment by its ID.
+ * It populates the patient, doctor, and prescription information, making it
+ * ready to be displayed on the appointment details page.
+ */
+export async function getAppointmentDetails(appointmentId: string) {
+  try {
+    await connectDB();
+    const appointment = await Appointment.findById(appointmentId)
+      // Populate the patient's full details from the 'patients' collection
+      .populate({ 
+        path: 'patient', 
+        model: Patient 
+      })
+      // Populate the doctor's details, but only select the necessary fields
+      .populate({ 
+        path: 'doctor', 
+        model: User, 
+        select: 'firstName lastName specialty' 
+      })
+      // If a prescription exists, populate its details as well
+      .populate({ 
+        path: 'prescription', 
+        model: Prescription 
+      })
+      .lean(); // .lean() for a faster, plain JavaScript object
+
+    if (!appointment) {
+      return null; // Return null if the appointment is not found
+    }
+
+    // Convert the Mongoose document to a plain object that can be passed to client components
+    return JSON.parse(JSON.stringify(appointment));
+  } catch (error) {
+    console.error("Error fetching appointment details:", error);
+    // In case of an invalid ID or other database error, return null
+    return null;
+  }
+}
+
+/**
+ * Creates a new prescription and updates the corresponding appointment's status.
+ */
+export async function createPrescription(data: any) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const doctor = await getMongoUser();
+    if (!doctor) throw new Error("Doctor not authenticated");
+
+    const { appointmentId, patientId, chiefComplaint, medicines, tests, notes } = data;
+
+    // 1. Create the new prescription document
+    const newPrescription = new Prescription({
+      appointment: appointmentId,
+      patient: patientId,
+      doctor: doctor._id,
+      chiefComplaint,
+      medicines: medicines?.map((m: any) => ({
+        name: m.name,
+        dosage: m.dosage,
+        timings: m.timings,
+      })) || [],
+      tests: tests?.map((t: any) => t.name) || [],
+      notes,
+    });
+    await newPrescription.save({ session });
+
+    // 2. Update the appointment to "Completed" and link the prescription
+    await Appointment.findByIdAndUpdate(appointmentId, {
+      status: 'Completed',
+      prescription: newPrescription._id,
+    }, { session });
+
+    await session.commitTransaction();
+    revalidatePath(`/doctor/appointments/${appointmentId}`);
+    revalidatePath('/doctor/dashboard');
+    return { success: true };
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Error creating prescription:", error);
+    return { success: false, error: "Failed to save prescription." };
+  } finally {
+    session.endSession();
+  }
+}
+
+/**
+ * Fetches all appointments scheduled for today for the logged-in doctor.
+ */
+export async function getTodaysAppointmentsForDoctor() {
+    try {
+        const doctor = await getMongoUser();
+        if (!doctor) throw new Error("Not authenticated");
+
+        await connectDB();
+        const todayStart = startOfDay(new Date());
+        const todayEnd = endOfDay(new Date());
+
+        const appointments = await Appointment.find({
+            doctor: doctor._id,
+            startTime: { $gte: todayStart, $lt: todayEnd },
+            status: 'scheduled', // Only show upcoming appointments
+        })
+        .populate({ path: 'patient', model: Patient, select: 'firstName lastName' })
+        .sort({ startTime: 'asc' })
+        .lean();
+
+        return JSON.parse(JSON.stringify(appointments));
+    } catch (error) {
+        console.error("Error fetching today's appointments for doctor:", error);
+        return [];
+    }
 }
 

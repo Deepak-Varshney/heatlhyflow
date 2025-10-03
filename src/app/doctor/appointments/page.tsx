@@ -11,7 +11,7 @@ import { IPatient } from '@/models/Patient';
 import { IUser } from '@/models/User';
 import { getAllAppointments } from '@/utilties/appointments';
 import { getAllDoctors } from '@/utilties/doctors';
-import { getAllPatients, getPatients } from '@/utilties/patients';
+import { getAllPatients } from '@/utilties/patients';
 import { IconPlus } from '@tabler/icons-react';
 import { SearchParams } from 'nuqs/server';
 import { Suspense } from 'react';

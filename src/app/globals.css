@@ -156,3 +156,19 @@
   /* Apply the reveal animation */
   animation: reveal 0.4s ease-in-out forwards;
 }
+
+/* Yeh CSS normal view mein print-only content ko hide kar dega */
+.print-only {
+display: none;
+}
+
+@media print {
+/* Jab print command di jaye, to print-hide content ko hide kar do /
+.print-hide {
+display: none;
+}
+/ Aur print-only content ko dikhao */
+.print-only {
+display: block;
+}
+}
