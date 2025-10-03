@@ -111,75 +111,17 @@ export const superAdminNavItems: NavItem[] = [
     shortcut: ['d', 'd'],
     items: [] // Empty array as there are no child items for Dashboard
   },
+  
   {
-    title: 'Pateints',
-    url: '/receptionist/patients',
-    icon: 'patient',
-    shortcut: ['p', 'p'],
+    title: 'Dashboard',
+    url: '/superadmin/users',
+    icon: 'dashboard',
     isActive: false,
-    items: [] // No child items
+    shortcut: ['u', 'u'],
+    items: [] // Empty array as there are no child items for Dashboard
   },
-  {
-    title: 'Appopintments',
-    url: '/dashboard/appointments',
-    icon: 'page',
-    shortcut: ['a', 'a'],
-    isActive: false,
-    items: [] // No child items
-  },
-  {
-    title: 'Organization',
-    url: '/dashboard/manage-client',
-    icon: 'page',
-    shortcut: ['a', 'a'],
-    isActive: false,
-    items: [] // No child items
-  },
-  {
-    title: 'Account',
-    url: '#', // Placeholder as there is no direct link for the parent
-    icon: 'billing',
-    isActive: true,
-
-    items: [
-      {
-        title: 'Profile',
-        url: '/dashboard/profile',
-        icon: 'userPen',
-        shortcut: ['m', 'm']
-      },
-      {
-        title: 'Login',
-        shortcut: ['l', 'l'],
-        url: '/',
-        icon: 'login'
-      },
-      {
-        title: 'Dashboard',
-        url: '/receptionist/dashboard',
-        icon: 'dashboard',
-        isActive: false,
-        shortcut: ['d', 'd'],
-        items: [] // Empty array as there are no child items for Dashboard
-      },
-      {
-        title: 'Pateints',
-        url: '/receptionist/patients',
-        icon: 'patient',
-        shortcut: ['p', 'p'],
-        isActive: false,
-        items: [] // No child items
-      },
-      {
-        title: 'Appopintments',
-        url: '/receptionist/appointments',
-        icon: 'page',
-        shortcut: ['a', 'a'],
-        isActive: false,
-        items: [] // No child items
-      },
-    ]
-  },
+  
+  
 ];
 export const receptionistNavItems: NavItem[] = [
   {

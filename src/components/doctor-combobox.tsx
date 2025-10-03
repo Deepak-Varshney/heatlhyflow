@@ -55,13 +55,11 @@ export function DoctorCombobox({
           <CommandList>
             <CommandEmpty className="py-4 px-2 text-center text-sm">
                 <p className="mb-2">No doctor found.</p>
-                {/* Embed your "Add New Doctor" dialog here */}
-                {/* <DoctorRegistrationDialog /> */}
             </CommandEmpty>
             <CommandGroup>
               {doctors.map((doctor) => (
                 <CommandItem
-                  key={doctor._id}
+                  key={doctor._id?.toString()}
                   value={`${doctor.firstName} ${doctor.lastName} ${doctor.specialty}`}
                   onSelect={() => {
                     onSelectDoctor(doctor);
