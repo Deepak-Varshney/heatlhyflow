@@ -84,7 +84,8 @@ export default function AppointmentBooking({
             ({
                 patientId: selectedPatient._id,
                 doctorId: selectedDoctor._id,
-                availabilitySlotId: selectedSlot._id,
+                startTime: selectedSlot.startTime,
+                endTime: selectedSlot.endTime,
                 // reason: "Optional reason from another form field"
             });
 

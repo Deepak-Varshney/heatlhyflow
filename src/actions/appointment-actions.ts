@@ -1,19 +1,18 @@
-// In a new file: actions/appointment-actions.ts
-
 "use server";
 
 import { revalidatePath } from "next/cache";
 import mongoose from "mongoose";
 import connectDB from "@/lib/mongodb";
 import Appointment from "@/models/Appointment";
-import Availability from "@/models/Availability";
 import Patient from "@/models/Patient";
-import Doctor from "@/models/Doctor";
+import User from "@/models/User"; // Doctor model ki jagah User model ka istemaal karein
 
+// Naye parameters: ab humein slotId nahi, startTime aur endTime chahiye
 interface BookAppointmentParams {
   patientId: string;
   doctorId: string;
-  availabilitySlotId: string;
+  startTime: Date;
+  endTime: Date;
   reason?: string;
 }
 
@@ -23,54 +22,52 @@ export async function bookAppointment(params: BookAppointmentParams) {
   session.startTransaction();
 
   try {
-    const { patientId, doctorId, availabilitySlotId, reason } = params;
+    const { patientId, doctorId, startTime, endTime, reason } = params;
 
-    // Step 1: Find the availability slot and ensure it's still available.
-    // This is a critical step to prevent race conditions (double-booking).
-    const slot = await Availability.findOneAndUpdate(
-      { _id: availabilitySlotId, status: 'available' }, // Find an available slot
-      { status: 'booked' }, // Mark it as booked
-      { new: true, session } // `new: true` returns the updated doc, `session` makes it part of the transaction
-    );
+    // Step 1: Check karein ki is time slot mein koi aur appointment to nahi hai.
+    // Yeh double-booking ko rokne ka naya tareeka hai.
+    const conflictingAppointment = await Appointment.findOne({
+      doctor: doctorId,
+      // Check for any appointment that overlaps with the selected time range
+      $or: [
+        { startTime: { $lt: endTime, $gte: startTime } },
+        { endTime: { $gt: startTime, $lte: endTime } },
+      ],
+    }).session(session);
 
-    // If the slot is null, it was already booked by someone else or doesn't exist.
-    if (!slot) {
+    if (conflictingAppointment) {
       throw new Error("This time slot is no longer available. Please select another time.");
     }
 
-    // Step 2: Create the new appointment record.
+    // Step 2: Naya appointment record banayein.
     const newAppointmentData = {
       patient: patientId,
       doctor: doctorId,
-      availabilitySlot: availabilitySlotId,
-      startTime: slot.startTime,
-      endTime: slot.endTime,
-      reason: reason,
+      startTime,
+      endTime,
+      reason,
       status: 'scheduled',
     };
 
     const newAppointment = (await Appointment.create([newAppointmentData], { session }))[0];
 
-    // Step 3: Update the patient and doctor records with the new appointment ID.
+    // Step 3: Patient aur Doctor ke records mein appointment ID add karein.
     await Patient.updateOne(
-        { _id: patientId },
-        { $push: { appointments: newAppointment._id } },
-        { session }
+      { _id: patientId },
+      { $push: { appointments: newAppointment._id } },
+      { session }
     );
-    await Doctor.updateOne(
-        { _id: doctorId },
-        { $push: { appointments: newAppointment._id } },
-        { session }
+    await User.updateOne( // Doctor ki jagah User model ka istemaal karein
+      { _id: doctorId },
+      { $push: { appointments: newAppointment._id } },
+      { session }
     );
 
-    // If all operations were successful, commit the transaction.
     await session.commitTransaction();
-
-    revalidatePath("/appointments"); // Revalidate any page that lists appointments
-
+    revalidatePath("/appointments");
     return { success: true, appointment: JSON.parse(JSON.stringify(newAppointment)) };
+
   } catch (error) {
-    // If any error occurred, abort the entire transaction.
     await session.abortTransaction();
     console.error("Transaction Error:", error);
     return {
@@ -78,7 +75,6 @@ export async function bookAppointment(params: BookAppointmentParams) {
       error: error instanceof Error ? error.message : "Booking failed due to an unknown error.",
     };
   } finally {
-    // End the session
     session.endSession();
   }
 }

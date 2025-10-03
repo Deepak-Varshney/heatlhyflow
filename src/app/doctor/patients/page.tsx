@@ -1,47 +1,51 @@
-// app/doctor/patients/page.tsx
+import PageContainer from '@/components/layout/page-container';
+import PatientRegistrationDialog from '@/components/PatientRegistration';
+import { Heading } from '@/components/ui/heading';
+import { Separator } from '@/components/ui/separator';
+import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
+import PatientListingPage from '@/features/patients/components/patient-listing';
+import { searchParamsCache, serialize } from '@/lib/searchparams';
+import { IconPlus } from '@tabler/icons-react';
+import { SearchParams } from 'nuqs/server';
+import { Suspense } from 'react';
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-
-// In a real app, you would fetch this data from your Patient model
-const DUMMY_PATIENTS = [
-    { id: '1', name: 'John Doe', email: 'john@example.com', lastVisit: '2025-09-15' },
-    { id: '2', name: 'Alice Smith', email: 'alice@example.com', lastVisit: '2025-09-20' },
-];
-
-const PatientsPage = async () => {
-  // TODO: Fetch real patient data from your database
-  const patients = DUMMY_PATIENTS;
-
-  return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Patient List</h1>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Last Visit</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {patients.map((patient) => (
-            <TableRow key={patient.id}>
-              <TableCell>{patient.name}</TableCell>
-              <TableCell>{patient.email}</TableCell>
-              <TableCell>{patient.lastVisit}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
+export const metadata = {
+  title: 'Dashboard: Patients'
 };
 
-export default PatientsPage;
+type pageProps = {
+  searchParams: Promise<SearchParams>;
+};
+
+export default async function Page(props: pageProps) {
+  const searchParams = await props.searchParams;
+  // Allow nested RSCs to access the search params (in a type-safe way)
+  searchParamsCache.parse(searchParams);
+
+  // This key is used for invoke suspense if any of the search params changed (used for filters).
+  // const key = serialize({ ...searchParams });
+
+  return (
+    <PageContainer scrollable={false}>
+      <div className='flex flex-1 flex-col space-y-4'>
+        <div className='flex items-start justify-between'>
+          <Heading
+            title='Patients'
+            description='Manage patients'
+          />
+          <PatientRegistrationDialog />
+
+        </div>
+        <Separator />
+        <Suspense
+          // key={key}
+          fallback={
+            <DataTableSkeleton columnCount={5} rowCount={8} filterCount={2} />
+          }
+        >
+          <PatientListingPage />
+        </Suspense>
+      </div>
+    </PageContainer>
+  );
+}

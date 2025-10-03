@@ -15,18 +15,56 @@ interface GetPatientParams {
     status?: string;
 }
 
-export async function getAllPatients() {
-    await connectDB()
-    const rawpatients = await Patient.find({}).lean()
 
-    // .populate({
-    //   path: "appointments", // Populate the appointments
-    //   select: "date doctorName reasonForVisit status", // Fields to populate
-    //   match: { status: { $in: ["Scheduled", "Completed"] } }, // Optional filter on appointments
-    // })
-    const patients = serialize(rawpatients)
-    return patients
+// Helper to deeply serialize any object (from previous message)
+function toPlainObject(obj: any): any {
+    if (obj == null) return obj;
+
+    if (Array.isArray(obj)) {
+        return obj.map(toPlainObject);
+    }
+
+    if (typeof obj === 'object') {
+        const result: any = {};
+        for (const key in obj) {
+            const value = obj[key];
+            if (value instanceof Date) {
+                result[key] = value.toISOString();
+            } else if (value?._bsontype === 'ObjectID' || typeof value?.toString === 'function') {
+                result[key] = value.toString();
+            } else if (typeof value === 'object') {
+                result[key] = toPlainObject(value);
+            } else {
+                result[key] = value;
+            }
+        }
+        return result;
+    }
+
+    return obj;
 }
+
+export const serialize = (data: any) => {
+    return Array.isArray(data)
+        ? data.map(toPlainObject)
+        : toPlainObject(data);
+};
+
+export async function getAllPatients() {
+    await connectDB();
+
+    const rawpatients = await Patient.find({})
+        .populate({
+            path: "appointments",
+            // select: "date doctorName reasonForVisit status", // Uncomment if needed
+            // match: { status: { $in: ["Scheduled", "Completed"] } },
+        })
+        .lean(); // lean comes AFTER populate
+
+    const patients = serialize(rawpatients);
+    return patients;
+}
+
 export async function getPatients({
     page = 1,
     limit = 10,
@@ -97,11 +135,3 @@ export async function getPatients({
     };
 }
 
-export const serialize = (data: any) => {
-    return data.map((folioDoc: any) => ({
-        ...folioDoc,
-        _id: folioDoc._id?.toString(),
-        createdAt: folioDoc.createdAt?.toLocaleDateString(),
-        updatedAt: folioDoc.updatedAt?.toLocaleDateString(),
-    }));
-}
