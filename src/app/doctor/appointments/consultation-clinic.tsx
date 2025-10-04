@@ -269,7 +269,7 @@ import { PrintPreviewDialog } from './print-preview-dialog'; // Naya Print Previ
 type PopulatedAppointment = {
   _id: string;
   startTime: string;
-  endTime:string;
+  endTime: string;
   status: string;
   patient: {
     _id: string;
@@ -278,12 +278,12 @@ type PopulatedAppointment = {
     dateOfBirth: string;
     bp?: string;
     weight?: number;
-    phoneNumber?:string;
-    email?:string;
-    address?:string;
-    emergencyContact?:{
-      name?:string;
-      phone?:string;
+    phoneNumber?: string;
+    email?: string;
+    address?: string;
+    emergencyContact?: {
+      name?: string;
+      phone?: string;
     }
   };
   doctor: { firstName: string; lastName: string; specialty: string };

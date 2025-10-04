@@ -14,7 +14,7 @@ export const columns: ColumnDef<IAppointment | any>[] = [
     accessorKey: 'patient',
     id:'name',
     header: 'Patient',
-    cell: ({ row }) => <div>{row.original.patientDetails.firstName} {row.original.patientDetails.lastName}</div>
+    cell: ({ row }) => <div>{row.original.patient.firstName} {row.original.patient.lastName}</div>
     , meta: {
       label: 'Name',
       placeholder: 'Global Search...',

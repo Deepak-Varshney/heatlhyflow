@@ -115,7 +115,7 @@ type PopulatedAppointment = {
     email: string;
     phoneNumber: string;
     address: string;
-    bloodPressure?: string;
+    bp?: string;
     weight?: number;
     height?: number;
   };
@@ -168,7 +168,7 @@ export function PrintablePrescription({ appointment }: { appointment: PopulatedA
       <div className="mb-6">
         <h2 className="text-lg font-semibold border-b pb-1 mb-2">Patient Vitals</h2>
         <div className="flex space-x-8">
-          <p><strong>Blood Pressure:</strong> {patient.bloodPressure || 'N/A'}</p>
+          <p><strong>Blood Pressure:</strong> {patient.bp || 'N/A'}</p>
           <p><strong>Weight:</strong> {patient.weight ? `${patient.weight} kg` : 'N/A'}</p>
           <p><strong>Height:</strong> {patient.height ? `${patient.height} cm` : 'N/A'}</p>
         </div>

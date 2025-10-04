@@ -112,10 +112,12 @@ export async function getAppointments({
   const user = await getMongoUser();
   // Step 1: Join (lookup) with patients and users (doctors) collections
   pipeline.push(
-    { $lookup: { from: 'patients', localField: 'patient', foreignField: '_id', as: 'patientDetails' } },
+    { $lookup: { from: 'patients', localField: 'patient', foreignField: '_id', as: 'patient' } },
     { $lookup: { from: 'users', localField: 'doctor', foreignField: '_id', as: 'doctorDetails' } },
-    { $unwind: '$patientDetails' },
-    { $unwind: '$doctorDetails' }
+    { $lookup: { from: 'prescriptions', localField: 'prescription', foreignField: '_id', as: 'prescription' } },
+    { $unwind: '$patient' },
+    { $unwind: '$doctorDetails' },
+    { $unwind: '$prescription' },
   );
 
   // Step 2: Build the match query
@@ -132,8 +134,8 @@ export async function getAppointments({
   if (status) matchQuery.status = status;
   if (patientName) {
     matchQuery['$or'] = [
-      { 'patientDetails.firstName': { $regex: patientName, $options: 'i' } },
-      { 'patientDetails.lastName': { $regex: patientName, $options: 'i' } },
+      { 'patient.firstName': { $regex: patientName, $options: 'i' } },
+      { 'patient.lastName': { $regex: patientName, $options: 'i' } },
     ]
   }
   if (doctorName) {
@@ -144,8 +146,8 @@ export async function getAppointments({
   }
   if (search) {
     matchQuery['$or'] = [
-      { 'patientDetails.firstName': { $regex: search, $options: 'i' } },
-      { 'patientDetails.lastName': { $regex: search, $options: 'i' } },
+      { 'patient.firstName': { $regex: search, $options: 'i' } },
+      { 'patient.lastName': { $regex: search, $options: 'i' } },
       { 'doctorDetails.firstName': { $regex: search, $options: 'i' } },
       { 'doctorDetails.lastName': { $regex: search, $options: 'i' } },
       { 'status': { $regex: search, $options: 'i' } },
