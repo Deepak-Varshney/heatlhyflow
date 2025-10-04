@@ -46,14 +46,11 @@ export const metadata = {
 };
 
 // ✅ Correct PageProps type — no Promise!
-type PageProps = {
-  params: {
-    appointmentId: string;
-  };
-};
 
+type PageProps = { params: Promise<{ appointmentId: string }> };
 // ✅ Use the correct type
-export default async function Page({ params }: PageProps) {
+export default async function Page(props: PageProps) {
+  const params = await props.params;
   const appointment = await getAppointmentDetails(params.appointmentId);
 
   if (!appointment) {
