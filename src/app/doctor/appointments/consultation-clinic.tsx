@@ -1,152 +1,257 @@
 // "use client";
 
-// import { useState, useEffect } from 'react';
-// import { format } from 'date-fns';
-// import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-// import { Badge } from '@/components/ui/badge';
-// import { Button } from '@/components/ui/button';
-// import { Loader2, Download } from 'lucide-react';
-// import { getAppointmentDetails } from '@/actions/appointment-actions';
-// import { PrescriptionForm } from '@/components/prescription-form';
-// import jsPDF from 'jspdf';
+// import { useState } from "react";
+// import { format } from "date-fns";
+// import {
+//   Card,
+//   CardHeader,
+//   CardTitle,
+//   CardContent,
+//   CardDescription,
+// } from "@/components/ui/card";
+// import { Badge } from "@/components/ui/badge";
+// import { Button } from "@/components/ui/button";
+// import {
+//   Loader2,
+//   Printer,
+//   Stethoscope,
+//   User,
+//   History,
+//   Calendar,
+//   Clock,
+//   HeartPulse,
+//   Weight,
+//   Phone,
+//   Mail,
+//   AlertTriangle,
+// } from "lucide-react";
+// import { getAppointmentDetails } from "@/actions/appointment-actions";
+// import { PrescriptionForm } from "@/components/prescription-form";
+// import { PrintablePrescription } from "./printable-prescription";
 
-// // Populated appointment ke liye type define karein
+// // Populated appointment type
 // type PopulatedAppointment = {
 //   _id: string;
 //   startTime: string;
+//   endTime: string;
 //   status: string;
-//   patient: { _id: string; firstName: string; lastName: string; dateOfBirth: string };
-//   doctor: { firstName: string; lastName: string; specialty: string };
+//   patient: {
+//     _id: string;
+//     firstName: string;
+//     lastName: string;
+//     dateOfBirth: string;
+//     email: string;
+//     phoneNumber: string;
+//     address: string;
+//     bp: string;
+//     weight: string;
+//     occupation: string;
+//     emergencyContact: { name: string; phone: string };
+//   };
+//   doctor: {
+//     firstName: string;
+//     lastName: string;
+//     specialty: string;
+//   };
 //   prescription?: {
 //     _id: string;
 //     chiefComplaint: string;
-//     medicines: { name: string; dosage: string; timings: { morning: boolean; afternoon: boolean; night: boolean } }[];
+//     medicines: {
+//       name: string;
+//       dosage: string;
+//       timings: {
+//         morning: boolean;
+//         afternoon: boolean;
+//         night: boolean;
+//       };
+//     }[];
 //     tests: { name: string }[];
 //     notes?: string;
 //   };
 // };
 
-// export default function ConsultationClientPage({ initialAppointment }: { initialAppointment: PopulatedAppointment }) {
-//   // The component now starts with the data passed from the server.
-//   const [appointment, setAppointment] = useState<PopulatedAppointment>(initialAppointment);
+// export default function ConsultationClientPage({
+//   initialAppointment,
+// }: {
+//   initialAppointment: PopulatedAppointment;
+// }) {
+//   const [appointment, setAppointment] =
+//     useState<PopulatedAppointment>(initialAppointment);
+
+//   const now = new Date();
+//   const start = new Date(appointment.startTime);
+//   const end = new Date(appointment.endTime);
+
+//   const isInConsultationWindow = now >= start && now <= end;
 
 //   const handleSaveSuccess = async () => {
-//     // Re-fetch the latest data after the prescription is saved
 //     const updatedData = await getAppointmentDetails(appointment._id);
 //     if (updatedData) {
 //       setAppointment(updatedData);
 //     }
 //   };
 
-//   const handleDownloadPdf = () => {
-//     if (!appointment?.prescription) return;
+//   const handlePrint = () => {
+//     window.print();
+//   };
 
-//     const doc = new jsPDF();
-//     const { patient, doctor, prescription, startTime } = appointment;
-
-//     // --- PDF Generation Logic (no changes needed) ---
-//     doc.setFontSize(22);
-//     doc.text("Clinic Prescription Report", 105, 20, { align: 'center' });
-//     doc.setFontSize(12);
-//     doc.text(`Date: ${format(new Date(startTime), "PPP")}`, 105, 28, { align: 'center' });
-//     doc.line(15, 35, 195, 35);
-
-//     let yPos = 45;
-//     doc.setFontSize(14);
-//     doc.text("Patient Information", 15, yPos);
-//     doc.setFontSize(10);
-//     doc.text(`Name: ${patient.firstName} ${patient.lastName}`, 15, yPos + 8);
-//     const age = new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear();
-//     doc.text(`Age: ${age} years`, 15, yPos + 13);
-
-//     doc.setFontSize(14);
-//     doc.text("Doctor Information", 105, yPos);
-//     doc.setFontSize(10);
-//     doc.text(`Name: Dr. ${doctor.firstName} ${doctor.lastName}`, 105, yPos + 8);
-//     doc.text(`Specialty: ${doctor.specialty}`, 105, yPos + 13);
-//     yPos += 25;
-//     doc.line(15, yPos - 5, 195, yPos - 5);
-
-//     doc.setFontSize(14);
-//     doc.text("Chief Complaint / Diagnosis", 15, yPos + 5);
-//     doc.setFontSize(10);
-//     const complaintLines = doc.splitTextToSize(prescription.chiefComplaint, 180);
-//     doc.text(complaintLines, 15, yPos + 12);
-//     yPos += 15 + (complaintLines.length * 5);
-
-//     if (prescription.medicines && prescription.medicines.length > 0) {
-//         (doc as any).autoTable({
-//             startY: yPos,
-//             head: [['Medicine', 'Dosage', 'Timings (M-A-N)']],
-//             body: prescription.medicines.map(med => [
-//                 med.name,
-//                 med.dosage,
-//                 `${med.timings.morning ? '✔️' : '❌'} / ${med.timings.afternoon ? '✔️' : '❌'} / ${med.timings.night ? '✔️' : '❌'}`
-//             ]),
-//             theme: 'grid',
-//             headStyles: { fillColor: [22, 160, 133] },
-//         });
-//         yPos = (doc as any).lastAutoTable.finalY + 10;
-//     }
-
-//     if (prescription.tests && prescription.tests.length > 0) {
-//         (doc as any).autoTable({
-//             startY: yPos,
-//             head: [['Recommended Tests']],
-//             body: prescription.tests.map(test => [test.name]),
-//             theme: 'grid',
-//             headStyles: { fillColor: [44, 62, 80] },
-//         });
-//         yPos = (doc as any).lastAutoTable.finalY + 10;
-//     }
-
-//     if (prescription.notes) {
-//         doc.setFontSize(14);
-//         doc.text("Additional Notes", 15, yPos);
-//         doc.setFontSize(10);
-//         const noteLines = doc.splitTextToSize(prescription.notes, 180);
-//         doc.text(noteLines, 15, yPos + 7);
-//     }
-
-//     doc.save(`Prescription-${patient.firstName}-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+//   const calculateAge = (dob: string) => {
+//     const birthDate = new Date(dob);
+//     const ageDiff = Date.now() - birthDate.getTime();
+//     const age = new Date(ageDiff);
+//     return Math.abs(age.getUTCFullYear() - 1970);
 //   };
 
 //   return (
-//     <div className="space-y-8">
-//       <Card>
-//         <CardHeader>
-//           <CardTitle>Appointment Details</CardTitle>
-//           <div className="flex flex-wrap gap-4 pt-2 text-sm">
-//             <p><strong>Date:</strong> {format(new Date(appointment.startTime), "PPP")}</p>
-//             <p><strong>Time:</strong> {format(new Date(appointment.startTime), "p")}</p>
-//             <p><strong>Status:</strong> <Badge>{appointment.status}</Badge></p>
-//           </div>
-//         </CardHeader>
-//       </Card>
+//     <>
+//       {/* Hidden print version */}
+//       <div className="print-only">
+//         {appointment.prescription && (
+//           <PrintablePrescription appointment={appointment} />
+//         )}
+//       </div>
 
-//       {appointment.prescription ? (
-//         <Card>
-//             <CardHeader>
-//                 <div className="flex justify-between items-center">
-//                     <CardTitle>Prescription Issued</CardTitle>
-//                     <Button onClick={handleDownloadPdf}><Download className="mr-2 h-4 w-4" /> Download Report</Button>
-//                 </div>
-//             </CardHeader>
-//             <CardContent>
-//                 <p>A prescription has been saved for this appointment.</p>
-//             </CardContent>
-//         </Card>
-//       ) : (
-//         <PrescriptionForm
-//           appointmentId={appointment._id.toString()}
-//           patientId={appointment.patient._id.toString()}
-//           onSaveSuccess={handleSaveSuccess}
-//         />
-//       )}
-//     </div>
+//       {/* Main UI */}
+//       <div className="space-y-6 print-hide">
+//         <div className="flex justify-between items-center">
+//           <h1 className="text-3xl font-bold">Consultation</h1>
+//           <Badge>{appointment.status.toUpperCase()}</Badge>
+//         </div>
+
+//         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+//           {/* LEFT COLUMN */}
+//           <div className="lg:col-span-1 space-y-6">
+//             <Card>
+//               <CardHeader>
+//                 <CardTitle className="flex items-center gap-2">
+//                   <User className="h-5 w-5 text-primary" />
+//                   Patient Details
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent className="space-y-2 text-sm">
+//                 <p>
+//                   <strong>Name:</strong> {appointment.patient.firstName}{" "}
+//                   {appointment.patient.lastName}
+//                 </p>
+//                 <p>
+//                   <strong>Age:</strong> {calculateAge(appointment.patient.dateOfBirth)}{" "}
+//                   years
+//                 </p>
+//                 <p>
+//                   <strong>Weight:</strong> {appointment.patient.weight}
+//                 </p>
+//                 <p>
+//                   <strong>Blood Pressure:</strong> {appointment.patient.bp}
+//                 </p>
+//                 <p>
+//                   <strong>Email:</strong> {appointment.patient.email}
+//                 </p>
+//                 <p>
+//                   <strong>Phone:</strong> {appointment.patient.phoneNumber}
+//                 </p>
+//                 <p>
+//                   <strong>Address:</strong> {appointment.patient.address}
+//                 </p>
+//                 <p>
+//                   <strong>Emergency Contact:</strong>{" "}
+//                   {appointment.patient.emergencyContact.name} (
+//                   {appointment.patient.emergencyContact.phone})
+//                 </p>
+//               </CardContent>
+//             </Card>
+
+//             <Card>
+//               <CardHeader>
+//                 <CardTitle className="flex items-center gap-2">
+//                   <Calendar className="h-4 w-4" /> Appointment Info
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent className="space-y-2 text-sm">
+//                 <p>
+//                   <strong>Date:</strong>{" "}
+//                   {format(new Date(appointment.startTime), "PPP")}
+//                 </p>
+//                 <p>
+//                   <strong>Time Slot:</strong>{" "}
+//                   {format(start, "p")} - {format(end, "p")}
+//                 </p>
+//                 <p>
+//                   <strong>Doctor:</strong>{" "}
+//                   {appointment.doctor.firstName} {appointment.doctor.lastName} (
+//                   {appointment.doctor.specialty})
+//                 </p>
+//               </CardContent>
+//             </Card>
+
+//             <Card>
+//               <CardHeader>
+//                 <CardTitle className="flex items-center gap-2">
+//                   <History className="h-5 w-5" /> Patient History
+//                 </CardTitle>
+//               </CardHeader>
+//               <CardContent>
+//                 <p className="text-sm text-muted-foreground">
+//                   Previous appointment history will be shown here.
+//                 </p>
+//               </CardContent>
+//             </Card>
+//           </div>
+
+//           {/* RIGHT COLUMN */}
+//           <div className="lg:col-span-2">
+//             {appointment.prescription ? (
+//               <Card>
+//                 <CardHeader>
+//                   <div className="flex justify-between items-center">
+//                     <CardTitle className="flex items-center gap-2">
+//                       <Stethoscope className="h-5 w-5" /> Prescription Issued
+//                     </CardTitle>
+//                     <Button onClick={handlePrint} variant="outline">
+//                       <Printer className="mr-2 h-4 w-4" /> Print Report
+//                     </Button>
+//                   </div>
+//                   <CardDescription>
+//                     Consultation on {format(new Date(appointment.startTime), "PPP, p")}
+//                   </CardDescription>
+//                 </CardHeader>
+//                 <CardContent>
+//                   <div className="space-y-4 text-sm">
+//                     <div>
+//                       <h4 className="font-semibold">Diagnosis</h4>
+//                       <p className="text-muted-foreground">
+//                         {appointment.prescription.chiefComplaint}
+//                       </p>
+//                     </div>
+//                     {/* Add other prescription fields if needed */}
+//                   </div>
+//                 </CardContent>
+//               </Card>
+//             ) : isInConsultationWindow ? (
+//               <PrescriptionForm
+//                 appointmentId={appointment._id.toString()}
+//                 patientId={appointment.patient._id.toString()}
+//                 onSaveSuccess={handleSaveSuccess}
+//               />
+//             ) : (
+//               <Card>
+//                 <CardHeader>
+//                   <CardTitle className="flex items-center gap-2 text-red-500">
+//                     <AlertTriangle className="h-5 w-5" />
+//                     Prescription Not Available
+//                   </CardTitle>
+//                   <CardDescription>
+//                     You can only add a prescription during the scheduled consultation
+//                     time ({format(start, "p")} - {format(end, "p")}).
+//                   </CardDescription>
+//                 </CardHeader>
+//               </Card>
+//             )}
+//           </div>
+//         </div>
+//       </div>
+//     </>
 //   );
 // }
-
 
 "use client";
 
@@ -155,118 +260,143 @@ import { format } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Printer, Stethoscope, User, History } from 'lucide-react';
+import { Printer, Stethoscope, User, History, HeartPulse, Weight } from 'lucide-react';
 import { getAppointmentDetails } from '@/actions/appointment-actions';
 import { PrescriptionForm } from '@/components/prescription-form';
-import { PrintablePrescription } from './printable-prescription';
-// Populated appointment ke liye type define karein
+import { PrintPreviewDialog } from './print-preview-dialog'; // Naya Print Preview Dialog
+
+// Populated appointment ke liye naya type
 type PopulatedAppointment = {
   _id: string;
   startTime: string;
+  endTime:string;
   status: string;
-  patient: { _id: string; firstName: string; lastName: string; dateOfBirth: string };
-  doctor: { firstName: string; lastName: string; specialty: string };
-  prescription?: {
+  patient: {
     _id: string;
-    chiefComplaint: string;
-    medicines: { name: string; dosage: string; timings: { morning: boolean; afternoon: boolean; night: boolean } }[];
-    tests: { name: string }[];
-    notes?: string;
+    firstName: string;
+    lastName: string;
+    dateOfBirth: string;
+    bp?: string;
+    weight?: number;
+    phoneNumber?:string;
+    email?:string;
+    address?:string;
+    emergencyContact?:{
+      name?:string;
+      phone?:string;
+    }
   };
+  doctor: { firstName: string; lastName: string; specialty: string };
+  prescription?: any;
 };
 
 export default function ConsultationClientPage({ initialAppointment }: { initialAppointment: PopulatedAppointment }) {
   const [appointment, setAppointment] = useState<PopulatedAppointment>(initialAppointment);
-
+  const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const now = new Date();
+  const startTime = new Date(appointment.startTime);
+  const endTime = new Date(appointment.endTime);
+  const isWithinSlot = now >= startTime && now <= endTime;
   const handleSaveSuccess = async () => {
-    // Prescription save hone ke baad, appointment details ko re-fetch karein
     const updatedData = await getAppointmentDetails(appointment._id);
-    if (updatedData) {
-      setAppointment(updatedData);
-    }
+    if (updatedData) setAppointment(updatedData);
   };
 
-  const handlePrint = () => {
-    window.print();
+  const calculateAge = (dob: string) => {
+    return new Date().getFullYear() - new Date(dob).getFullYear();
   };
 
   return (
     <>
-      {/* Yeh component screen par nahi dikhega, yeh sirf printing ke liye hai */}
-      <div className="print-only">
-        {appointment.prescription && <PrintablePrescription appointment={appointment} />}
-      </div>
-
-      {/* Yeh main UI hai jo screen par dikhega */}
-      <div className="space-y-6 print-hide">
-        {/* Header */}
+      <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Consultation</h1>
-          <Badge>{appointment.status}</Badge>
+          <Badge>{appointment.status.toUpperCase()}</Badge>
         </div>
 
-        {/* 2-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* Left Column: Patient Details & History */}
+          {/* LEFT COLUMN: Patient Chart */}
           <div className="lg:col-span-1 space-y-6">
             <Card>
-              <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-                <User className="h-8 w-8 text-primary" />
-                <div>
-                  <CardTitle>{appointment.patient.firstName} {appointment.patient.lastName}</CardTitle>
-                  <CardDescription>
-                    Age: {new Date().getFullYear() - new Date(appointment.patient.dateOfBirth).getFullYear()} years
-                  </CardDescription>
-                </div>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><User className="h-5 w-5" /> Patient Details</CardTitle>
               </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <p><strong>Name:</strong> {appointment.patient.firstName} {appointment.patient.lastName}</p>
+                <p><strong>Age:</strong> {calculateAge(appointment.patient.dateOfBirth)} years</p>
+                <div className="flex items-center gap-2 pt-2">
+                  <HeartPulse className="h-5 w-5 text-red-500" />
+                  <p><strong>BP:</strong> {appointment.patient.bp || 'N/A'}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Weight className="h-5 w-5 text-blue-500" />
+                  <p><strong>Weight:</strong> {appointment.patient.weight ? `${appointment.patient.weight} kg` : 'N/A'}</p>
+                </div>
+                <p><strong>Email:</strong> {appointment.patient.email}</p>
+                <p><strong>Phone:</strong> {appointment.patient.phoneNumber}</p>
+                <p><strong>Address:</strong> {appointment.patient.address}</p>
+                <p>
+                  <strong>Emergency Contact:</strong> {appointment.patient.emergencyContact?.name} ({appointment.patient.emergencyContact?.phone})
+                </p>
+              </CardContent>
             </Card>
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2"><History className="h-5 w-5" /> Patient History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {/* Yahan aap patient ke purane appointments ki list dikha sakte hain */}
-                <p className="text-sm text-muted-foreground">Previous appointment history will be shown here.</p>
-              </CardContent>
+              <CardHeader><CardTitle className="flex items-center gap-2"><History className="h-5 w-5" /> Patient History</CardTitle></CardHeader>
+              <CardContent><p className="text-sm text-muted-foreground">Previous appointment history will be shown here.</p></CardContent>
             </Card>
           </div>
 
+          {/* RIGHT COLUMN: Prescription */}
           <div className="lg:col-span-2">
             {appointment.prescription ? (
               <Card>
                 <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="flex items-center gap-2">
-                      <Stethoscope className="h-5 w-5" /> Prescription Issued
-                    </CardTitle>
-                    <Button onClick={handlePrint} variant="outline">
-                      <Printer className="mr-2 h-4 w-4" /> Print Report
-                    </Button>
-                  </div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Stethoscope className="h-5 w-5" /> Consultation Report
+                  </CardTitle>
                   <CardDescription>
                     Consultation on {format(new Date(appointment.startTime), "PPP, p")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4 text-sm">
-                    <div>
-                      <h4 className="font-semibold">Diagnosis</h4>
-                      <p className="text-muted-foreground">{appointment.prescription.chiefComplaint}</p>
-                    </div>
-                  </div>
+                  <p className="mb-4">The prescription has been issued for this consultation.</p>
+                  <Button onClick={() => setShowPrintPreview(true)}>
+                    <Printer className="mr-2 h-4 w-4" /> View & Print Report
+                  </Button>
                 </CardContent>
               </Card>
-            ) : (
+            ) : isWithinSlot ? (
               <PrescriptionForm
                 appointmentId={appointment._id.toString()}
                 patientId={appointment.patient._id.toString()}
                 onSaveSuccess={handleSaveSuccess}
               />
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Stethoscope className="h-5 w-5" /> Prescription Unavailable
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    You can only add a prescription during the consultation time slot ({format(startTime, "PPP, p")} - {format(endTime, "p")}).
+                  </p>
+                </CardContent>
+              </Card>
             )}
           </div>
         </div>
       </div>
+
+      {/* Print Preview Dialog */}
+      {appointment.prescription && (
+        <PrintPreviewDialog
+          isOpen={showPrintPreview}
+          onClose={() => setShowPrintPreview(false)}
+          appointment={appointment}
+        />
+      )}
     </>
   );
 }

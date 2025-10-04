@@ -10,15 +10,29 @@ interface IMedicine {
     night: boolean;
   };
 }
+// Test ke liye naya, detailed sub-schema
+interface ITest {
+  name: string;
+  notes?: string;       // Har test ke liye alag notes
+  reportImageUrl?: string; // Report ki image ka URL
+}
 
 export interface IPrescription extends Document {
   appointment: Schema.Types.ObjectId;
   patient: Schema.Types.ObjectId;
   doctor: Schema.Types.ObjectId;
   medicines: IMedicine[];
-  tests: string[]; // e.g., ["Complete Blood Count", "X-Ray"]
+  chiefComplaint: string; // Patient ki samasya
+  diagnosis: string;      // Doctor ka nirdharan
+  tests: ITest[]; // Ab yeh naye ITest type ka array hoga
   notes?: string;
 }
+const TestSchema = new Schema<ITest>({
+  name: { type: String, required: true },
+  notes: { type: String },
+  reportImageUrl: { type: String },
+}, { _id: false });
+
 
 const MedicineSchema = new Schema<IMedicine>({
   name: { type: String, required: true },
@@ -36,8 +50,10 @@ const PrescriptionSchema = new Schema<IPrescription>(
     patient: { type: Schema.Types.ObjectId, ref: 'Patient', required: true },
     doctor: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Assuming Doctor is a User
     medicines: [MedicineSchema],
-    tests: [{ type: String }],
+    chiefComplaint: { type: String, required: true },
+    diagnosis: { type: String, required: true },
     notes: { type: String },
+    tests: [TestSchema], // Yahan naye TestSchema ka istemaal karein
   },
   { timestamps: true }
 );
