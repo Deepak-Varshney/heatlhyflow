@@ -11,6 +11,7 @@ export interface IAppointment extends Document {
   reason?: string;
   notes?: string;
   prescription?: Schema.Types.ObjectId;
+  createdBy?: Schema.Types.ObjectId;
 }
 
 const AppointmentSchema = new Schema<IAppointment>(
@@ -50,15 +51,13 @@ const AppointmentSchema = new Schema<IAppointment>(
       type: String,
       trim: true,
     },
+    createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    
   },
   {
     timestamps: true,
   }
 );
-
-// Add indexes for common queries
-AppointmentSchema.index({ doctor: 1, startTime: 1 });
-AppointmentSchema.index({ patient: 1, startTime: 1 });
 
 const Appointment = models.Appointment || model<IAppointment>("Appointment", AppointmentSchema);
 

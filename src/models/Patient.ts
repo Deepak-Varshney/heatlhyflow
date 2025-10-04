@@ -12,8 +12,11 @@ export interface IPatient extends Document {
     name: string;
     phone: string;
   };
-  _id:Schema.Types.ObjectId|any
+  _id: Schema.Types.ObjectId | any
   appointments: [Schema.Types.ObjectId]; // Add reference to Appointments
+  bp?: string;
+  occupation?: string;
+  weight?: string;
 }
 
 const PatientSchema = new Schema<IPatient>(
@@ -62,6 +65,15 @@ const PatientSchema = new Schema<IPatient>(
         trim: true,
       },
     },
+    bp: {
+      type: String, // Blood pressure as a string (e.g. '120/80')
+    },
+    weight: {
+      type: String, // Weight as a string (e.g. '70kg')
+    },
+    occupation: {
+      type: String, // Occupation as a string (e.g. 'Teacher')
+    },
     appointments: [
       { type: Schema.Types.ObjectId, ref: 'Appointment' }, // Reference to Appointments model
     ],
@@ -71,10 +83,6 @@ const PatientSchema = new Schema<IPatient>(
     timestamps: true, // Adds createdAt and updatedAt automatically
   }
 );
-
-// Create index for better query performance
-PatientSchema.index({ email: 1 });
-PatientSchema.index({ lastName: 1, firstName: 1 });
 
 const Patient = models.Patient || model<IPatient>("Patient", PatientSchema);
 

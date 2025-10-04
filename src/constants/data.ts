@@ -111,7 +111,7 @@ export const superAdminNavItems: NavItem[] = [
     shortcut: ['d', 'd'],
     items: [] // Empty array as there are no child items for Dashboard
   },
-  
+
   {
     title: 'Users',
     url: '/superadmin/users',
@@ -120,8 +120,16 @@ export const superAdminNavItems: NavItem[] = [
     shortcut: ['u', 'u'],
     items: [] // Empty array as there are no child items for Dashboard
   },
-  
-  
+  {
+    title: 'Clinics',
+    url: '/superadmin/clinics',
+    icon: 'dashboard',
+    isActive: false,
+    shortcut: ['u', 'u'],
+    items: [] // Empty array as there are no child items for Dashboard
+  },
+
+
 ];
 export const receptionistNavItems: NavItem[] = [
   {

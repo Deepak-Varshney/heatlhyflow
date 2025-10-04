@@ -22,6 +22,7 @@ interface BookAppointmentParams {
 
 export async function bookAppointment(params: BookAppointmentParams) {
   await connectDB();
+  const user = await getMongoUser();
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -51,6 +52,7 @@ export async function bookAppointment(params: BookAppointmentParams) {
       endTime,
       reason,
       status: 'scheduled',
+      createdBy: user._id
     };
 
     const newAppointment = (await Appointment.create([newAppointmentData], { session }))[0];
@@ -107,7 +109,7 @@ export async function getAppointments({
   const offset = (page - 1) * limit;
   const sortQuery = parseSortParameter(sort);
   const pipeline: mongoose.PipelineStage[] = [];
-
+  const user = await getMongoUser();
   // Step 1: Join (lookup) with patients and users (doctors) collections
   pipeline.push(
     { $lookup: { from: 'patients', localField: 'patient', foreignField: '_id', as: 'patientDetails' } },
@@ -118,30 +120,39 @@ export async function getAppointments({
 
   // Step 2: Build the match query
   const matchQuery: any = {};
+  // Apply role-based filtering for the logged-in user
+  if (user.role === "DOCTOR") {
+    //  Only fetch appointments where the doctor is the logged-in user
+    matchQuery.$or = [
+      { doctor: user._id },       // Appointments where the logged-in user is the doctor
+      { createdBy: user._id },    // Appointments created by the logged-in user (receptionist)
+    ];
+  }
+
   if (status) matchQuery.status = status;
   if (patientName) {
     matchQuery['$or'] = [
-        { 'patientDetails.firstName': { $regex: patientName, $options: 'i' } },
-        { 'patientDetails.lastName': { $regex: patientName, $options: 'i' } },
+      { 'patientDetails.firstName': { $regex: patientName, $options: 'i' } },
+      { 'patientDetails.lastName': { $regex: patientName, $options: 'i' } },
     ]
   }
   if (doctorName) {
     matchQuery['$or'] = [
-        { 'doctorDetails.firstName': { $regex: doctorName, $options: 'i' } },
-        { 'doctorDetails.lastName': { $regex: doctorName, $options: 'i' } },
+      { 'doctorDetails.firstName': { $regex: doctorName, $options: 'i' } },
+      { 'doctorDetails.lastName': { $regex: doctorName, $options: 'i' } },
     ]
   }
   if (search) {
     matchQuery['$or'] = [
-        { 'patientDetails.firstName': { $regex: search, $options: 'i' } },
-        { 'patientDetails.lastName': { $regex: search, $options: 'i' } },
-        { 'doctorDetails.firstName': { $regex: search, $options: 'i' } },
-        { 'doctorDetails.lastName': { $regex: search, $options: 'i' } },
-        { 'status': { $regex: search, $options: 'i' } },
+      { 'patientDetails.firstName': { $regex: search, $options: 'i' } },
+      { 'patientDetails.lastName': { $regex: search, $options: 'i' } },
+      { 'doctorDetails.firstName': { $regex: search, $options: 'i' } },
+      { 'doctorDetails.lastName': { $regex: search, $options: 'i' } },
+      { 'status': { $regex: search, $options: 'i' } },
     ]
   }
-  if(Object.keys(matchQuery).length > 0) {
-      pipeline.push({ $match: matchQuery });
+  if (Object.keys(matchQuery).length > 0) {
+    pipeline.push({ $match: matchQuery });
   }
 
   // Step 3: Use $facet for pagination and total count in one query
@@ -157,7 +168,7 @@ export async function getAppointments({
   });
 
   const result = await Appointment.aggregate(pipeline);
-  
+
   const data = result[0].data;
   const total = result[0].metadata[0]?.total || 0;
 
@@ -182,20 +193,20 @@ export async function getAppointmentDetails(appointmentId: string) {
     await connectDB();
     const appointment = await Appointment.findById(appointmentId)
       // Populate the patient's full details from the 'patients' collection
-      .populate({ 
-        path: 'patient', 
-        model: Patient 
+      .populate({
+        path: 'patient',
+        model: Patient
       })
       // Populate the doctor's details, but only select the necessary fields
-      .populate({ 
-        path: 'doctor', 
-        model: User, 
-        select: 'firstName lastName specialty' 
+      .populate({
+        path: 'doctor',
+        model: User,
+        select: 'firstName lastName specialty'
       })
       // If a prescription exists, populate its details as well
-      .populate({ 
-        path: 'prescription', 
-        model: Prescription 
+      .populate({
+        path: 'prescription',
+        model: Prescription
       })
       .lean(); // .lean() for a faster, plain JavaScript object
 
@@ -263,27 +274,27 @@ export async function createPrescription(data: any) {
  * Fetches all appointments scheduled for today for the logged-in doctor.
  */
 export async function getTodaysAppointmentsForDoctor() {
-    try {
-        const doctor = await getMongoUser();
-        if (!doctor) throw new Error("Not authenticated");
+  try {
+    const doctor = await getMongoUser();
+    if (!doctor) throw new Error("Not authenticated");
 
-        await connectDB();
-        const todayStart = startOfDay(new Date());
-        const todayEnd = endOfDay(new Date());
+    await connectDB();
+    const todayStart = startOfDay(new Date());
+    const todayEnd = endOfDay(new Date());
 
-        const appointments = await Appointment.find({
-            doctor: doctor._id,
-            startTime: { $gte: todayStart, $lt: todayEnd },
-            status: 'scheduled', // Only show upcoming appointments
-        })
-        .populate({ path: 'patient', model: Patient, select: 'firstName lastName' })
-        .sort({ startTime: 'asc' })
-        .lean();
+    const appointments = await Appointment.find({
+      doctor: doctor._id,
+      startTime: { $gte: todayStart, $lt: todayEnd },
+      status: 'scheduled', // Only show upcoming appointments
+    })
+      .populate({ path: 'patient', model: Patient, select: 'firstName lastName' })
+      .sort({ startTime: 'asc' })
+      .lean();
 
-        return JSON.parse(JSON.stringify(appointments));
-    } catch (error) {
-        console.error("Error fetching today's appointments for doctor:", error);
-        return [];
-    }
+    return JSON.parse(JSON.stringify(appointments));
+  } catch (error) {
+    console.error("Error fetching today's appointments for doctor:", error);
+    return [];
+  }
 }
 

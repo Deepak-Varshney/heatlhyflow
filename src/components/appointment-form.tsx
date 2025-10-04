@@ -20,12 +20,11 @@ import {
 } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { IPatient } from "@/models/Patient";
-import { IAvailability } from "@/models/Availability"; // Import the availability type
-import { getAvailableSlots } from "@/actions/availability-actions"; // Import our new server action
+import { getAvailableSlots } from "@/actions/availability-actions"; 
 import { DoctorCombobox } from "./doctor-combobox";
 import { PatientCombobox } from "./patient-combobox";
 import { bookAppointment } from "@/actions/appointment-actions";
-import { IUser } from "@/models/User";
+import { IAvailability, IUser } from "@/models/User";
 export default function AppointmentBooking({
     patients,
     doctors,

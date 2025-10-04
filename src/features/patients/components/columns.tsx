@@ -1,5 +1,5 @@
 'use client';
-import { ColumnDef } from '@tanstack/react-table';
+import { Column, ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action'; // We will create this component
 import { IPatient } from '@/models/Patient';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -7,28 +7,7 @@ import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-h
 
 export const columns: ColumnDef<IPatient>[] = [
   {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
+    id: 'name',
     accessorKey: 'firstName',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Full Name" />
@@ -37,10 +16,28 @@ export const columns: ColumnDef<IPatient>[] = [
       const patient = row.original;
       return <div>{`${patient.firstName} ${patient.lastName}`}</div>;
     },
-    // We enable filtering on a virtual 'name' field in the server action
     meta: {
       label: 'Patient Name',
-      placeholder: 'Search name...',
+      placeholder: 'Global Search...',
+      variant: 'text',
+    },
+    enableColumnFilter: true,
+  },
+
+  {
+    id: 'address',
+    accessorKey: 'address',
+    header: ({ column }: { column: Column<IPatient, unknown> }) => (
+      <DataTableColumnHeader column={column} title="Address" />
+    ),
+    cell: ({ cell }) => (
+      <div className="line-clamp-2 text-muted-foreground">
+        {cell.getValue<string>()}
+      </div>
+    ),
+    meta: {
+      label: 'Address',
+      placeholder: 'Search Address',
       variant: 'text',
     },
     enableColumnFilter: true,
@@ -53,9 +50,15 @@ export const columns: ColumnDef<IPatient>[] = [
   },
   {
     accessorKey: 'phoneNumber',
+    id:'phone',
     header: 'Phone Number',
+    cell: ({ cell }) => (
+      <div className="line-clamp-2 text-muted-foreground">
+        {cell.getValue<string>()}
+      </div>
+    ),
     meta: {
-      label: 'Patient Name',
+      label: 'Phone Number',
       placeholder: 'Search number...',
       variant: 'text',
     },

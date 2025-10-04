@@ -259,44 +259,44 @@ export async function POST(req: Request) {
 
     }
 
-    //   // --- ORGANIZATION EVENTS ---
-    //   if (eventType === "organization.created") {
-    //     const { id, name, created_by } = evt.data;
-    //     const owner = await User.findOne({ clerkUserId: created_by });
-    //     if (owner) {
-    //       await Organization.create({
-    //         clerkOrgId: id,
-    //         name: name,
-    //         status: "PENDING",
-    //         owner: owner._id,
-    //       });
-    //     }
-    //   }
+    // --- ORGANIZATION EVENTS ---
+    if (eventType === "organization.created") {
+        const { id, name, created_by } = evt.data;
+        const owner = await User.findOne({ clerkUserId: created_by });
+        if (owner) {
+            await Organization.create({
+                clerkOrgId: id,
+                name: name,
+                status: "PENDING",
+                owner: owner._id,
+            });
+        }
+    }
 
-    //   if (eventType === "organization.updated") {
-    //     const { id, name } = evt.data;
-    //     await Organization.findOneAndUpdate({ clerkOrgId: id }, { name: name });
-    //   }
+    if (eventType === "organization.updated") {
+        const { id, name } = evt.data;
+        await Organization.findOneAndUpdate({ clerkOrgId: id }, { name: name });
+    }
 
-    //   if (eventType === "organization.deleted") {
-    //     const { id } = evt.data;
-    //     // For safety, you might want to soft-delete (set status to "DELETED")
-    //     // but for now, a hard delete is fine for this event.
-    //     await Organization.findOneAndDelete({ clerkOrgId: id });
-    //   }
+    if (eventType === "organization.deleted") {
+        const { id } = evt.data;
+        // For safety, you might want to soft-delete (set status to "DELETED")
+        // but for now, a hard delete is fine for this event.
+        await Organization.findOneAndDelete({ clerkOrgId: id });
+    }
 
-    //   // --- MEMBERSHIP EVENTS ---
-    //   if (eventType === "organizationMembership.deleted") {
-    //     const { public_user_data } = evt.data;
-    //     // When a user is removed from an org, we reset their role to UNASSIGNED.
-    //     await User.findOneAndUpdate(
-    //       { clerkUserId: public_user_data.user_id },
-    //       { role: 'UNASSIGNED' }
-    //     );
-    //   }
+    // --- MEMBERSHIP EVENTS ---
+    if (eventType === "organizationMembership.deleted") {
+        const { public_user_data } = evt.data;
+        // When a user is removed from an org, we reset their role to UNASSIGNED.
+        await User.findOneAndUpdate(
+            { clerkUserId: public_user_data.user_id },
+            { role: 'UNASSIGNED' }
+        );
+    }
 
     return NextResponse.json("", { status: 200 });
 }
-export async function GET(){
+export async function GET() {
     return NextResponse.json("WORKING")
 }

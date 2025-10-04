@@ -11,7 +11,8 @@ export const searchParams = {
   name: parseAsString,
   gender: parseAsString,
   category: parseAsString,
-  phoneNumber:parseAsString
+  phone: parseAsString,
+  address: parseAsString,
   // advanced filter
   // filters: getFiltersStateParser().withDefault([]),
   // joinOperator: parseAsStringEnum(['and', 'or']).withDefault('and')

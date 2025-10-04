@@ -11,12 +11,13 @@ import Image from 'next/image';
 
 export const columns: ColumnDef<IAppointment | any>[] = [
   {
-    accessorKey:'patient',
+    accessorKey: 'patient',
+    id:'name',
     header: 'Patient',
     cell: ({ row }) => <div>{row.original.patientDetails.firstName} {row.original.patientDetails.lastName}</div>
     , meta: {
       label: 'Name',
-      placeholder: 'Search name...',
+      placeholder: 'Global Search...',
       variant: 'text',
       icon: Text
     },
@@ -24,7 +25,15 @@ export const columns: ColumnDef<IAppointment | any>[] = [
   },
   {
     header: 'Slot',
-    cell: ({ row }) => <div>{format(new Date(row.original.startTime), "p")} - {format(new Date(row.original.endTime), "p")}</div>
+    cell: ({ row }) => {
+      const start = new Date(row.original.startTime);
+      const end = new Date(row.original.endTime);
+      return (
+        <div>
+          {format(start, "M/d/yyyy")} ({format(start, "hh:mm a")} - {format(end, "hh:mm a")})
+        </div>
+      );
+    }
   },
   {
     header: 'Doctor',

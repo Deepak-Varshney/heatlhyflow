@@ -6,19 +6,20 @@ import { IPatient } from '@/models/Patient';
 
 type PatientListingPage = {};
 
-export default async function PatientListingPage({}: PatientListingPage) {
+export default async function PatientListingPage({ }: PatientListingPage) {
   // Showcasing the use of search params cache in nested RSCs
   const page = searchParamsCache.get('page');
   const search = searchParamsCache.get('name');
   const pageLimit = searchParamsCache.get('perPage');
   const categories = searchParamsCache.get('category');
-  const phoneNumber = searchParamsCache.get('phoneNumber')
+  const phone = searchParamsCache.get('phone')
+  const address = searchParamsCache.get('address')
 
   const filters = {
     page,
-    phoneNumber,
+    phone,
     limit: pageLimit,
-    ...(phoneNumber&&{phoneNumber}),
+    address,
     ...(search && { search }),
     ...(categories && { categories: categories })
   };

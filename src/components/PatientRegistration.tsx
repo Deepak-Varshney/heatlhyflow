@@ -44,7 +44,11 @@ export default function PatientRegistrationDialog() {
     address: z.string().min(1, { message: "Address is required" }),
     emergencyContactName: z.string().min(1, { message: "Emergency contact name is required" }),
     emergencyContactPhone: z.string().min(1, { message: "Emergency contact phone is required" }),
+    bp: z.string().min(1, { message: "Blood pressure is required" }), // Add validation for blood pressure
+    weight: z.string().min(1, { message: "Weight is required" }), // Add validation for weight
+    occupation: z.string().min(1, { message: "Occupation is required" }), // Add validation for occupation
   });
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -168,6 +172,68 @@ export default function PatientRegistrationDialog() {
                             }
                           }}
                           max={format(new Date(), "yyyy-MM-dd")}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="bp"
+                render={({ field }) => (
+                  <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
+                    <FormLabel className="flex shrink-0">Blood Pressure</FormLabel>
+                    <div className="w-full">
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. 120/80"
+                          type="text"
+                          className="w-full"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="weight"
+                render={({ field }) => (
+                  <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
+                    <FormLabel className="flex shrink-0">Weight</FormLabel>
+                    <div className="w-full">
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. 70 kg"
+                          type="text"
+                          className="w-full"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="occupation"
+                render={({ field }) => (
+                  <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
+                    <FormLabel className="flex shrink-0">Occupation</FormLabel>
+                    <div className="w-full">
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Teacher"
+                          type="text"
+                          className="w-full"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />

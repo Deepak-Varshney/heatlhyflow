@@ -8,7 +8,7 @@ import { parseSortParameter } from "@/lib/utils"; // We'll create this helper
 export async function createPatient(patientData: any) {
   try {
     await connectDB();
-    
+
     // Create new patient
     const newPatient = new Patient({
       firstName: patientData.firstName,
@@ -21,18 +21,21 @@ export async function createPatient(patientData: any) {
         name: patientData.emergencyContactName,
         phone: patientData.emergencyContactPhone,
       },
+      bp: patientData.bp, // Add blood pressure
+      weight: patientData.weight, // Add weight
+      occupation: patientData.occupation, // Add occupation
     });
 
     await newPatient.save();
-    
+
     revalidatePath("/patients"); // Optional: if you have a patients page
-    
-    return { success: true};
+
+    return { success: true };
   } catch (error) {
     console.error("Error creating patient:", error);
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : "Unknown error occurred" 
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unknown error occurred"
     };
   }
 }
@@ -44,7 +47,8 @@ interface GetPatientsParams {
   search?: string;
   name?: string;
   email?: string;
-  phone?: string;
+  phone?: string | any;
+  address?: any;
 }
 
 export async function getPatients({
@@ -55,6 +59,7 @@ export async function getPatients({
   name,
   email,
   phone,
+  address,
 }: GetPatientsParams) {
   await connectDB();
 
@@ -66,6 +71,7 @@ export async function getPatients({
     query.$or = [
       { firstName: { $regex: search, $options: 'i' } },
       { lastName: { $regex: search, $options: 'i' } },
+      { address: { $regex: search, $options: 'i' } },
       { email: { $regex: search, $options: 'i' } },
       { phoneNumber: { $regex: search, $options: 'i' } },
     ];
@@ -74,12 +80,13 @@ export async function getPatients({
   // Specific filters
   if (name) {
     query.$or = [
-        { firstName: { $regex: name, $options: 'i' } },
-        { lastName: { $regex: name, $options: 'i' } },
+      { firstName: { $regex: name, $options: 'i' } },
+      { lastName: { $regex: name, $options: 'i' } },
     ]
   }
   if (email) query.email = { $regex: email, $options: 'i' };
   if (phone) query.phoneNumber = { $regex: phone, $options: 'i' };
+  if (address) query.address = { $regex: address, $options: 'i' };
 
   const sortQuery = parseSortParameter(sort);
 

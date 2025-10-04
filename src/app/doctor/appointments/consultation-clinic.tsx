@@ -40,7 +40,7 @@
 
 //   const handleDownloadPdf = () => {
 //     if (!appointment?.prescription) return;
-    
+
 //     const doc = new jsPDF();
 //     const { patient, doctor, prescription, startTime } = appointment;
 
@@ -58,7 +58,7 @@
 //     doc.text(`Name: ${patient.firstName} ${patient.lastName}`, 15, yPos + 8);
 //     const age = new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear();
 //     doc.text(`Age: ${age} years`, 15, yPos + 13);
-    
+
 //     doc.setFontSize(14);
 //     doc.text("Doctor Information", 105, yPos);
 //     doc.setFontSize(10);
@@ -99,7 +99,7 @@
 //         });
 //         yPos = (doc as any).lastAutoTable.finalY + 10;
 //     }
-    
+
 //     if (prescription.notes) {
 //         doc.setFontSize(14);
 //         doc.text("Additional Notes", 15, yPos);
@@ -107,7 +107,7 @@
 //         const noteLines = doc.splitTextToSize(prescription.notes, 180);
 //         doc.text(noteLines, 15, yPos + 7);
 //     }
-    
+
 //     doc.save(`Prescription-${patient.firstName}-${format(new Date(), "yyyy-MM-dd")}.pdf`);
 //   };
 
@@ -123,7 +123,7 @@
 //           </div>
 //         </CardHeader>
 //       </Card>
-      
+
 //       {appointment.prescription ? (
 //         <Card>
 //             <CardHeader>
@@ -196,7 +196,7 @@ export default function ConsultationClientPage({ initialAppointment }: { initial
       <div className="print-only">
         {appointment.prescription && <PrintablePrescription appointment={appointment} />}
       </div>
-      
+
       {/* Yeh main UI hai jo screen par dikhega */}
       <div className="space-y-6 print-hide">
         {/* Header */}
@@ -207,7 +207,7 @@ export default function ConsultationClientPage({ initialAppointment }: { initial
 
         {/* 2-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Left Column: Patient Details & History */}
           <div className="lg:col-span-1 space-y-6">
             <Card>
@@ -232,15 +232,13 @@ export default function ConsultationClientPage({ initialAppointment }: { initial
             </Card>
           </div>
 
-          {/* Right Column: Prescription */}
           <div className="lg:col-span-2">
             {appointment.prescription ? (
-              // Agar prescription ban gaya hai, to use dikhayein aur print button dein
               <Card>
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <CardTitle className="flex items-center gap-2">
-                        <Stethoscope className="h-5 w-5" /> Prescription Issued
+                      <Stethoscope className="h-5 w-5" /> Prescription Issued
                     </CardTitle>
                     <Button onClick={handlePrint} variant="outline">
                       <Printer className="mr-2 h-4 w-4" /> Print Report
@@ -256,12 +254,10 @@ export default function ConsultationClientPage({ initialAppointment }: { initial
                       <h4 className="font-semibold">Diagnosis</h4>
                       <p className="text-muted-foreground">{appointment.prescription.chiefComplaint}</p>
                     </div>
-                     {/* Yahan aap saved medicines aur tests ki short summary dikha sakte hain */}
                   </div>
                 </CardContent>
               </Card>
             ) : (
-              // Warna, naya prescription banane ke liye form dikhayein
               <PrescriptionForm
                 appointmentId={appointment._id.toString()}
                 patientId={appointment.patient._id.toString()}
