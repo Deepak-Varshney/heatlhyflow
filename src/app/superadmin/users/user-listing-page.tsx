@@ -1,7 +1,6 @@
 
 import { ServerDataTable } from '@/features/products/components/product-tables';
 import { searchParamsCache } from '@/lib/searchparams';
-import { getPatients } from '@/utilties/patients';
 import { getAllUsers } from '../components/utils';
 import { columns } from './columns';
 

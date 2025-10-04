@@ -98,9 +98,8 @@ import { Calendar, Users, Activity, MessageSquare } from "lucide-react";
 import Link from "next/link";
 import { IPatient } from '@/models/Patient';
 import { IUser } from '@/models/User';
-import { getAllAppointments } from '@/utilties/appointments';
 import { getAllDoctors } from '@/utilties/doctors';
-import { getAllPatients, getPatients } from '@/utilties/patients';
+import { getAllPatients } from '@/utilties/patients';
 import { getMongoUser } from "@/lib/CheckUser";
 import AppointmentBooking from '@/components/appointment-form';
 
