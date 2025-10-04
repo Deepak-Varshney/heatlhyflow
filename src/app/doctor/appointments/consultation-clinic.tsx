@@ -365,7 +365,7 @@ export default function ConsultationClientPage({ initialAppointment }: { initial
                   </Button>
                 </CardContent>
               </Card>
-            ) : isWithinSlot ? (
+            ) : true ? (
               <PrescriptionForm
                 appointmentId={appointment._id.toString()}
                 patientId={appointment.patient._id.toString()}
