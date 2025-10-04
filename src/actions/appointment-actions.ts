@@ -233,7 +233,8 @@ export async function createPrescription(data: any) {
     const doctor = await getMongoUser();
     if (!doctor) throw new Error("Doctor not authenticated");
 
-    const { appointmentId, patientId, chiefComplaint, medicines, tests, notes } = data;
+    // const { appointmentId, patientId, chiefComplaint, medicines, tests, notes } = data;
+    const { appointmentId, patientId, chiefComplaint, diagnosis, medicines, tests, notes } = data;
 
     // 1. Create the new prescription document
     const newPrescription = new Prescription({
@@ -241,12 +242,18 @@ export async function createPrescription(data: any) {
       patient: patientId,
       doctor: doctor._id,
       chiefComplaint,
+      diagnosis,
       medicines: medicines?.map((m: any) => ({
         name: m.name,
         dosage: m.dosage,
         timings: m.timings,
       })) || [],
-      tests: tests?.map((t: any) => t.name) || [],
+      tests: tests?.map((t: any) => ({
+        name: t.name,
+        notes: t.notes,
+        reportImageUrl: t.reportImageUrl,
+      })) || [],
+
       notes,
     });
     await newPrescription.save({ session });
