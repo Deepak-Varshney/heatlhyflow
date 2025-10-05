@@ -155,11 +155,5 @@ export const receptionistNavItems: NavItem[] = [
     shortcut: ['a', 'a'],
     isActive: false,
     items: [] // No child items
-  },
-  {
-    title: 'Profile',
-    url: '/receptionist/profile',
-    icon: 'userPen',
-    shortcut: ['m', 'm']
-  },
+  }
 ];

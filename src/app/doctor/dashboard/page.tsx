@@ -3,27 +3,21 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Activity, MessageSquare } from "lucide-react";
 import Link from "next/link";
+import { IPatient } from '@/models/Patient';
+import { IUser } from '@/models/User';
+import { getAllDoctors } from '@/utilties/doctors';
+import { getAllPatients } from '@/utilties/patients';
 import { getMongoUser } from "@/lib/CheckUser";
+import AppointmentBooking from '@/components/appointment-form';
+import { getDashboardData } from "@/data-function/receptionist/dashboard";
 
-// Ek real app mein, aap is data ko fetch karenge
-const getDashboardStats = async () => {
-  return {
-    upcomingAppointments: 8,
-    totalPatients: 124,
-    recentActivity: [
-      { id: 1, text: "New patient Alice Smith registered." },
-      { id: 2, text: "Appointment with John Doe confirmed for tomorrow." },
-      { id: 3, text: "Received new message from Bob Johnson." },
-    ],
-  };
-};
-
-const DoctorDashboardPage = async () => {
+const ReceptionistDashboard = async () => {
   const user = await getMongoUser();
-  const stats = await getDashboardStats();
-
+  const stats = await getDashboardData();
+  const patients: IPatient[] = await getAllPatients()
+  const doctors: IUser[] = await getAllDoctors()
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 mt-4">
       {/* Welcome Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
@@ -32,82 +26,58 @@ const DoctorDashboardPage = async () => {
             <AvatarFallback>{user?.firstName?.[0]}{user?.lastName?.[0]}</AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Welcome back, Dr. {user?.lastName}!</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.firstName}!</h1>
             <p className="text-muted-foreground">Here is a summary of your clinic activity today.</p>
           </div>
         </div>
-        <Button asChild>
-          <Link href="/doctor/appointments/new">New Appointment</Link>
-        </Button>
+        <AppointmentBooking
+          patients={patients}
+          doctors={doctors}
+        />
+
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Link href="/receptionist/appointments">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{`Today's Appointments`}</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.todaysAppointments}</div>
+              <p className="text-xs text-muted-foreground">Total {stats.upcomingAppointments} In the next 7 days</p>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link href="/receptionist/patients">
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalPatients}</div>
+              <p className="text-xs text-muted-foreground">Under your care</p>
+            </CardContent>
+          </Card>
+        </Link>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Appointments</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.upcomingAppointments}</div>
-            <p className="text-xs text-muted-foreground">In the next 7 days</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalPatients}</div>
-            <p className="text-xs text-muted-foreground">Under your care</p>
-          </CardContent>
-        </Card>
-         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unread Messages</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Appointments</CardTitle>
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5</div>
-            <p className="text-xs text-muted-foreground">Awaiting your reply</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2</div>
-            <p className="text-xs text-muted-foreground">Prescriptions to review</p>
+            <div className="text-2xl font-bold">{stats.totalAppointments}</div>
+            <p className="text-xs text-muted-foreground">In your Clinic</p>
           </CardContent>
         </Card>
       </div>
-
-      {/* Recent Activity Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Activity</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Latest updates from your clinic.
-          </p>
-        </CardHeader>
-        <CardContent>
-            <ul className="space-y-4">
-                {stats.recentActivity.map((activity) => (
-                    <li key={activity.id} className="flex items-center gap-4">
-                        <div className="bg-primary/10 p-2 rounded-full">
-                           <Activity className="h-4 w-4 text-primary" />
-                        </div>
-                        <span className="text-sm">{activity.text}</span>
-                    </li>
-                ))}
-            </ul>
-        </CardContent>
-      </Card>
     </div>
   );
 };
 
-export default DoctorDashboardPage;
+export default ReceptionistDashboard;
