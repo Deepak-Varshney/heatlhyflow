@@ -9,7 +9,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks/(.*)",
 ]);
 
-export default clerkMiddleware(async(auth, req) => {
+export default clerkMiddleware(async (auth, req) => {
   if (isPublicRoute(req)) return NextResponse.next();
 
   const { userId, sessionClaims } = await auth();
@@ -20,9 +20,10 @@ export default clerkMiddleware(async(auth, req) => {
     signInUrl.searchParams.set("redirect_url", req.url);
     return NextResponse.redirect(signInUrl);
   }
-  
+
   const role = (sessionClaims as any)?.publicMetadata?.role as string;
   const verificationStatus = (sessionClaims as any)?.publicMetadata?.verificationStatus as string;
+  const organizationStatus = (sessionClaims as any)?.publicMetadata?.organizationStatus as string;
 
   // --- Onboarding & Verification Flow (This part runs first and is correct) ---
   if ((!role || role === "UNASSIGNED") && !pathname.startsWith("/onboarding")) {
@@ -31,8 +32,8 @@ export default clerkMiddleware(async(auth, req) => {
   if (verificationStatus === "PENDING" && !pathname.startsWith("/awaiting-verification")) {
     return NextResponse.redirect(new URL("/awaiting-verification", req.url));
   }
-  if (role && role !== "UNASSIGNED" && verificationStatus !== "PENDING" &&
-     (pathname.startsWith("/onboarding") || pathname.startsWith("/awaiting-verification"))) {
+  if (role && role !== "UNASSIGNED" && verificationStatus !== "PENDING" && organizationStatus !== "PENDING" &&
+    (pathname.startsWith("/onboarding") || pathname.startsWith("/awaiting-verification"))) {
     const dashboardUrl = role === 'DOCTOR' ? '/doctor/dashboard' : '/receptionist/dashboard';
     return NextResponse.redirect(new URL(dashboardUrl, req.url));
   }
@@ -47,7 +48,7 @@ export default clerkMiddleware(async(auth, req) => {
     }
     // Block access to superadmin area for everyone else.
     if (pathname.startsWith("/superadmin")) {
-      return NextResponse.redirect(new URL("/dashboard", req.url)); 
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
     // ADMIN can access everything except superadmin.
     if (role === "ADMIN") {
@@ -55,10 +56,10 @@ export default clerkMiddleware(async(auth, req) => {
     }
     // Specific rules for other roles.
     if (role === "DOCTOR" && !pathname.startsWith("/doctor")) {
-        return NextResponse.redirect(new URL("/doctor/dashboard", req.url));
+      return NextResponse.redirect(new URL("/doctor/dashboard", req.url));
     }
     if (role === "RECEPTIONIST" && !pathname.startsWith("/receptionist")) {
-        return NextResponse.redirect(new URL("/receptionist/dashboard", req.url));
+      return NextResponse.redirect(new URL("/receptionist/dashboard", req.url));
     }
   }
 

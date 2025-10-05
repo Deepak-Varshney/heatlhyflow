@@ -7,15 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { updateOrganizationStatus } from "@/actions/superadmin-actions";
 
-const ToggleStatusForm = ({ orgId, currentStatus }: { 
-    orgId: string, 
-    currentStatus: "ACTIVE" | "DISABLED"
+const ToggleStatusForm = ({ orgId, currentStatus,clerkUserId }: {
+  orgId: string,
+  clerkUserId:any,
+  currentStatus: "ACTIVE" | "DISABLED"
 }) => {
   const newStatus = currentStatus === "ACTIVE" ? "DISABLED" : "ACTIVE";
   return (
     <form action={async () => {
       "use server";
-      await updateOrganizationStatus(orgId, newStatus);
+      await updateOrganizationStatus(orgId,clerkUserId, newStatus);
     }}>
       <Button type="submit" variant={newStatus === "ACTIVE" ? "default" : "destructive"}>
         {newStatus === "ACTIVE" ? "Enable" : "Disable"}
@@ -43,15 +44,15 @@ const ManageClinicsPage = async () => {
               <div key={org._id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-md gap-4">
                 <div>
                   <p className="font-bold text-lg">{org.name}</p>
-                   <p className="text-sm text-muted-foreground">
-                      Owner: {org.owner.firstName} {org.owner.lastName}
-                    </p>
+                  <p className="text-sm text-muted-foreground">
+                    Owner: {org.owner.firstName} {org.owner.lastName}
+                  </p>
                 </div>
                 <div className="flex items-center gap-4 self-end sm:self-center">
-                   <Badge variant={org.status === 'ACTIVE' ? 'default' : 'destructive'}>{org.status}</Badge>
-                   {org.status !== 'REJECTED' && (
-                     <ToggleStatusForm orgId={org._id.toString()} currentStatus={org.status as "ACTIVE" | "DISABLED"} />
-                   )}
+                  <Badge variant={org.status === 'ACTIVE' ? 'default' : 'destructive'}>{org.status}</Badge>
+                  {org.status !== 'REJECTED' && (
+                    <ToggleStatusForm orgId={org._id.toString()} clerkUserId={org.owner.clerkUserId.toString()} currentStatus={org.status as "ACTIVE" | "DISABLED"} />
+                  )}
                 </div>
               </div>
             ))}

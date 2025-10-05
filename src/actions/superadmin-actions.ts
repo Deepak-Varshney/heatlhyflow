@@ -11,7 +11,8 @@ import { parseSortParameter } from "@/lib/utils";
 
 export async function updateOrganizationStatus(
   orgId: string, // MongoDB document _id
-  status: "ACTIVE" | "DISABLED" | "REJECTED"
+  status: "ACTIVE" | "DISABLED" | "REJECTED",
+  clerkUserId: string
 ) {
   // Security Check: Ensure the current user is a SUPERADMIN
   const user = await getMongoUser();
@@ -22,7 +23,12 @@ export async function updateOrganizationStatus(
   await connectDB();
 
   await Organization.findByIdAndUpdate(orgId, { status });
-
+  const client = await clerkClient();
+  await client.users.updateUserMetadata(clerkUserId, {
+    publicMetadata: {
+      organizationStatus: status
+    },
+  });
   // Revalidate paths to refresh the data on the pages
   revalidatePath("/superadmin/dashboard");
   revalidatePath("/superadmin/clinics");
@@ -105,8 +111,8 @@ export async function getDoctors({
   // Specific filters
   if (name) {
     query.$or = [
-        { firstName: { $regex: name, $options: 'i' } },
-        { lastName: { $regex: name, $options: 'i' } },
+      { firstName: { $regex: name, $options: 'i' } },
+      { lastName: { $regex: name, $options: 'i' } },
     ]
   }
   if (email) query.email = { $regex: email, $options: 'i' };

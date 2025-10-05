@@ -40,6 +40,7 @@ export async function updateUserOnboarding(data: OnboardingData) {
       publicMetadata: {
         role: data.role,
         verificationStatus: "PENDING",
+        organizationStatus: "PENDING"
       },
     });
 
