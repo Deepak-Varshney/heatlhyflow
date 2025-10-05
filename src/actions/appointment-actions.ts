@@ -123,13 +123,13 @@ export async function getAppointments({
   // Step 2: Build the match query
   const matchQuery: any = {};
   // Apply role-based filtering for the logged-in user
-  if (user.role === "DOCTOR") {
-    //  Only fetch appointments where the doctor is the logged-in user
-    matchQuery.$or = [
-      { doctor: user._id },       // Appointments where the logged-in user is the doctor
-      { createdBy: user._id },    // Appointments created by the logged-in user (receptionist)
-    ];
-  }
+  // if (user.role === "DOCTOR") {
+  //   //  Only fetch appointments where the doctor is the logged-in user
+  //   matchQuery.$or = [
+  //     { doctor: user._id },       // Appointments where the logged-in user is the doctor
+  //     { createdBy: user._id },    // Appointments created by the logged-in user (receptionist)
+  //   ];
+  // }
 
   if (status) matchQuery.status = status;
   if (patientName) {
