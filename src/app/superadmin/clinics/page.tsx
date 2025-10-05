@@ -9,14 +9,14 @@ import { updateOrganizationStatus } from "@/actions/superadmin-actions";
 
 const ToggleStatusForm = ({ orgId, currentStatus,clerkUserId }: {
   orgId: string,
-  clerkUserId:any,
   currentStatus: "ACTIVE" | "DISABLED"
+  clerkUserId:any,
 }) => {
   const newStatus = currentStatus === "ACTIVE" ? "DISABLED" : "ACTIVE";
   return (
     <form action={async () => {
       "use server";
-      await updateOrganizationStatus(orgId,clerkUserId, newStatus);
+      await updateOrganizationStatus(orgId, newStatus, clerkUserId);
     }}>
       <Button type="submit" variant={newStatus === "ACTIVE" ? "default" : "destructive"}>
         {newStatus === "ACTIVE" ? "Enable" : "Disable"}
