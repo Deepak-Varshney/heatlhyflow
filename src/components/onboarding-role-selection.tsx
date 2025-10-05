@@ -65,64 +65,64 @@ export default function OnboardingRoleSelection() {
   if (selectedRole === "DOCTOR") {
     // Render Doctor Details Form
     return (
-        <Card className="w-full max-w-2xl mx-auto">
-            <CardContent className="pt-6">
-                <CardTitle>Complete Your Doctor Profile</CardTitle>
-                <CardDescription>Provide your professional details for verification.</CardDescription>
-                <form onSubmit={handleSubmit(onDoctorSubmit)} className="space-y-6 mt-6">
-                    {/* ... (Your Doctor Form Fields from the original code go here) ... */}
-                    {/* I've included them below for completeness */}
-                     <div className="space-y-2">
-                         <Label htmlFor="specialty">Medical Specialty</Label>
-                         <Select value={specialtyValue} onValueChange={(value) => setValue("specialty", value, { shouldValidate: true })}>
-                             <SelectTrigger><SelectValue placeholder="Select your specialty" /></SelectTrigger>
-                             <SelectContent>{SPECIALTIES.map((spec) => (<SelectItem key={spec.name} value={spec.name}>{spec.name}</SelectItem>))}</SelectContent>
-                         </Select>
-                         {errors.specialty && <p className="text-sm text-red-500">{errors.specialty.message}</p>}
-                     </div>
-                     <div className="space-y-2">
-                         <Label htmlFor="experience">Years of Experience</Label>
-                         <Input id="experience" type="number" placeholder="e.g., 5" {...register("experience")} />
-                         {errors.experience && <p className="text-sm text-red-500">{errors.experience.message}</p>}
-                     </div>
-                     <div className="space-y-2">
-                         <Label htmlFor="description">Profile Description</Label>
-                         <Textarea id="description" placeholder="Describe your expertise..." {...register("description")} />
-                         {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
-                     </div>
-                     <div className="flex justify-between items-center">
-                         <Button type="button" variant="outline" onClick={() => setSelectedRole(null)} disabled={loading}>Back</Button>
-                         <Button type="submit" disabled={loading}>
-                             {loading ? <Loader2 className="animate-spin" /> : "Submit for Verification"}
-                         </Button>
-                     </div>
-                </form>
-            </CardContent>
-        </Card>
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="pt-6">
+          <CardTitle>Complete Your Doctor Profile</CardTitle>
+          <CardDescription>Provide your professional details for verification.</CardDescription>
+          <form onSubmit={handleSubmit(onDoctorSubmit)} className="space-y-6 mt-6">
+            {/* ... (Your Doctor Form Fields from the original code go here) ... */}
+            {/* I've included them below for completeness */}
+            <div className="space-y-2">
+              <Label htmlFor="specialty">Medical Specialty</Label>
+              <Select value={specialtyValue} onValueChange={(value) => setValue("specialty", value, { shouldValidate: true })}>
+                <SelectTrigger><SelectValue placeholder="Select your specialty" /></SelectTrigger>
+                <SelectContent>{SPECIALTIES.map((spec) => (<SelectItem key={spec.name} value={spec.name}>{spec.name}</SelectItem>))}</SelectContent>
+              </Select>
+              {errors.specialty && <p className="text-sm text-red-500">{errors.specialty.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="experience">Years of Experience</Label>
+              <Input id="experience" type="number" placeholder="e.g., 5" {...register("experience")} />
+              {errors.experience && <p className="text-sm text-red-500">{errors.experience.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Profile Description</Label>
+              <Textarea id="description" placeholder="Describe your expertise..." {...register("description")} />
+              {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
+            </div>
+            <div className="flex justify-between items-center">
+              <Button type="button" variant="outline" onClick={() => setSelectedRole(null)} disabled={loading}>Back</Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? <Loader2 className="animate-spin" /> : "Submit for Verification"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     );
   }
 
   // Render Role Selection Cards
   return (
     <div className="text-center">
-        <h2 className="text-2xl font-semibold mb-4">Select Your Role</h2>
-        <p className="text-muted-foreground mb-8">Choose how you will be participating in the clinic.</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-             <Card className="cursor-pointer hover:border-primary" onClick={() => handleRoleSelect("RECEPTIONIST")}>
-                <CardContent className="pt-6 text-center">
-                    <User className="h-10 w-10 mx-auto mb-4 text-primary" />
-                    <CardTitle>Join as a Receptionist</CardTitle>
-                    <CardDescription className="mt-2">Manage appointments and patient registrations.</CardDescription>
-                </CardContent>
-             </Card>
-             <Card className="cursor-pointer hover:border-primary" onClick={() => handleRoleSelect("DOCTOR")}>
-                <CardContent className="pt-6 text-center">
-                    <Stethoscope className="h-10 w-10 mx-auto mb-4 text-primary" />
-                    <CardTitle>Join as a Doctor</CardTitle>
-                    <CardDescription className="mt-2">Provide consultations and manage patient care.</CardDescription>
-                </CardContent>
-             </Card>
-        </div>
+      <h2 className="text-2xl font-semibold mb-4">Select Your Role</h2>
+      <p className="text-muted-foreground mb-8">Choose how you will be participating in the clinic.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+        <Card className="cursor-pointer hover:border-primary" onClick={() => handleRoleSelect("RECEPTIONIST")}>
+          <CardContent className="pt-6 text-center">
+            <User className="h-10 w-10 mx-auto mb-4 text-primary" />
+            <CardTitle>Join as a Receptionist</CardTitle>
+            <CardDescription className="mt-2">Manage appointments and patient registrations.</CardDescription>
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:border-primary" onClick={() => handleRoleSelect("DOCTOR")}>
+          <CardContent className="pt-6 text-center">
+            <Stethoscope className="h-10 w-10 mx-auto mb-4 text-primary" />
+            <CardTitle>Join as a Doctor</CardTitle>
+            <CardDescription className="mt-2">Provide consultations and manage patient care.</CardDescription>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
