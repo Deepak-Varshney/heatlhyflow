@@ -8,6 +8,7 @@ import Organization from "@/models/Organization";
 import { getMongoUser } from "@/lib/CheckUser";
 import { parseSortParameter } from "@/lib/utils";
 
+import { clerkClient } from "@clerk/nextjs/server";
 
 export async function updateOrganizationStatus(
   orgId: string, // MongoDB document _id
@@ -37,11 +38,44 @@ export async function updateOrganizationStatus(
 }
 
 // actions/superadmin-actions.ts
-import { clerkClient } from "@clerk/nextjs/server";
 // ... other imports
 
-export async function manageUserVerification(userId: string, status: string) { // userId is the MongoDB _id
-  // Security Check: Ensure the current user is a SUPERADMIN
+// export async function manageUserVerification(userId: string, status: string) { // userId is the MongoDB _id
+//   // Security Check: Ensure the current user is a SUPERADMIN
+//   const currentUser = await getMongoUser();
+//   if (currentUser?.role !== "SUPERADMIN") {
+//     throw new Error("Permission denied: Not a Super Admin");
+//   }
+
+//   await connectDB();
+
+//   const userToVerify = await User.findById(userId);
+//   if (!userToVerify) {
+//     throw new Error("User to update not found.");
+//   }
+
+//   // 1. Update their status in our DB
+//   userToVerify.verificationStatus = status.toUpperCase();
+//   await userToVerify.save();
+
+//   // 2. Update their public metadata in Clerk for the middleware
+//   const client = await clerkClient();
+
+//   client.users.updateUserMetadata(userToVerify.clerkUserId, {
+//     publicMetadata: {
+//       role: userToVerify.role, // Keep their chosen role
+//       verificationStatus: status.toUpperCase(),
+//     },
+//   });
+
+//   revalidatePath("/superadmin");
+//   return { success: true };
+// }
+
+type VerificationStatus = "PENDING" | "VERIFIED" | "REJECTED" | "ACTIVE" | "DISABLED" | "REJECTED";
+
+export async function manageUserVerification(userId: string, status: VerificationStatus) {
+  // Security check
   const currentUser = await getMongoUser();
   if (currentUser?.role !== "SUPERADMIN") {
     throw new Error("Permission denied: Not a Super Admin");
@@ -54,24 +88,31 @@ export async function manageUserVerification(userId: string, status: string) { /
     throw new Error("User to update not found.");
   }
 
-  // 1. Update their status in our DB
-  userToVerify.verificationStatus = status.toUpperCase();
+  const normalizedStatus = status.toUpperCase() as VerificationStatus;
+
+  // Prevent setting an invalid status
+  const validStatuses: VerificationStatus[] = ["PENDING", "VERIFIED", "REJECTED"];
+  if (!validStatuses.includes(normalizedStatus)) {
+    throw new Error(`Invalid verification status: ${normalizedStatus}`);
+  }
+
+  // Update DB
+  userToVerify.verificationStatus = normalizedStatus;
   await userToVerify.save();
 
-  // 2. Update their public metadata in Clerk for the middleware
+  // Update Clerk metadata
   const client = await clerkClient();
-
-  client.users.updateUserMetadata(userToVerify.clerkUserId, {
+  await client.users.updateUserMetadata(userToVerify.clerkUserId, {
     publicMetadata: {
-      role: userToVerify.role, // Keep their chosen role
-      verificationStatus: status.toUpperCase(),
+      role: userToVerify.role,
+      verificationStatus: normalizedStatus,
     },
   });
 
-  revalidatePath("/superadmin");
+  // Revalidate pages to reflect changes
+  revalidatePath("/superadmin/users");
   return { success: true };
 }
-
 
 interface GetDoctorsParams {
   page?: number;

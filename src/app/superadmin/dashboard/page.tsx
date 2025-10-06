@@ -102,7 +102,7 @@ const ActionForm = ({ orgId, status, children, variant, clerkUserId }: {
 // ActionForm for User status updates (New Component)
 const UserActionForm = ({ userId, status, children, variant }: {
     userId: string,
-    status: "ACTIVE" | "REJECTED",
+    status: "PENDING" | "VERIFIED" | "REJECTED",
     children: React.ReactNode,
     variant: "default" | "destructive",
 }) => {
@@ -122,8 +122,7 @@ const SuperAdminDashboard = async () => {
     // Populate the 'owner' field for organizations to get user details
     const pendingOrgs = await Organization.find({ status: "PENDING" }).populate("owner");
     // Fetch pending users
-    const pendingUsers = await User.find({ status: "PENDING" }); 
-
+    const pendingUsers = await User.find({ verificationStatus: "PENDING" });
     return (
         <div className="p-4 sm:p-6 lg:p-8 space-y-8">
             {/* Pending Clinic Approvals Card */}
@@ -140,7 +139,7 @@ const SuperAdminDashboard = async () => {
                                     <div>
                                         <p className="font-bold text-lg">{org.name}</p>
                                         <p className="text-sm text-muted-foreground">
-                                            Owner: {org.owner.firstName} {org.owner.lastName} ({org.owner.email}) 
+                                            Owner: {org.owner.firstName} {org.owner.lastName} ({org.owner.email})
                                         </p>
                                         <p className="text-sm text-muted-foreground">
                                             Role: {org.owner.role}
@@ -150,18 +149,18 @@ const SuperAdminDashboard = async () => {
                                         </p>
                                     </div>
                                     <div className="flex gap-2 self-end sm:self-center">
-                                        <ActionForm 
-                                            orgId={org._id.toString()} 
-                                            clerkUserId={org.owner.clerkUserId.toString()} 
-                                            status="ACTIVE" 
+                                        <ActionForm
+                                            orgId={org._id.toString()}
+                                            clerkUserId={org.owner.clerkUserId.toString()}
+                                            status="ACTIVE"
                                             variant="default"
                                         >
                                             Approve
                                         </ActionForm>
-                                        <ActionForm 
-                                            orgId={org._id.toString()} 
-                                            clerkUserId={org.owner.clerkUserId.toString()} 
-                                            status="REJECTED" 
+                                        <ActionForm
+                                            orgId={org._id.toString()}
+                                            clerkUserId={org.owner.clerkUserId.toString()}
+                                            status="REJECTED"
                                             variant="destructive"
                                         >
                                             Reject
@@ -177,7 +176,7 @@ const SuperAdminDashboard = async () => {
             </Card>
 
             {/* --- */}
-            
+
             {/* Pending User Approvals Card (New Section) */}
             <Card>
                 <CardHeader>
@@ -203,16 +202,16 @@ const SuperAdminDashboard = async () => {
                                         <Badge variant="secondary" className="mt-1">{user.role}</Badge>
                                     </div>
                                     <div className="flex gap-2 self-end sm:self-center">
-                                        <UserActionForm 
-                                            userId={user._id.toString()} 
-                                            status="ACTIVE" 
+                                        <UserActionForm
+                                            userId={user._id.toString()}
+                                            status="VERIFIED"
                                             variant="default"
                                         >
                                             Approve User
                                         </UserActionForm>
-                                        <UserActionForm 
-                                            userId={user._id.toString()} 
-                                            status="REJECTED" 
+                                        <UserActionForm
+                                            userId={user._id.toString()}
+                                            status="REJECTED"
                                             variant="destructive"
                                         >
                                             Reject User
@@ -226,7 +225,7 @@ const SuperAdminDashboard = async () => {
                     </div>
                 </CardContent>
             </Card>
-            
+
         </div>
     );
 };
