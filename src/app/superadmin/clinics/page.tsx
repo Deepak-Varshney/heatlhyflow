@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { updateOrganizationStatus } from "@/actions/superadmin-actions";
 
-const ToggleStatusForm = ({ orgId, currentStatus,clerkUserId }: {
+const ToggleStatusForm = ({ orgId, currentStatus, clerkUserId }: {
   orgId: string,
   currentStatus: "ACTIVE" | "DISABLED"
-  clerkUserId:any,
+  clerkUserId: any,
 }) => {
   const newStatus = currentStatus === "ACTIVE" ? "DISABLED" : "ACTIVE";
   return (
@@ -38,7 +38,7 @@ const ManageClinicsPage = async () => {
           <CardTitle>Manage All Clinics</CardTitle>
           <CardDescription>View and manage all active, disabled, or rejected clinics on the platform.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-scroll h-[500px]">
           <div className="space-y-4">
             {allOrgs.map((org) => (
               <div key={org._id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-md gap-4">
