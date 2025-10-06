@@ -6,82 +6,6 @@
 
 @import './theme.css';
 
-@keyframes pulse-slow {
-
-  0%,
-  100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.6;
-    transform: scale(1.05);
-  }
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 6s ease-in-out infinite;
-}
-
-@keyframes gradientShift {
-
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-}
-
-.animate-gradient {
-  animation: gradientShift 15s ease infinite;
-}
-
-.shadow-neon {
-  box-shadow: 0 0 10px #ec4899, 0 0 20px #db2777, 0 0 30px #be185d;
-}
-
-.shadow-neon-hover {
-  box-shadow: 0 0 15px #f472b6, 0 0 30px #ec4899, 0 0 45px #db2777;
-}
-
-.cursor-particle {
-  position: fixed;
-  width: 8px;
-  height: 8px;
-  background: #ec4899;
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0.7;
-  animation: cursor-fade 0.5s forwards;
-}
-
-@keyframes cursor-fade {
-  to {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes sparkle {
-  0%, 100% {
-    opacity: 0.75;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-}
-
-.animate-sparkle {
-  animation: sparkle 3s infinite;
-}
-
-
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -251,3 +175,80 @@ display: none;
     display: block;
   }
 }
+
+
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  animation: gradientShift 15s ease infinite;
+}
+
+.shadow-neon {
+  box-shadow: 0 0 10px #ec4899, 0 0 20px #db2777, 0 0 30px #be185d;
+}
+
+.shadow-neon-hover {
+  box-shadow: 0 0 15px #f472b6, 0 0 30px #ec4899, 0 0 45px #db2777;
+}
+
+.cursor-particle {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  background: #ec4899;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.7;
+  animation: cursor-fade 0.5s forwards;
+}
+
+@keyframes cursor-fade {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+}
+
+.animate-sparkle {
+  animation: sparkle 3s infinite;
+}
+

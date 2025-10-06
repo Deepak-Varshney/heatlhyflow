@@ -80,7 +80,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { updateOrganizationStatus, manageUserVerification } from "@/actions/superadmin-actions"; // Assuming updateUserStatus action exists
 import User from "@/models/User";
-
+import {ThemePasteDialog} from "./theme-editor"
 // ActionForm for Organization status updates
 const ActionForm = ({ orgId, status, children, variant, clerkUserId }: {
     orgId: string,
@@ -126,6 +126,7 @@ const SuperAdminDashboard = async () => {
     return (
         <div className="p-4 sm:p-6 lg:p-8 space-y-8">
             {/* Pending Clinic Approvals Card */}
+            <ThemePasteDialog />
             <Card>
                 <CardHeader>
                     <CardTitle>Pending Clinic Approvals</CardTitle>
