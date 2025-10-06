@@ -7,6 +7,7 @@ import { cookies } from 'next/headers';
 
 import DashboardSidebar from "@/components/layout/dashboard-sidebar";
 import { receptionistNavItems } from '@/constants/data';
+import RandomGlowMoving from '@/components/effects/random-glow';
 
 export const metadata: Metadata = {
   title: 'Healthyflow',
@@ -18,14 +19,18 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-// Persisting the sidebar state in the cookie.
-const cookieStore = await cookies();
-const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
+  // Persisting the sidebar state in the cookie.
+  const cookieStore = await cookies();
+  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
   return (
     <KBar>
       <SidebarProvider defaultOpen={defaultOpen}>
-        <AppSidebar navItems={receptionistNavItems}/>
+        <AppSidebar navItems={receptionistNavItems} />
         <SidebarInset>
+          <RandomGlowMoving
+            speed={20}
+            size={400}
+          />
           <Header />
           {/* page main content */}
           {children}

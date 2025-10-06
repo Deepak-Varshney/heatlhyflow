@@ -84,7 +84,6 @@ export async function bookAppointment(params: BookAppointmentParams) {
     session.endSession();
   }
 }
-
 interface GetAppointmentsParams {
   page?: number;
   limit?: number;
@@ -110,54 +109,81 @@ export async function getAppointments({
   const sortQuery = parseSortParameter(sort);
   const pipeline: mongoose.PipelineStage[] = [];
   const user = await getMongoUser();
-  // Step 1: Join (lookup) with patients and users (doctors) collections
+  
+  // --- Step 1: Join (lookup) with patients and users (doctors) collections ---
   pipeline.push(
     { $lookup: { from: 'patients', localField: 'patient', foreignField: '_id', as: 'patient' } },
     { $lookup: { from: 'users', localField: 'doctor', foreignField: '_id', as: 'doctorDetails' } },
     { $lookup: { from: 'prescriptions', localField: 'prescription', foreignField: '_id', as: 'prescription' } },
     { $unwind: '$patient' },
     { $unwind: '$doctorDetails' },
-    { $unwind: '$prescription' },
+    // 💡 IMPORTANT FIX: Use 'preserveNullAndEmptyArrays: true' for optional fields like prescription
+    { $unwind: { path: '$prescription', preserveNullAndEmptyArrays: true } }, 
   );
 
-  // Step 2: Build the match query
-  const matchQuery: any = {};
-  // Apply role-based filtering for the logged-in user
-  // if (user.role === "DOCTOR") {
-  //   //  Only fetch appointments where the doctor is the logged-in user
-  //   matchQuery.$or = [
-  //     { doctor: user._id },       // Appointments where the logged-in user is the doctor
-  //     { createdBy: user._id },    // Appointments created by the logged-in user (receptionist)
-  //   ];
-  // }
+  // --- Step 2: Build the combined $match query using $and ---
+  const andConditions: any[] = [];
+  const orSearchConditions: any[] = []; // Collects all search/name-based $or conditions
+  
+  // 1. Apply role-based filtering (Must be an $AND condition)
+  if (user.role === "DOCTOR") {
+    // This filter is required AND must be met (doctor OR creator)
+    andConditions.push({
+      $or: [
+        { doctor: user._id },     
+        { createdBy: user._id },
+      ],
+    });
+  }
 
-  if (status) matchQuery.status = status;
+  // 2. Apply explicit status filter (Must be an $AND condition)
+  if (status) {
+    andConditions.push({ status: status });
+  }
+
+  // 3. Collect all name and general search filters into a single $OR group
+
+  // Patient Name Search
   if (patientName) {
-    matchQuery['$or'] = [
+    orSearchConditions.push(
       { 'patient.firstName': { $regex: patientName, $options: 'i' } },
       { 'patient.lastName': { $regex: patientName, $options: 'i' } },
-    ]
+    );
   }
+  
+  // Doctor Name Search
   if (doctorName) {
-    matchQuery['$or'] = [
+    orSearchConditions.push(
       { 'doctorDetails.firstName': { $regex: doctorName, $options: 'i' } },
       { 'doctorDetails.lastName': { $regex: doctorName, $options: 'i' } },
-    ]
+    );
   }
+  
+  // General Search term
   if (search) {
-    matchQuery['$or'] = [
+    // If a general search is present, it is often intended to replace/override explicit name filters.
+    // However, if all are passed, they are combined here with OR logic.
+    orSearchConditions.push(
       { 'patient.firstName': { $regex: search, $options: 'i' } },
       { 'patient.lastName': { $regex: search, $options: 'i' } },
       { 'doctorDetails.firstName': { $regex: search, $options: 'i' } },
       { 'doctorDetails.lastName': { $regex: search, $options: 'i' } },
       { 'status': { $regex: search, $options: 'i' } },
-    ]
+    );
   }
-  if (Object.keys(matchQuery).length > 0) {
-    pipeline.push({ $match: matchQuery });
+  
+  // 4. Add the collected $OR search group to the main $AND conditions
+  if (orSearchConditions.length > 0) {
+    andConditions.push({ $or: orSearchConditions });
+  }
+  
+  // 5. Finalize the $match stage
+  if (andConditions.length > 0) {
+    // If we have any conditions, push a single $match with an $and operator
+    pipeline.push({ $match: { $and: andConditions } });
   }
 
-  // Step 3: Use $facet for pagination and total count in one query
+  // --- Step 3: Use $facet for pagination and total count in one query ---
   pipeline.push({
     $facet: {
       metadata: [{ $count: 'total' }],
@@ -171,8 +197,8 @@ export async function getAppointments({
 
   const result = await Appointment.aggregate(pipeline);
 
-  const data = result[0].data;
-  const total = result[0].metadata[0]?.total || 0;
+  const data = result[0]?.data || [];
+  const total = result[0]?.metadata[0]?.total || 0;
 
   return {
     data: JSON.parse(JSON.stringify(data)),
@@ -181,8 +207,6 @@ export async function getAppointments({
     currentPage: page,
   };
 }
-
-
 
 
 /**

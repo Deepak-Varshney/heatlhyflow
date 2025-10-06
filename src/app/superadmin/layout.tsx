@@ -7,6 +7,7 @@ import { cookies } from 'next/headers';
 
 import DashboardSidebar from "@/components/layout/dashboard-sidebar";
 import { superAdminNavItems } from '@/constants/data';
+import RandomGlowMoving from '@/components/effects/random-glow';
 
 export const metadata: Metadata = {
   title: 'Healthyflow | Super Admin',
@@ -18,14 +19,15 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-// Persisting the sidebar state in the cookie.
-const cookieStore = await cookies();
-const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
+  // Persisting the sidebar state in the cookie.
+  const cookieStore = await cookies();
+  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true"
   return (
     <KBar>
       <SidebarProvider defaultOpen={defaultOpen}>
-        <AppSidebar navItems={superAdminNavItems}/>
+        <AppSidebar navItems={superAdminNavItems} />
         <SidebarInset>
+          <RandomGlowMoving speed={40} size={400} />
           <Header />
           {/* page main content */}
           {children}
