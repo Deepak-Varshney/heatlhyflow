@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Calendar, Users, Activity, MessageSquare } from "lucide-react";
+import { Calendar, Users, Activity, MessageSquare, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { IPatient } from '@/models/Patient';
 import { IUser } from '@/models/User';
@@ -10,12 +10,17 @@ import { getAllPatients } from '@/utilties/patients';
 import { getMongoUser } from "@/lib/CheckUser";
 import AppointmentBooking from '@/components/appointment-form';
 import { getDashboardData } from "@/data-function/receptionist/dashboard";
+import { getClerkSubscriptionContext } from "@/lib/clerk-subscription";
+import { ClerkSubscriptionStatus } from "@/components/subscription/clerk-subscription-status";
+import { ClerkSubscriptionGuard } from "@/components/subscription/clerk-subscription-guard";
 
 const ReceptionistDashboard = async () => {
   const user = await getMongoUser();
   const stats = await getDashboardData();
   const patients: IPatient[] = await getAllPatients()
   const doctors: IUser[] = await getAllDoctors()
+  const subscriptionContext = await getClerkSubscriptionContext();
+  
   return (
     <div className="space-y-8 m-4">
       {/* Welcome Header */}
@@ -30,12 +35,58 @@ const ReceptionistDashboard = async () => {
             <p className="text-muted-foreground">Here is a summary of your clinic activity today.</p>
           </div>
         </div>
-        <AppointmentBooking
-          patients={patients}
-          doctors={doctors}
-        />
-
+        <div className="flex gap-2">
+          <Link href="/billing">
+            <Button variant="outline" className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Billing
+            </Button>
+          </Link>
+        </div>
       </div>
+
+      {/* Clerk Subscription Status */}
+      {subscriptionContext && (
+        <div className="mb-6">
+          <ClerkSubscriptionStatus 
+            subscription={subscriptionContext.subscription}
+            organization={subscriptionContext.organization}
+            usage={subscriptionContext.usage}
+            limits={subscriptionContext.limits}
+            isActive={subscriptionContext.isActive}
+            daysUntilExpiry={subscriptionContext.daysUntilExpiry}
+            planType={subscriptionContext.planType}
+          />
+        </div>
+      )}
+
+      {/* Appointment Booking - Protected by Clerk subscription */}
+      <ClerkSubscriptionGuard feature="canCreateAppointment" fallback={
+        <Card className="border-dashed">
+          <CardHeader>
+            <CardTitle>Appointment Booking</CardTitle>
+            <p className="text-muted-foreground">Upgrade to Basic plan to access appointment booking</p>
+          </CardHeader>
+          <CardContent>
+            <Link href="/billing">
+              <Button>Upgrade Plan</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      }>
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Appointment Booking</CardTitle>
+            <p className="text-muted-foreground">Book appointments for patients</p>
+          </CardHeader>
+          <CardContent>
+            <AppointmentBooking
+              patients={patients}
+              doctors={doctors}
+            />
+          </CardContent>
+        </Card>
+      </ClerkSubscriptionGuard>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

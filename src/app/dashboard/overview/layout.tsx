@@ -9,9 +9,14 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
+import { Button } from '@/components/ui/button';
+import { CreditCard } from 'lucide-react';
+import Link from 'next/link';
+import { getClerkSubscriptionContext } from '@/lib/clerk-subscription';
+import { ClerkSubscriptionStatus } from '@/components/subscription/clerk-subscription-status';
 import React from 'react';
 
-export default function OverViewLayout({
+export default async function OverViewLayout({
   sales,
   pie_stats,
   bar_stats,
@@ -22,6 +27,8 @@ export default function OverViewLayout({
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
 }) {
+  const subscriptionContext = await getClerkSubscriptionContext();
+  
   return (
     <PageContainer>
       <div className='flex flex-1 flex-col space-y-2'>
@@ -29,7 +36,28 @@ export default function OverViewLayout({
           <h2 className='text-2xl font-bold tracking-tight'>
             Hi, Welcome back 👋
           </h2>
+          <Link href="/billing">
+            <Button variant="outline" className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Billing
+            </Button>
+          </Link>
         </div>
+
+        {/* Clerk Subscription Status */}
+        {subscriptionContext && (
+          <div className="mb-6">
+            <ClerkSubscriptionStatus 
+              subscription={subscriptionContext.subscription}
+              organization={subscriptionContext.organization}
+              usage={subscriptionContext.usage}
+              limits={subscriptionContext.limits}
+              isActive={subscriptionContext.isActive}
+              daysUntilExpiry={subscriptionContext.daysUntilExpiry}
+              planType={subscriptionContext.planType}
+            />
+          </div>
+        )}
 
         <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4'>
           <Card className='@container/card'>
