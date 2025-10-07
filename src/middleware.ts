@@ -318,11 +318,14 @@
 
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { getSubscriptionContext } from "@/lib/subscription";
 
 const isPublicRoute = createRouteMatcher([
   "/auth/(.*)",
   "/status(.*)",
   "/api/webhooks/(.*)",
+  "/billing(.*)",
+  "/subscription(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
@@ -399,6 +402,43 @@ export default clerkMiddleware(async (auth, req) => {
 
     if (role === "RECEPTIONIST" && !pathname.startsWith("/receptionist")) {
       return NextResponse.redirect(new URL("/receptionist/dashboard", req.url));
+    }
+
+    // Step 5: Subscription checks for non-superadmin users
+    if (role !== "SUPERADMIN") {
+      try {
+        const subscriptionContext = await getSubscriptionContext();
+        
+        // If no subscription context, redirect to billing
+        if (!subscriptionContext) {
+          if (!pathname.startsWith("/billing") && !pathname.startsWith("/subscription")) {
+            return NextResponse.redirect(new URL("/billing", req.url));
+          }
+        } else {
+          // Check if subscription is active
+          if (!subscriptionContext.isActive) {
+            if (!pathname.startsWith("/billing") && !pathname.startsWith("/subscription")) {
+              return NextResponse.redirect(new URL("/billing", req.url));
+            }
+          }
+
+          // Check specific feature access for certain routes
+          if (pathname.includes("/analytics") && !subscriptionContext.limits.canAccessAnalytics) {
+            return NextResponse.redirect(new URL("/billing?feature=analytics", req.url));
+          }
+
+          if (pathname.includes("/api") && !subscriptionContext.limits.canUseApiAccess) {
+            return NextResponse.redirect(new URL("/billing?feature=api", req.url));
+          }
+
+          if (pathname.includes("/branding") && !subscriptionContext.limits.canUseCustomBranding) {
+            return NextResponse.redirect(new URL("/billing?feature=branding", req.url));
+          }
+        }
+      } catch (error) {
+        console.error("Subscription check error:", error);
+        // Allow access but log the error
+      }
     }
   }
 

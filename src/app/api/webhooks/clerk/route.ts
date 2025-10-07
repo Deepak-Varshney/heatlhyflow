@@ -6,6 +6,7 @@ import { WebhookEvent } from "@clerk/nextjs/server";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Organization from "@/models/Organization";
+import { createDefaultSubscription } from "@/lib/subscription";
 import { NextResponse } from "next/server";
 
 let isDbConnected = false;
@@ -261,6 +262,9 @@ export async function POST(req: Request) {
 
                 // Also update the user who created it
                 await User.findByIdAndUpdate(owner._id, { organization: newOrg._id });
+
+                // Create default free subscription for the organization
+                await createDefaultSubscription(newOrg._id.toString(), id);
                 break;
             }
             case "organization.updated": {
