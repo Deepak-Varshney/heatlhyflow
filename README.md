@@ -1,4 +1,5 @@
 # HealthyFlow
+<!-- Trigger deployment for Clerk billing system -->
 ## ERP Solution for Healthcare Management
 
 HealthyFlow is a healthcare management ERP designed to streamline patient onboarding, appointments, doctor workflows, and OPD card generation. It provides a clear separation of responsibilities for receptionists and doctors while enforcing role-based access.
