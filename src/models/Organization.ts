@@ -6,6 +6,7 @@ export interface IOrganization extends Document {
   name: string;
   status: "PENDING" | "ACTIVE" | "DISABLED" | "REJECTED";
   owner: Schema.Types.ObjectId; // Reference to the User who created it
+  subscription?: Schema.Types.ObjectId; // Reference to the Subscription
 }
 
 const OrganizationSchema = new Schema<IOrganization>(
