@@ -5,6 +5,7 @@ import { Schema, model, models, Document } from "mongoose";
 export interface IAppointment extends Document {
   patient: Schema.Types.ObjectId;
   doctor: Schema.Types.ObjectId;
+  organization: Schema.Types.ObjectId;
   startTime: Date;
   endTime: Date;
   status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
@@ -24,6 +25,11 @@ const AppointmentSchema = new Schema<IAppointment>(
     doctor: {
       type: Schema.Types.ObjectId,
       ref: 'User',
+      required: true,
+    },
+    organization: {
+      type: Schema.Types.ObjectId,
+      ref: 'Organization',
       required: true,
     },
     // Reference to the exact slot that was booked

@@ -24,6 +24,7 @@ export interface IUser extends Document {
   lastName: string;
   imageUrl?: string;
   role: "UNASSIGNED" | "RECEPTIONIST" | "DOCTOR" | "ADMIN" | "SUPERADMIN";
+  organization: Schema.Types.ObjectId;
   _id: Schema.Types.ObjectId | any;
 
   // Doctor-specific fields
@@ -55,6 +56,10 @@ const UserSchema = new Schema<IUser>(
       type: String,
       enum: ["UNASSIGNED", "RECEPTIONIST", "DOCTOR", "ADMIN", "SUPERADMIN"],
       default: "UNASSIGNED",
+    },
+    organization: {
+      type: Schema.Types.ObjectId,
+      ref: 'Organization',
     },
     specialty: { type: String },
     experience: { type: Number },

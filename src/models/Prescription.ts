@@ -21,6 +21,7 @@ export interface IPrescription extends Document {
   appointment: Schema.Types.ObjectId;
   patient: Schema.Types.ObjectId;
   doctor: Schema.Types.ObjectId;
+  organization: Schema.Types.ObjectId;
   medicines: IMedicine[];
   chiefComplaint: string; // Patient ki samasya
   diagnosis: string;      // Doctor ka nirdharan
@@ -49,6 +50,7 @@ const PrescriptionSchema = new Schema<IPrescription>(
     appointment: { type: Schema.Types.ObjectId, ref: 'Appointment', required: true, unique: true },
     patient: { type: Schema.Types.ObjectId, ref: 'Patient', required: true },
     doctor: { type: Schema.Types.ObjectId, ref: 'User', required: true }, // Assuming Doctor is a User
+    organization: { type: Schema.Types.ObjectId, ref: 'Organization', required: true },
     medicines: [MedicineSchema],
     chiefComplaint: { type: String, required: true },
     diagnosis: { type: String, required: true },

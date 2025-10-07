@@ -231,7 +231,7 @@ export const navItems: NavItem[] = [
     items: [
       {
         title: 'Profile',
-        url: '/dashboard/profile',
+        url: '/profile',
         icon: 'userPen',
         shortcut: ['m', 'm']
       },

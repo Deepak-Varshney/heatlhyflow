@@ -9,6 +9,8 @@ import NextTopLoader from 'nextjs-toploader';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import './globals.css';
 import './theme.css';
+import { ThemePasteDialog } from './superadmin/dashboard/theme-editor';
+import { getCustomTheme } from '@/actions/theme';
 
 const META_THEME_COLORS = {
   light: '#ffffff',
@@ -30,13 +32,14 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const cookieStore = await cookies();
+  const customThemeCss = await getCustomTheme()
   const activeThemeValue = cookieStore.get('active_theme')?.value;
   const isScaled = activeThemeValue?.endsWith('-scaled');
 
   return (
     <html lang='en' suppressHydrationWarning>
       <head>
-  <style id="theme-overrides"></style>
+        <style id="theme-overrides">{customThemeCss}</style>
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -68,6 +71,8 @@ export default async function RootLayout({
           >
             <Providers activeThemeValue={activeThemeValue as string}>
               <Toaster />
+              <ThemePasteDialog />
+
               {children}
             </Providers>
           </ThemeProvider>

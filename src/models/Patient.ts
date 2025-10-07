@@ -12,6 +12,7 @@ export interface IPatient extends Document {
     name: string;
     phone: string;
   };
+  organization: Schema.Types.ObjectId;
   _id: Schema.Types.ObjectId | any
   appointments: [Schema.Types.ObjectId]; // Add reference to Appointments
   bp?: string;
@@ -64,6 +65,11 @@ const PatientSchema = new Schema<IPatient>(
         required: [true, "Emergency contact phone is required"],
         trim: true,
       },
+    },
+    organization: {
+      type: Schema.Types.ObjectId,
+      ref: 'Organization',
+      required: true,
     },
     bp: {
       type: String, // Blood pressure as a string (e.g. '120/80')
