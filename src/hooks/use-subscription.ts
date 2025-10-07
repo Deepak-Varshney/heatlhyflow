@@ -86,21 +86,21 @@ export function useSubscription() {
     fetchSubscription();
   }, []);
 
-  const canPerformAction = (action: keyof typeof subscription.limits): boolean => {
+  const canPerformAction = (action: string): boolean => {
     if (!subscription) return false;
-    return subscription.limits[action] && subscription.isActive;
+    return (subscription.limits as any)[action] && subscription.isActive;
   };
 
-  const isFeatureAvailable = (feature: keyof typeof subscription.limits): boolean => {
+  const isFeatureAvailable = (feature: string): boolean => {
     if (!subscription) return false;
-    return subscription.limits[feature];
+    return (subscription.limits as any)[feature];
   };
 
   const getUsagePercentage = (type: "users" | "appointments" | "patients"): number => {
     if (!subscription) return 0;
     
     const current = subscription.usage[`current${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof typeof subscription.usage] as number;
-    const max = subscription.subscription.features[`max${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof typeof subscription.subscription.features] as number;
+    const max = subscription.subscription?.features[`max${type.charAt(0).toUpperCase() + type.slice(1)}` as keyof typeof subscription.subscription.features] as number;
     
     if (max === -1) return 0; // Unlimited
     return Math.min((current / max) * 100, 100);

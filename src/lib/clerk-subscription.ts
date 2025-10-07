@@ -39,7 +39,7 @@ export const getClerkSubscriptionContext = async (): Promise<ClerkSubscriptionCo
     if (!clerkUser) return null;
 
     // Get organization subscription from Clerk
-    const organization = clerkUser.organizationMemberships?.[0]?.organization;
+    const organization = (clerkUser as any).organizationMemberships?.[0]?.organization;
     if (!organization) return null;
 
     // Get subscription from Clerk organization

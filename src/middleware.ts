@@ -318,7 +318,6 @@
 
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { getSubscriptionStatus } from "@/lib/clerk-subscription";
 
 const isPublicRoute = createRouteMatcher([
   "/auth/(.*)",
@@ -404,35 +403,8 @@ export default clerkMiddleware(async (auth, req) => {
       return NextResponse.redirect(new URL("/receptionist/dashboard", req.url));
     }
 
-    // Step 5: Subscription checks for non-superadmin users
-    if (role !== "SUPERADMIN") {
-      try {
-        const subscriptionStatus = await getSubscriptionStatus();
-        
-        // Check if subscription is active
-        if (!subscriptionStatus.isActive) {
-          if (!pathname.startsWith("/billing") && !pathname.startsWith("/subscription")) {
-            return NextResponse.redirect(new URL("/billing", req.url));
-          }
-        }
-
-        // Check specific feature access for certain routes
-        if (pathname.includes("/analytics") && !subscriptionStatus.limits.canAccessAnalytics) {
-          return NextResponse.redirect(new URL("/billing?feature=analytics", req.url));
-        }
-
-        if (pathname.includes("/api") && !subscriptionStatus.limits.canUseApiAccess) {
-          return NextResponse.redirect(new URL("/billing?feature=api", req.url));
-        }
-
-        if (pathname.includes("/branding") && !subscriptionStatus.limits.canUseCustomBranding) {
-          return NextResponse.redirect(new URL("/billing?feature=branding", req.url));
-        }
-      } catch (error) {
-        console.error("Subscription check error:", error);
-        // Allow access but log the error
-      }
-    }
+    // Note: Subscription checks are handled at the component/page level
+    // to avoid database calls in middleware (Edge Runtime limitation)
   }
 
   return NextResponse.next();

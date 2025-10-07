@@ -107,7 +107,7 @@ function UserEditForm({ user, onClose }: { user: any; onClose: () => void }) {
     );
 }
 
-export default async function UserDetailPage({ user }: { user: any }) {
+export default function UserDetailPage({ user }: { user: any }) {
 
     if (!user) {
         notFound();

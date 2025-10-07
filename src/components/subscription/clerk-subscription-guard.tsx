@@ -220,7 +220,7 @@ export function ClerkUsageLimit({ current, max, type, onUpgrade }: UsageLimitPro
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
-            <span>You've reached your {typeInfo.label} limit</span>
+            <span>You&apos;ve reached your {typeInfo.label} limit</span>
             <Button size="sm" onClick={onUpgrade}>
               Upgrade
             </Button>
