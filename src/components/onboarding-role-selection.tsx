@@ -40,9 +40,11 @@ export default function OnboardingRoleSelection() {
       const result = await updateUserOnboarding({ role: "RECEPTIONIST" });
       if (result.success) {
         toast.success("Profile updated successfully!");
+        router.refresh();
         router.push(result.redirectUrl || "/dashboard");
       } else {
         toast.error(result.error || "Something went wrong.");
+        router.refresh();
         setLoading(false);
       }
     } else {
@@ -55,10 +57,12 @@ export default function OnboardingRoleSelection() {
     const result = await updateUserOnboarding({ role: "DOCTOR", doctorDetails: data });
     if (result.success) {
       toast.success("Doctor profile submitted for verification!");
+      router.refresh();
       router.push(result.redirectUrl || "/dashboard");
     } else {
       toast.error(result.error || "Something went wrong.");
       setLoading(false);
+      router.refresh();
     }
   };
 

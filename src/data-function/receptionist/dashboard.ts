@@ -6,22 +6,42 @@ import Patient from "@/models/Patient";
 export async function getDashboardData() {
     await connectDB();
     const currentUser = await getMongoUser(); // Fetch current user
+    if (!currentUser) throw new Error("User not authenticated");
+    
     // Initialize totalPatients query
-    let totalPatientsQuery = {};
+    let totalPatientsQuery: any = {};
+
+    // Only apply organization filter if user is not SUPERADMIN
+    if (currentUser.role !== "SUPERADMIN") {
+        totalPatientsQuery.organization = currentUser.organization;
+    }
 
     if (currentUser.role === "DOCTOR") {
         // If role is DOCTOR, filter patients who have appointments with the doctor
-        const doctorAppointments = await Appointment.find({ doctor: currentUser._id });
+        const appointmentQuery: any = { doctor: currentUser._id };
+        if (currentUser.role !== "SUPERADMIN") {
+            appointmentQuery.organization = currentUser.organization;
+        }
+        
+        const doctorAppointments = await Appointment.find(appointmentQuery);
         const patientIds = doctorAppointments.map((appointment) => appointment.patient);
 
         // Modify query to only count patients who have appointments with this doctor
-        totalPatientsQuery = { _id: { $in: patientIds } };
+        totalPatientsQuery._id = { $in: patientIds };
     }
 
     // Fetch total number of patients based on the query
     const totalPatients = await Patient.find(totalPatientsQuery).countDocuments();
 
-    const totalAppointments = await Appointment.countDocuments();
+    // Initialize totalAppointments query
+    let totalAppointmentsQuery: any = {};
+    
+    // Only apply organization filter if user is not SUPERADMIN
+    if (currentUser.role !== "SUPERADMIN") {
+        totalAppointmentsQuery.organization = currentUser.organization;
+    }
+    
+    const totalAppointments = await Appointment.find(totalAppointmentsQuery).countDocuments();
 
     // Get the current date and time
     const currentDate = new Date();
@@ -39,6 +59,11 @@ export async function getDashboardData() {
         status: "scheduled", // Only show scheduled appointments
     };
 
+    // Only apply organization filter if user is not SUPERADMIN
+    if (currentUser.role !== "SUPERADMIN") {
+        query.organization = currentUser.organization;
+    }
+
     // Check role and modify the query accordingly
     if (currentUser.role === "DOCTOR") {
         // If role is DOCTOR, filter by createdBy and doctor
@@ -54,14 +79,19 @@ export async function getDashboardData() {
         },
         status: "scheduled", // Only show scheduled appointments
     };
+    
+    // Only apply organization filter if user is not SUPERADMIN
+    if (currentUser.role !== "SUPERADMIN") {
+        todayquery.organization = currentUser.organization;
+    }
+    
     if (currentUser.role === "DOCTOR") {
         // If role is DOCTOR, filter by createdBy and doctor
         todayquery.createdBy = currentUser._id;
         todayquery.doctor = currentUser._id;
     }
-    const todaysAppointments = await Appointment.find({
-        todayquery
-    }).countDocuments();
+    
+    const todaysAppointments = await Appointment.find(todayquery).countDocuments();
 
     return {
         totalPatients,

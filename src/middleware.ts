@@ -321,11 +321,8 @@ import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
   "/auth/(.*)",
-  "/",
-  "/awaiting-verification(.*)",
   "/status(.*)",
   "/api/webhooks/(.*)",
-  // removed "/onboarding(.*)" here intentionally
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
@@ -345,10 +342,21 @@ export default clerkMiddleware(async (auth, req) => {
   const verificationStatus = (sessionClaims as any)?.publicMetadata?.verificationStatus as string;
   const organizationStatus = (sessionClaims as any)?.publicMetadata?.organizationStatus as string;
 
+  // Step 2: Handle UNASSIGNED users - allow access to onboarding
+  if ((!role || role === "UNASSIGNED")) {
+    // Allow access to onboarding page for UNASSIGNED users
+    if (pathname.startsWith("/onboarding")) {
+      return NextResponse.next();
+    }
+    // Redirect all other routes to onboarding
+    return NextResponse.redirect(new URL("/onboarding", req.url));
+  }
+
+  // Step 3: Handle verification/status checks (only for users with roles)
   const isUserBlocked = verificationStatus !== "VERIFIED";
   const isOrgBlocked = organizationStatus !== "ACTIVE";
 
-  // Redirect blocked users/orgs to unified status page
+  // Redirect blocked users/orgs to status page
   if ((isUserBlocked || isOrgBlocked) && !pathname.startsWith("/status")) {
     return NextResponse.redirect(new URL("/status", req.url));
   }
@@ -365,14 +373,8 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.redirect(new URL(dashboardUrl, req.url));
   }
 
-  // UNASSIGNED users must complete onboarding
-  if ((!role || role === "UNASSIGNED") && !pathname.startsWith("/onboarding")) {
-    return NextResponse.redirect(new URL("/onboarding", req.url));
-  }
-
-  // If user is VERIFIED and ACTIVE, **don't allow access to onboarding pages**
-  if (!(!role || role === "UNASSIGNED") && pathname.startsWith("/onboarding")) {
-    // Redirect verified/active users away from onboarding
+  // Redirect verified/active users away from onboarding
+  if (!isUserBlocked && !isOrgBlocked && pathname.startsWith("/onboarding")) {
     const dashboardUrl =
       role === "DOCTOR"
         ? "/doctor/dashboard"
@@ -383,7 +385,7 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.redirect(new URL(dashboardUrl, req.url));
   }
 
-  // Role-based access (only after passing verification/org check)
+  // Step 4: Role-based access (only for VERIFIED and ACTIVE users)
   if (!isUserBlocked && !isOrgBlocked) {
     if (role === "SUPERADMIN") return NextResponse.next();
 
