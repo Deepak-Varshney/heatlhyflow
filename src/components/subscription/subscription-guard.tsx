@@ -84,13 +84,21 @@ export function SubscriptionGuard({
       try {
         setIsLoading(true);
         
-        // In a real implementation, this would check the user's subscription
-        // For now, we'll simulate a check based on the feature
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Check subscription access via API route
+        const response = await fetch('/api/subscription/check', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ feature }),
+        });
         
-        // Mock logic - in real implementation, this would check actual subscription
-        const mockHasAccess = Math.random() > 0.3; // 70% chance of having access for demo
-        setHasAccess(mockHasAccess);
+        if (response.ok) {
+          const data = await response.json();
+          setHasAccess(data.hasAccess);
+        } else {
+          setHasAccess(false);
+        }
       } catch (error) {
         console.error("Error checking subscription:", error);
         setHasAccess(false);
@@ -219,7 +227,7 @@ export function UsageLimit({ current, max, type, onUpgrade }: UsageLimitProps) {
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
-            <span>You've reached your {typeInfo.label} limit</span>
+            <span>You&apos;ve reached your {typeInfo.label} limit</span>
             <Button size="sm" onClick={onUpgrade}>
               Upgrade
             </Button>

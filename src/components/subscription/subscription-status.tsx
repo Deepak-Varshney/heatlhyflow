@@ -36,7 +36,8 @@ export function SubscriptionStatus({ subscription }: SubscriptionStatusProps) {
     );
   }
 
-  const plan = SUBSCRIPTION_PLANS[subscription.subscription?.planType || "FREE"];
+  const planType = subscription.subscription?.planType || "FREE";
+  const plan = SUBSCRIPTION_PLANS[planType as keyof typeof SUBSCRIPTION_PLANS];
   const isActive = subscription.isActive;
   const daysUntilExpiry = subscription.daysUntilExpiry;
 

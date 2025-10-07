@@ -39,9 +39,10 @@ const SubscriptionSchema = new Schema<ISubscription>(
       type: Schema.Types.ObjectId, 
       ref: "Organization", 
       required: true,
-      unique: true 
+      unique: true,
+      index: true
     },
-    clerkOrgId: { type: String, required: true, unique: true },
+    clerkOrgId: { type: String, required: true, unique: true, index: true },
     planType: {
       type: String,
       enum: ["FREE", "BASIC", "PROFESSIONAL", "ENTERPRISE"],
@@ -85,8 +86,6 @@ const SubscriptionSchema = new Schema<ISubscription>(
 );
 
 // Index for efficient queries
-SubscriptionSchema.index({ organization: 1 });
-SubscriptionSchema.index({ clerkOrgId: 1 });
 SubscriptionSchema.index({ status: 1 });
 
 const Subscription = models.Subscription || model<ISubscription>("Subscription", SubscriptionSchema);

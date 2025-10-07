@@ -135,7 +135,7 @@ export const superAdminNavItems: NavItem[] = [
   {
     title: 'Subscriptions',
     url: '/superadmin/subscriptions',
-    icon: 'creditCard',
+    icon: 'billing',
     isActive: false,
     shortcut: ['s', 's'],
     items: []
