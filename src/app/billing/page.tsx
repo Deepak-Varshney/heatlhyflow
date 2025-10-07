@@ -1,5 +1,5 @@
-import { getSubscriptionContext } from "@/lib/subscription";
-import { SubscriptionStatus } from "@/components/subscription/subscription-status";
+import { getClerkSubscriptionContext } from "@/lib/clerk-subscription";
+import { ClerkSubscriptionStatus } from "@/components/subscription/clerk-subscription-status";
 import { SubscriptionGrid } from "@/components/subscription/subscription-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ interface BillingPageProps {
 }
 
 const BillingPage = async ({ searchParams }: BillingPageProps) => {
-  const subscriptionContext = await getSubscriptionContext();
+  const subscriptionContext = await getClerkSubscriptionContext();
   
   const getFeatureMessage = (feature: string) => {
     switch (feature) {
@@ -50,7 +50,24 @@ const BillingPage = async ({ searchParams }: BillingPageProps) => {
       )}
 
       {/* Current Subscription Status */}
-      <SubscriptionStatus subscription={subscriptionContext} />
+      {subscriptionContext ? (
+        <ClerkSubscriptionStatus 
+          subscription={subscriptionContext.subscription}
+          organization={subscriptionContext.organization}
+          usage={subscriptionContext.usage}
+          limits={subscriptionContext.limits}
+          isActive={subscriptionContext.isActive}
+          daysUntilExpiry={subscriptionContext.daysUntilExpiry}
+          planType={subscriptionContext.planType}
+        />
+      ) : (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            No subscription found. Please contact support.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Upgrade Options */}
       <Card>

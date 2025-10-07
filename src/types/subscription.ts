@@ -41,8 +41,10 @@ export interface PlanDetails {
   };
   features: SubscriptionFeatures;
   popular?: boolean;
+  clerkSlug?: string; // Clerk plan slug
 }
 
+// Updated plans to match your Clerk setup
 export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, PlanDetails> = {
   FREE: {
     name: "Free",
@@ -66,8 +68,8 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, PlanDetails> = {
     name: "Basic",
     description: "Essential features for growing practices",
     price: {
-      monthly: 29,
-      yearly: 290,
+      monthly: 10, // Updated to match your Clerk plan
+      yearly: 100, // Assuming yearly discount
     },
     features: {
       maxUsers: 5,
@@ -79,6 +81,7 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionPlan, PlanDetails> = {
       prioritySupport: false,
       customIntegrations: false,
     },
+    clerkSlug: "basic", // Your Clerk plan slug
   },
   PROFESSIONAL: {
     name: "Professional",
