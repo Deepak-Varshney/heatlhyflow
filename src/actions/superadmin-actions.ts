@@ -1,7 +1,7 @@
 // actions/superadmin-actions.ts
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, redirect } from "next/cache";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Organization from "@/models/Organization";

@@ -9,9 +9,14 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
+import { Button } from '@/components/ui/button';
+import { CreditCard } from 'lucide-react';
+import Link from 'next/link';
+import { getSubscriptionContext } from '@/lib/subscription';
+import { SubscriptionStatus } from '@/components/subscription/subscription-status';
 import React from 'react';
 
-export default function OverViewLayout({
+export default async function OverViewLayout({
   sales,
   pie_stats,
   bar_stats,
@@ -22,6 +27,7 @@ export default function OverViewLayout({
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
 }) {
+  const subscriptionContext = await getSubscriptionContext();
   return (
     <PageContainer>
       <div className='flex flex-1 flex-col space-y-2'>
@@ -29,7 +35,20 @@ export default function OverViewLayout({
           <h2 className='text-2xl font-bold tracking-tight'>
             Hi, Welcome back 👋
           </h2>
+          <Link href="/billing">
+            <Button variant="outline" className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4" />
+              Billing
+            </Button>
+          </Link>
         </div>
+
+        {/* Subscription Status */}
+        {subscriptionContext && (
+          <div className="mb-6">
+            <SubscriptionStatus subscription={subscriptionContext} />
+          </div>
+        )}
 
         <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4'>
           <Card className='@container/card'>
