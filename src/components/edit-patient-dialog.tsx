@@ -60,7 +60,7 @@ export function EditPatientDialog({ patient, open, onOpenChange }: { patient: an
         <DialogHeader>
           <DialogTitle>Edit Patient Details</DialogTitle>
           <DialogDescription>
-            Make changes to the patient's profile here. Click save when you're done.
+            Make changes to the patient&apos;s profile here. Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

@@ -21,7 +21,7 @@
 // import { createPrescription } from "@/actions/appointment-actions"; // Server action ko import karein
 
 // const formSchema = z.object({
-//   chiefComplaint: z.string().min(5, "Please enter the patient's main problem."),
+//   chiefComplaint: z.string().min(5, "Please enter the patient&apos;s main problem."),
 //   medicines: z.array(z.object({
 //     name: z.string().min(1, "Medicine name is required."),
 //     dosage: z.string().min(1, "Dosage is required."),
@@ -166,7 +166,7 @@ import { createPrescription } from "@/actions/appointment-actions"; // Server ac
 import { useState } from "react";
 
 const formSchema = z.object({
-  chiefComplaint: z.string().min(5, "Please enter the patient's main problem."),
+  chiefComplaint: z.string().min(5, "Please enter the patient&apos;s main problem."),
   diagnosis: z.string().min(5, "Please enter your diagnosis."), // NAYA FIELD
   medicines: z
     .array(

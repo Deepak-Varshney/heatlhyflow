@@ -350,7 +350,7 @@ export async function getTodaysAppointmentsForDoctor() {
 
     return JSON.parse(JSON.stringify(appointments));
   } catch (error) {
-    console.error("Error fetching today's appointments for doctor:", error);
+    console.error("Error fetching today&apos;s appointments for doctor:", error);
     return [];
   }
 }
