@@ -5,8 +5,10 @@ import { revalidatePath } from "next/cache";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Organization from "@/models/Organization";
+import Subscription from "@/models/Subscription";
 import { getMongoUser } from "@/lib/CheckUser";
 import { parseSortParameter } from "@/lib/utils";
+import { SUBSCRIPTION_PLANS, SubscriptionPlan, SubscriptionStatus } from "@/types/subscription";
 
 import { clerkClient } from "@clerk/nextjs/server";
 
@@ -404,4 +406,246 @@ export async function getUserStats() {
     receptionists,
     unassignedUsers
   };
+}
+
+// Subscription Management Functions
+
+// Get all subscriptions with organization details
+export async function getAllSubscriptions({
+  page = 1,
+  limit = 10,
+  sort,
+  search,
+  planType,
+  status,
+}: {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  search?: string;
+  planType?: SubscriptionPlan;
+  status?: SubscriptionStatus;
+}) {
+  await connectDB();
+  const user = await getMongoUser();
+  if (!user || (user.role !== "SUPERADMIN" && user.role !== "DEVIL")) {
+    throw new Error("Permission denied: Not a Super Admin");
+  }
+
+  const offset = (page - 1) * limit;
+  const query: any = {};
+
+  // General search query
+  if (search) {
+    query.$or = [
+      { planType: { $regex: search, $options: 'i' } },
+      { status: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  // Specific filters
+  if (planType) query.planType = planType;
+  if (status) query.status = status;
+
+  const sortQuery = parseSortParameter(sort);
+
+  const total = await Subscription.countDocuments(query);
+  const data = await Subscription.find(query)
+    .populate('organization', 'name status clerkOrgId')
+    .sort(sortQuery)
+    .skip(offset)
+    .limit(limit)
+    .lean();
+
+  return {
+    data: JSON.parse(JSON.stringify(data)),
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+  };
+}
+
+// Update subscription plan
+export async function updateSubscriptionPlan(
+  subscriptionId: string,
+  planType: SubscriptionPlan,
+  billingCycle: "MONTHLY" | "YEARLY" = "MONTHLY"
+) {
+  await connectDB();
+  const user = await getMongoUser();
+  if (!user || (user.role !== "SUPERADMIN" && user.role !== "DEVIL")) {
+    throw new Error("Permission denied: Not a Super Admin");
+  }
+
+  const subscription = await Subscription.findById(subscriptionId);
+  if (!subscription) {
+    throw new Error("Subscription not found");
+  }
+
+  const planDetails = SUBSCRIPTION_PLANS[planType];
+  const now = new Date();
+  const periodEnd = new Date(now.getTime() + (billingCycle === "YEARLY" ? 365 : 30) * 24 * 60 * 60 * 1000);
+
+  await Subscription.findByIdAndUpdate(subscriptionId, {
+    planType,
+    billingCycle,
+    features: planDetails.features,
+    pricePerMonth: billingCycle === "YEARLY" ? planDetails.price.yearly / 12 : planDetails.price.monthly,
+    currentPeriodStart: now,
+    currentPeriodEnd: periodEnd,
+  });
+
+  revalidatePath("/superadmin/subscriptions");
+  revalidatePath("/superadmin/dashboard");
+
+  return { success: true };
+}
+
+// Update subscription status
+export async function updateSubscriptionStatus(
+  subscriptionId: string,
+  status: SubscriptionStatus
+) {
+  await connectDB();
+  const user = await getMongoUser();
+  if (!user || (user.role !== "SUPERADMIN" && user.role !== "DEVIL")) {
+    throw new Error("Permission denied: Not a Super Admin");
+  }
+
+  const subscription = await Subscription.findById(subscriptionId);
+  if (!subscription) {
+    throw new Error("Subscription not found");
+  }
+
+  await Subscription.findByIdAndUpdate(subscriptionId, { status });
+
+  revalidatePath("/superadmin/subscriptions");
+  revalidatePath("/superadmin/dashboard");
+
+  return { success: true };
+}
+
+// Get subscription statistics
+export async function getSubscriptionStats() {
+  await connectDB();
+  const user = await getMongoUser();
+  if (!user || (user.role !== "SUPERADMIN" && user.role !== "DEVIL")) {
+    throw new Error("Permission denied: Not a Super Admin");
+  }
+
+  const [
+    totalSubscriptions,
+    activeSubscriptions,
+    cancelledSubscriptions,
+    pastDueSubscriptions,
+    freeSubscriptions,
+    basicSubscriptions,
+    professionalSubscriptions,
+    enterpriseSubscriptions,
+    monthlyRevenue,
+    yearlyRevenue,
+  ] = await Promise.all([
+    Subscription.countDocuments(),
+    Subscription.countDocuments({ status: "ACTIVE" }),
+    Subscription.countDocuments({ status: "CANCELLED" }),
+    Subscription.countDocuments({ status: "PAST_DUE" }),
+    Subscription.countDocuments({ planType: "FREE" }),
+    Subscription.countDocuments({ planType: "BASIC" }),
+    Subscription.countDocuments({ planType: "PROFESSIONAL" }),
+    Subscription.countDocuments({ planType: "ENTERPRISE" }),
+    Subscription.aggregate([
+      { $match: { billingCycle: "MONTHLY", status: "ACTIVE" } },
+      { $group: { _id: null, total: { $sum: "$pricePerMonth" } } }
+    ]),
+    Subscription.aggregate([
+      { $match: { billingCycle: "YEARLY", status: "ACTIVE" } },
+      { $group: { _id: null, total: { $sum: { $multiply: ["$pricePerMonth", 12] } } } }
+    ]),
+  ]);
+
+  return {
+    totalSubscriptions,
+    activeSubscriptions,
+    cancelledSubscriptions,
+    pastDueSubscriptions,
+    freeSubscriptions,
+    basicSubscriptions,
+    professionalSubscriptions,
+    enterpriseSubscriptions,
+    monthlyRevenue: monthlyRevenue[0]?.total || 0,
+    yearlyRevenue: yearlyRevenue[0]?.total || 0,
+    totalRevenue: (monthlyRevenue[0]?.total || 0) + (yearlyRevenue[0]?.total || 0),
+  };
+}
+
+// Create subscription for organization
+export async function createSubscriptionForOrganization(
+  organizationId: string,
+  planType: SubscriptionPlan,
+  billingCycle: "MONTHLY" | "YEARLY" = "MONTHLY"
+) {
+  await connectDB();
+  const user = await getMongoUser();
+  if (!user || (user.role !== "SUPERADMIN" && user.role !== "DEVIL")) {
+    throw new Error("Permission denied: Not a Super Admin");
+  }
+
+  const organization = await Organization.findById(organizationId);
+  if (!organization) {
+    throw new Error("Organization not found");
+  }
+
+  // Check if subscription already exists
+  const existingSubscription = await Subscription.findOne({ organization: organizationId });
+  if (existingSubscription) {
+    throw new Error("Subscription already exists for this organization");
+  }
+
+  const planDetails = SUBSCRIPTION_PLANS[planType];
+  const now = new Date();
+  const periodEnd = new Date(now.getTime() + (billingCycle === "YEARLY" ? 365 : 30) * 24 * 60 * 60 * 1000);
+
+  const subscription = await Subscription.create({
+    organization: organizationId,
+    clerkOrgId: organization.clerkOrgId,
+    planType,
+    status: "ACTIVE",
+    currentPeriodStart: now,
+    currentPeriodEnd: periodEnd,
+    cancelAtPeriodEnd: false,
+    features: planDetails.features,
+    usage: {
+      currentUsers: 0,
+      currentAppointments: 0,
+      currentPatients: 0,
+    },
+    billingCycle,
+    pricePerMonth: billingCycle === "YEARLY" ? planDetails.price.yearly / 12 : planDetails.price.monthly,
+  });
+
+  revalidatePath("/superadmin/subscriptions");
+  revalidatePath("/superadmin/dashboard");
+
+  return { success: true, subscription };
+}
+
+// Delete subscription
+export async function deleteSubscription(subscriptionId: string) {
+  await connectDB();
+  const user = await getMongoUser();
+  if (!user || (user.role !== "SUPERADMIN" && user.role !== "DEVIL")) {
+    throw new Error("Permission denied: Not a Super Admin");
+  }
+
+  const subscription = await Subscription.findById(subscriptionId);
+  if (!subscription) {
+    throw new Error("Subscription not found");
+  }
+
+  await Subscription.findByIdAndDelete(subscriptionId);
+
+  revalidatePath("/superadmin/subscriptions");
+  revalidatePath("/superadmin/dashboard");
+
+  return { success: true };
 }

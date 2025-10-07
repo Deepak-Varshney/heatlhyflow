@@ -78,10 +78,10 @@ import Organization from "@/models/Organization";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { updateOrganizationStatus, manageUserVerification, getUserStats } from "@/actions/superadmin-actions";
+import { updateOrganizationStatus, manageUserVerification, getUserStats, getSubscriptionStats } from "@/actions/superadmin-actions";
 import User from "@/models/User";
 import { ThemePasteDialog } from "./theme-editor";
-import { Users, Building2, UserCheck, UserX, Clock, TrendingUp } from "lucide-react";
+import { Users, Building2, UserCheck, UserX, Clock, TrendingUp, CreditCard, DollarSign, Calendar } from "lucide-react";
 import Link from "next/link";
 // ActionForm for Organization status updates
 const ActionForm = ({ orgId, status, children, variant, clerkUserId }: {
@@ -128,6 +128,9 @@ const SuperAdminDashboard = async () => {
     
     // Get user statistics
     const userStats = await getUserStats();
+    
+    // Get subscription statistics
+    const subscriptionStats = await getSubscriptionStats();
     
     // Get organization statistics
     const totalOrgs = await Organization.countDocuments();
@@ -187,6 +190,57 @@ const SuperAdminDashboard = async () => {
                 </Card>
             </div>
 
+            {/* Subscription Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                            <CreditCard className="h-8 w-8 text-indigo-600" />
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Active Subscriptions</p>
+                                <p className="text-2xl font-bold">{subscriptionStats.activeSubscriptions}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                            <DollarSign className="h-8 w-8 text-green-600" />
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Monthly Revenue</p>
+                                <p className="text-2xl font-bold">${subscriptionStats.monthlyRevenue.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                            <TrendingUp className="h-8 w-8 text-orange-600" />
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
+                                <p className="text-2xl font-bold">${subscriptionStats.totalRevenue.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                            <Calendar className="h-8 w-8 text-red-600" />
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Past Due</p>
+                                <p className="text-2xl font-bold">{subscriptionStats.pastDueSubscriptions}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
             {/* Quick Actions */}
             <div className="flex flex-wrap gap-4">
                 <Link href="/superadmin/users">
@@ -199,6 +253,12 @@ const SuperAdminDashboard = async () => {
                     <Button variant="outline" className="flex items-center gap-2">
                         <Building2 className="h-4 w-4" />
                         Manage Organizations
+                    </Button>
+                </Link>
+                <Link href="/superadmin/subscriptions">
+                    <Button variant="outline" className="flex items-center gap-2">
+                        <CreditCard className="h-4 w-4" />
+                        Manage Subscriptions
                     </Button>
                 </Link>
                 <ThemePasteDialog />
