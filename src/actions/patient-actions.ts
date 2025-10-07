@@ -3,9 +3,11 @@
 import { revalidatePath } from "next/cache";
 import connectDB from "../lib/mongodb";
 import Patient from "@/models/Patient";
+import User from "@/models/User";
 import { parseSortParameter } from "@/lib/utils"; // We'll create this helper
 import { getMongoUser } from "@/lib/CheckUser";
-
+import Appointment from "@/models/Appointment";
+import Prescription from "@/models/Prescription";
 export async function createPatient(patientData: any) {
   try {
     await connectDB();
@@ -71,7 +73,7 @@ export async function getPatients({
 
   const offset = (page - 1) * limit;
   const query: any = {};
-  
+
   // Only apply organization filter if user is not SUPERADMIN
   if (user.role !== "SUPERADMIN") {
     query.organization = user.organization;
@@ -114,4 +116,81 @@ export async function getPatients({
     totalPages: Math.ceil(total / limit),
     currentPage: page,
   };
+}
+
+export async function getPatientById(patientId: string) {
+  try {
+    await connectDB();
+    const user = await getMongoUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const query: any = { _id: patientId };
+    
+    // Only apply organization filter if user is not SUPERADMIN
+    if (user.role !== "SUPERADMIN") {
+      query.organization = user.organization;
+    }
+
+    const patient = await Patient.findOne(query).lean();
+
+    if (!patient) {
+      return null;
+    }
+
+    // Patient ke saare appointments fetch karein aur unhe doctor ke naam ke saath populate karein
+    const appointments = await Appointment.find({ patient: patientId })
+      .populate({ path: 'doctor', model: User, select: 'firstName lastName specialty' })
+      .populate({ path: 'prescription', model: Prescription, select: 'diagnosis' }) // NAYA: Prescription bhi fetch karein
+      .sort({ startTime: -1 })
+      .lean();
+
+    // Patient object ke saath appointments ko bhi return karein
+    const patientWithDetails = {
+      ...patient,
+      appointments,
+    };
+
+    return JSON.parse(JSON.stringify(patientWithDetails));
+  } catch (error) {
+    console.error("Error fetching patient by ID:", error);
+    return null;
+  }
+}
+
+
+// Yeh type define karta hai ki form se kya data aayega
+interface PatientUpdateData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  address: string;
+  bloodPressure?: string;
+  weight?: number;
+  height?: number;
+  // Baaki fields bhi add kar sakte hain
+}
+
+export async function updatePatient(patientId: string, data: PatientUpdateData) {
+  try {
+    // Security Check: Sirf logged-in user hi edit kar sakta hai
+    const user = await getMongoUser();
+    if (!user || (user.role !== 'DOCTOR' && user.role !== 'RECEPTIONIST' && user.role !== 'ADMIN')) {
+      throw new Error("Unauthorized access.");
+    }
+
+    await connectDB();
+
+    await Patient.findByIdAndUpdate(patientId, data);
+
+    // Yeh bahut zaroori hai! Yeh Next.js ko batata hai ki is page ka data
+    // badal gaya hai, aur use naya data fetch karna chahiye.
+    revalidatePath(`/patients/${patientId}`);
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating patient:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+    return { success: false, error: errorMessage };
+  }
 }

@@ -78,9 +78,11 @@ import Organization from "@/models/Organization";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { updateOrganizationStatus, manageUserVerification } from "@/actions/superadmin-actions"; // Assuming updateUserStatus action exists
+import { updateOrganizationStatus, manageUserVerification, getUserStats } from "@/actions/superadmin-actions";
 import User from "@/models/User";
-import {ThemePasteDialog} from "./theme-editor"
+import { ThemePasteDialog } from "./theme-editor";
+import { Users, Building2, UserCheck, UserX, Clock, TrendingUp } from "lucide-react";
+import Link from "next/link";
 // ActionForm for Organization status updates
 const ActionForm = ({ orgId, status, children, variant, clerkUserId }: {
     orgId: string,
@@ -123,8 +125,84 @@ const SuperAdminDashboard = async () => {
     const pendingOrgs = await Organization.find({ status: "PENDING" }).populate("owner");
     // Fetch pending users
     const pendingUsers = await User.find({ verificationStatus: "PENDING" });
+    
+    // Get user statistics
+    const userStats = await getUserStats();
+    
+    // Get organization statistics
+    const totalOrgs = await Organization.countDocuments();
+    const activeOrgs = await Organization.countDocuments({ status: "ACTIVE" });
+    const pendingOrgCount = await Organization.countDocuments({ status: "PENDING" });
+    
     return (
-        <div className="p-4 sm:p-6 lg:p-8 space-y-8">
+        <div className="p-4 sm:p-6 lg:p-8 space-y-8 overflow-scroll h-[90vh]">
+            {/* Statistics Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                            <Users className="h-8 w-8 text-blue-600" />
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Total Users</p>
+                                <p className="text-2xl font-bold">{userStats.totalUsers}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                            <UserCheck className="h-8 w-8 text-green-600" />
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Verified Users</p>
+                                <p className="text-2xl font-bold">{userStats.verifiedUsers}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                            <Clock className="h-8 w-8 text-yellow-600" />
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Pending Users</p>
+                                <p className="text-2xl font-bold">{userStats.pendingUsers}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+                
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-3">
+                            <Building2 className="h-8 w-8 text-purple-600" />
+                            <div>
+                                <p className="text-sm font-medium text-muted-foreground">Active Organizations</p>
+                                <p className="text-2xl font-bold">{activeOrgs}</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex flex-wrap gap-4">
+                <Link href="/superadmin/users">
+                    <Button variant="outline" className="flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Manage Users
+                    </Button>
+                </Link>
+                <Link href="/superadmin/clinics">
+                    <Button variant="outline" className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4" />
+                        Manage Organizations
+                    </Button>
+                </Link>
+                <ThemePasteDialog />
+            </div>
             {/* Pending Clinic Approvals Card */}
             <Card>
                 <CardHeader>

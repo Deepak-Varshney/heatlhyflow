@@ -45,7 +45,7 @@ export default function PatientRegistrationDialog() {
     emergencyContactName: z.string().min(1, { message: "Emergency contact name is required" }),
     emergencyContactPhone: z.string().min(1, { message: "Emergency contact phone is required" }),
     bp: z.string().min(1, { message: "Blood pressure is required" }), // Add validation for blood pressure
-    weight: z.string().min(1, { message: "Weight is required" }), // Add validation for weight
+    weight: z.coerce.number().optional(),// Add validation for weight
     occupation: z.string().min(1, { message: "Occupation is required" }), // Add validation for occupation
   });
 
@@ -209,8 +209,8 @@ export default function PatientRegistrationDialog() {
                     <div className="w-full">
                       <FormControl>
                         <Input
-                          placeholder="e.g. 70 kg"
-                          type="text"
+                          placeholder="e.g. 70 (In kg)"
+                          type="number"
                           className="w-full"
                           {...field}
                         />

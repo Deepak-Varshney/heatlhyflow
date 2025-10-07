@@ -23,7 +23,7 @@ export interface IUser extends Document {
   firstName: string;
   lastName: string;
   imageUrl?: string;
-  role: "UNASSIGNED" | "RECEPTIONIST" | "DOCTOR" | "ADMIN" | "SUPERADMIN";
+  role: "UNASSIGNED" | "RECEPTIONIST" | "DOCTOR" | "ADMIN" | "SUPERADMIN" | "DEVIL";
   organization: Schema.Types.ObjectId;
   _id: Schema.Types.ObjectId | any;
 
@@ -54,7 +54,7 @@ const UserSchema = new Schema<IUser>(
     imageUrl: { type: String },
     role: {
       type: String,
-      enum: ["UNASSIGNED", "RECEPTIONIST", "DOCTOR", "ADMIN", "SUPERADMIN"],
+      enum: ["UNASSIGNED", "RECEPTIONIST", "DOCTOR", "ADMIN", "SUPERADMIN", "DEVIL"],
       default: "UNASSIGNED",
     },
     organization: {

@@ -255,7 +255,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -264,6 +264,7 @@ import { Printer, Stethoscope, User, History, HeartPulse, Weight } from 'lucide-
 import { getAppointmentDetails } from '@/actions/appointment-actions';
 import { PrescriptionForm } from '@/components/prescription-form';
 import { PrintPreviewDialog } from './print-preview-dialog'; // Naya Print Preview Dialog
+import { getPatientById } from '@/actions/patient-actions';
 
 // Populated appointment ke liye naya type
 type PopulatedAppointment = {
@@ -292,6 +293,8 @@ type PopulatedAppointment = {
 
 export default function ConsultationClientPage({ initialAppointment }: { initialAppointment: PopulatedAppointment }) {
   const [appointment, setAppointment] = useState<PopulatedAppointment>(initialAppointment);
+  const [patientHistory, setPatientHistory] = useState([]); // NAYI STATE: History ke liye
+
   const [showPrintPreview, setShowPrintPreview] = useState(false);
   const now = new Date();
   const startTime = new Date(appointment.startTime);
@@ -305,6 +308,19 @@ export default function ConsultationClientPage({ initialAppointment }: { initial
   const calculateAge = (dob: string) => {
     return new Date().getFullYear() - new Date(dob).getFullYear();
   };
+  useEffect(() => {
+    const fetchPatientHistory = async () => {
+      if (appointment.patient) {
+        const patientData = await getPatientById(appointment.patient._id);
+        if (patientData) {
+          // Current appointment ko chhod kar baaki sab history hai
+          setPatientHistory(patientData.appointments.filter((appt: any) => appt._id !== appointment._id));
+        }
+      }
+    };
+    fetchPatientHistory();
+  }, [appointment.patient, appointment._id]);
+
 
   return (
     <>
@@ -341,8 +357,23 @@ export default function ConsultationClientPage({ initialAppointment }: { initial
               </CardContent>
             </Card>
             <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><History className="h-5 w-5" /> Patient History</CardTitle></CardHeader>
-              <CardContent><p className="text-sm text-muted-foreground">Previous appointment history will be shown here.</p></CardContent>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><History className="h-5 w-5" /> Patient History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {patientHistory.length > 0 ? (
+                  <ul className="space-y-3 text-sm">
+                    {patientHistory.map((appt: any) => (
+                      <li key={appt._id} className="border-b pb-2">
+                        <p><strong>{format(new Date(appt.startTime), 'PPP')}</strong> - <Badge variant="secondary">{appt.status}</Badge></p>
+                        <p className="text-xs text-muted-foreground">Dr. {appt.doctor.lastName} ({appt.prescription?.diagnosis || 'No diagnosis'})</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No previous appointment history found.</p>
+                )}
+              </CardContent>
             </Card>
           </div>
 
