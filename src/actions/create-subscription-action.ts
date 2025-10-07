@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath, redirect } from "next/cache";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createSubscriptionForOrganization } from "@/actions/superadmin-actions";
 import { SubscriptionPlan } from "@/types/subscription";
 
