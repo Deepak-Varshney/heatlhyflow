@@ -31,6 +31,7 @@ export async function createPrescription(data: CreatePrescriptionParams) {
       appointment: appointmentId,
       patient: (await Appointment.findById(appointmentId).select('patient')).patient, // Get patient ID from appointment
       doctor: user._id,
+      organization: user.organization,
       medicines: medicines,
       tests: tests.map(t => t.name), // Sirf naam store karo
       notes: notes,

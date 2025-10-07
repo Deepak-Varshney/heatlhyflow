@@ -277,21 +277,22 @@ export async function POST(req: Request) {
 
             // --- MEMBERSHIP EVENTS ---
             case "organizationMembership.created": {
-                const { organization, public_user_data, role } = evt.data;
+                const { organization, public_user_data } = evt.data;
                 const mongoOrg = await Organization.findOne({ clerkOrgId: organization.id });
                 if (!mongoOrg) throw new Error("Organization not found during membership creation.");
 
+                // Always set role to UNASSIGNED - ignore Clerk's role
                 await User.findOneAndUpdate({ clerkUserId: public_user_data.user_id }, {
                     organization: mongoOrg._id,
-                    role: role.toUpperCase(),
+                    role: "UNASSIGNED",
                 });
                 break;
             }
             case "organizationMembership.updated": {
-                const { public_user_data, role } = evt.data;
-                await User.findOneAndUpdate({ clerkUserId: public_user_data.user_id }, {
-                    role: role.toUpperCase(),
-                });
+                const { public_user_data } = evt.data;
+                
+                // Don't update role - keep it as UNASSIGNED
+                // Role changes should be handled within your application
                 break;
             }
             case "organizationMembership.deleted": {

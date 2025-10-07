@@ -48,6 +48,7 @@ export async function bookAppointment(params: BookAppointmentParams) {
     const newAppointmentData = {
       patient: patientId,
       doctor: doctorId,
+      organization: user.organization,
       startTime,
       endTime,
       reason,
@@ -125,7 +126,12 @@ export async function getAppointments({
   const andConditions: any[] = [];
   const orSearchConditions: any[] = []; // Collects all search/name-based $or conditions
   
-  // 1. Apply role-based filtering (Must be an $AND condition)
+  // 1. Apply organization filtering (Must be an $AND condition) - Skip for SUPERADMIN
+  if (user.role !== "SUPERADMIN") {
+    andConditions.push({ organization: user.organization });
+  }
+  
+  // 2. Apply role-based filtering (Must be an $AND condition) - Skip for SUPERADMIN
   if (user.role === "DOCTOR") {
     // This filter is required AND must be met (doctor OR creator)
     andConditions.push({
@@ -136,12 +142,12 @@ export async function getAppointments({
     });
   }
 
-  // 2. Apply explicit status filter (Must be an $AND condition)
+  // 3. Apply explicit status filter (Must be an $AND condition)
   if (status) {
     andConditions.push({ status: status });
   }
 
-  // 3. Collect all name and general search filters into a single $OR group
+  // 4. Collect all name and general search filters into a single $OR group
 
   // Patient Name Search
   if (patientName) {
@@ -172,12 +178,12 @@ export async function getAppointments({
     );
   }
   
-  // 4. Add the collected $OR search group to the main $AND conditions
+  // 5. Add the collected $OR search group to the main $AND conditions
   if (orSearchConditions.length > 0) {
     andConditions.push({ $or: orSearchConditions });
   }
   
-  // 5. Finalize the $match stage
+  // 6. Finalize the $match stage
   if (andConditions.length > 0) {
     // If we have any conditions, push a single $match with an $and operator
     pipeline.push({ $match: { $and: andConditions } });
@@ -217,7 +223,17 @@ export async function getAppointments({
 export async function getAppointmentDetails(appointmentId: string) {
   try {
     await connectDB();
-    const appointment = await Appointment.findById(appointmentId)
+    const user = await getMongoUser();
+    if (!user) throw new Error("User not authenticated");
+    
+    const query: any = { _id: appointmentId };
+    
+    // Only apply organization filter if user is not SUPERADMIN
+    if (user.role !== "SUPERADMIN") {
+      query.organization = user.organization;
+    }
+    
+    const appointment = await Appointment.findOne(query)
       // Populate the patient's full details from the 'patients' collection
       .populate({
         path: 'patient',
@@ -267,6 +283,7 @@ export async function createPrescription(data: any) {
       appointment: appointmentId,
       patient: patientId,
       doctor: doctor._id,
+      organization: doctor.organization,
       chiefComplaint,
       diagnosis,
       medicines: medicines?.map((m: any) => ({
@@ -315,11 +332,18 @@ export async function getTodaysAppointmentsForDoctor() {
     const todayStart = startOfDay(new Date());
     const todayEnd = endOfDay(new Date());
 
-    const appointments = await Appointment.find({
-      doctor: doctor._id,
+    const query: any = {
       startTime: { $gte: todayStart, $lt: todayEnd },
       status: 'scheduled', // Only show upcoming appointments
-    })
+    };
+    
+    // Only apply doctor and organization filters if user is not SUPERADMIN
+    if (doctor.role !== "SUPERADMIN") {
+      query.doctor = doctor._id;
+      query.organization = doctor.organization;
+    }
+    
+    const appointments = await Appointment.find(query)
       .populate({ path: 'patient', model: Patient, select: 'firstName lastName' })
       .sort({ startTime: 'asc' })
       .lean();

@@ -4,10 +4,13 @@ import { revalidatePath } from "next/cache";
 import connectDB from "../lib/mongodb";
 import Patient from "@/models/Patient";
 import { parseSortParameter } from "@/lib/utils"; // We'll create this helper
+import { getMongoUser } from "@/lib/CheckUser";
 
 export async function createPatient(patientData: any) {
   try {
     await connectDB();
+    const user = await getMongoUser();
+    if (!user) throw new Error("User not authenticated");
 
     // Create new patient
     const newPatient = new Patient({
@@ -21,6 +24,7 @@ export async function createPatient(patientData: any) {
         name: patientData.emergencyContactName,
         phone: patientData.emergencyContactPhone,
       },
+      organization: user.organization,
       bp: patientData.bp, // Add blood pressure
       weight: patientData.weight, // Add weight
       occupation: patientData.occupation, // Add occupation
@@ -62,9 +66,16 @@ export async function getPatients({
   address,
 }: GetPatientsParams) {
   await connectDB();
+  const user = await getMongoUser();
+  if (!user) throw new Error("User not authenticated");
 
   const offset = (page - 1) * limit;
   const query: any = {};
+  
+  // Only apply organization filter if user is not SUPERADMIN
+  if (user.role !== "SUPERADMIN") {
+    query.organization = user.organization;
+  }
 
   // General search query across multiple fields
   if (search) {
