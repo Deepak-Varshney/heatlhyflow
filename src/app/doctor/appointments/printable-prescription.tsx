@@ -226,6 +226,7 @@ export function PrintablePrescription({ appointment }: { appointment: PopulatedA
           <p><strong>Weight:</strong> {patient.weight ? `${patient.weight} kg` : 'N/A'}</p>
           <p><strong>Height:</strong> {patient.height ? `${patient.height} cm` : 'N/A'}</p>
         </div>
+        {/* //as/ */}
       </div>
 
       {/* Complaint & Diagnosis */}
