@@ -31,8 +31,15 @@ export interface IUser extends Document {
   specialty?: string;
   experience?: number;
   description?: string;
+  consultationFee?: number; // Default consultation fee for the doctor
   verificationStatus: "PENDING" | "VERIFIED" | "REJECTED";
   weeklyAvailability: IAvailabilityRule[]; // Yahan IAvailabilityRule ka istemaal hota hai
+
+  // Clinic-specific fields for doctors
+  clinicName?: string;
+  clinicAddress?: string;
+  clinicPhone?: string;
+  watermarkImageUrl?: string; // URL for clinic watermark image
 
   // Relations
   appointments: Schema.Types.ObjectId[];
@@ -64,6 +71,7 @@ const UserSchema = new Schema<IUser>(
     specialty: { type: String },
     experience: { type: Number },
     description: { type: String },
+    consultationFee: { type: Number, min: 0 },
     verificationStatus: {
       type: String,
       enum: ["PENDING", "VERIFIED", "REJECTED"],
@@ -72,6 +80,11 @@ const UserSchema = new Schema<IUser>(
     // THE FIX: Yeh field ab "availabilities" ki jagah "weeklyAvailability" hai
     // aur yeh references (ObjectId) ki jagah poore objects ko store karta hai.
     weeklyAvailability: [AvailabilityRuleSchema],
+    // Clinic-specific fields
+    clinicName: { type: String },
+    clinicAddress: { type: String },
+    clinicPhone: { type: String },
+    watermarkImageUrl: { type: String },
     appointments: [{ type: Schema.Types.ObjectId, ref: "Appointment" }],
   },
   { timestamps: true }

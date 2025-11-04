@@ -13,6 +13,15 @@ export interface IAppointment extends Document {
   notes?: string;
   prescription?: Schema.Types.ObjectId;
   createdBy?: Schema.Types.ObjectId;
+  // Pricing fields
+  treatments?: Array<{
+    treatment: Schema.Types.ObjectId;
+    name: string;
+    price: number;
+  }>;
+  doctorFee?: number;
+  discount?: number;
+  totalAmount?: number;
 }
 
 const AppointmentSchema = new Schema<IAppointment>(
@@ -58,7 +67,25 @@ const AppointmentSchema = new Schema<IAppointment>(
       trim: true,
     },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
-    
+    // Pricing fields
+    treatments: [{
+      treatment: { type: Schema.Types.ObjectId, ref: 'Treatment' },
+      name: { type: String, required: true },
+      price: { type: Number, required: true, min: 0 },
+    }],
+    doctorFee: {
+      type: Number,
+      min: 0,
+    },
+    discount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    totalAmount: {
+      type: Number,
+      min: 0,
+    },
   },
   {
     timestamps: true,

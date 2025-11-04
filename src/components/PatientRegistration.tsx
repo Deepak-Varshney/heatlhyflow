@@ -36,17 +36,17 @@ export default function PatientRegistrationDialog() {
     dateOfBirth: z.date({
       required_error: "Date of birth is required.",
     }),
+    phoneNumber: z.string().min(1, { message: "Phone number is required" }),
     email: z
       .string()
       .email({ message: "Invalid email address" })
-      .min(1, { message: "Email is required" }),
-    phoneNumber: z.string().min(1, { message: "Phone number is required" }),
-    address: z.string().min(1, { message: "Address is required" }),
-    emergencyContactName: z.string().min(1, { message: "Emergency contact name is required" }),
-    emergencyContactPhone: z.string().min(1, { message: "Emergency contact phone is required" }),
-    bp: z.string().min(1, { message: "Blood pressure is required" }), // Add validation for blood pressure
-    weight: z.coerce.number().optional(),// Add validation for weight
-    occupation: z.string().min(1, { message: "Occupation is required" }), // Add validation for occupation
+      .optional()
+      .or(z.literal("")),
+    address: z.string().optional(),
+    emergencyContactPhone: z.string().optional(),
+    bp: z.string().optional(),
+    weight: z.coerce.number().optional(),
+    occupation: z.string().optional(),
   });
 
 
@@ -59,7 +59,6 @@ export default function PatientRegistrationDialog() {
       email: "",
       phoneNumber: "",
       address: "",
-      emergencyContactName: "",
       emergencyContactPhone: "",
     },
   });
@@ -111,12 +110,15 @@ export default function PatientRegistrationDialog() {
             className="space-y-6"
           >
             <div className="grid grid-cols-12 gap-4">
+              {/* Mandatory Fields - First */}
               <FormField
                 control={form.control}
                 name="firstName"
                 render={({ field }) => (
                   <FormItem className="col-span-6 col-start-auto flex flex-col gap-2 space-y-0 items-start">
-                    <FormLabel className="flex shrink-0">First Name</FormLabel>
+                    <FormLabel className="flex shrink-0">
+                      First Name <span className="text-red-500">*</span>
+                    </FormLabel>
                     <div className="w-full">
                       <FormControl>
                         <Input
@@ -136,7 +138,9 @@ export default function PatientRegistrationDialog() {
                 name="lastName"
                 render={({ field }) => (
                   <FormItem className="col-span-6 col-start-auto flex flex-col gap-2 space-y-0 items-start">
-                    <FormLabel className="flex shrink-0">Last Name</FormLabel>
+                    <FormLabel className="flex shrink-0">
+                      Last Name <span className="text-red-500">*</span>
+                    </FormLabel>
                     <div className="w-full">
                       <FormControl>
                         <Input
@@ -158,7 +162,9 @@ export default function PatientRegistrationDialog() {
                 name="dateOfBirth"
                 render={({ field }) => (
                   <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
-                    <FormLabel className="flex shrink-0">Date of Birth</FormLabel>
+                    <FormLabel className="flex shrink-0">
+                      Date of Birth <span className="text-red-500">*</span>
+                    </FormLabel>
                     <div className="w-full">
                       <FormControl>
                         <Input
@@ -181,10 +187,81 @@ export default function PatientRegistrationDialog() {
               />
               <FormField
                 control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
+                    <FormLabel className="flex shrink-0">
+                      Phone Number <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <div className="w-full">
+                      <FormControl>
+                        <Input
+                          placeholder="+1 (555) 000-0000"
+                          type="tel"
+                          className="w-full"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              {/* Optional Fields */}
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
+                    <FormLabel className="flex shrink-0">
+                      Email <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
+                    </FormLabel>
+                    <div className="w-full">
+                      <FormControl>
+                        <Input
+                          placeholder="john@example.com"
+                          type="email"
+                          className="w-full"
+                          {...field}
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
+                    <FormLabel className="flex shrink-0">
+                      Address <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
+                    </FormLabel>
+                    <div className="w-full">
+                      <FormControl>
+                        <Textarea
+                          placeholder="Full residential address"
+                          className="w-full"
+                          {...field}
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="bp"
                 render={({ field }) => (
                   <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
-                    <FormLabel className="flex shrink-0">Blood Pressure</FormLabel>
+                    <FormLabel className="flex shrink-0">
+                      Blood Pressure <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
+                    </FormLabel>
                     <div className="w-full">
                       <FormControl>
                         <Input
@@ -192,6 +269,7 @@ export default function PatientRegistrationDialog() {
                           type="text"
                           className="w-full"
                           {...field}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -205,7 +283,9 @@ export default function PatientRegistrationDialog() {
                 name="weight"
                 render={({ field }) => (
                   <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
-                    <FormLabel className="flex shrink-0">Weight</FormLabel>
+                    <FormLabel className="flex shrink-0">
+                      Weight <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
+                    </FormLabel>
                     <div className="w-full">
                       <FormControl>
                         <Input
@@ -213,6 +293,11 @@ export default function PatientRegistrationDialog() {
                           type="number"
                           className="w-full"
                           {...field}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            field.onChange(value === "" ? undefined : Number(value));
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -226,7 +311,9 @@ export default function PatientRegistrationDialog() {
                 name="occupation"
                 render={({ field }) => (
                   <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
-                    <FormLabel className="flex shrink-0">Occupation</FormLabel>
+                    <FormLabel className="flex shrink-0">
+                      Occupation <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
+                    </FormLabel>
                     <div className="w-full">
                       <FormControl>
                         <Input
@@ -234,86 +321,7 @@ export default function PatientRegistrationDialog() {
                           type="text"
                           className="w-full"
                           {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
-                    <FormLabel className="flex shrink-0">Email</FormLabel>
-                    <div className="w-full">
-                      <FormControl>
-                        <Input
-                          placeholder="john@example.com"
-                          type="email"
-                          className="w-full"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="phoneNumber"
-                render={({ field }) => (
-                  <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
-                    <FormLabel className="flex shrink-0">Phone Number</FormLabel>
-                    <div className="w-full">
-                      <FormControl>
-                        <Input
-                          placeholder="+1 (555) 000-0000"
-                          type="tel"
-                          className="w-full"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
-                    <FormLabel className="flex shrink-0">Address</FormLabel>
-                    <div className="w-full">
-                      <FormControl>
-                        <Textarea
-                          placeholder="Full residential address"
-                          className="w-full"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="emergencyContactName"
-                render={({ field }) => (
-                  <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
-                    <FormLabel className="flex shrink-0">Emergency Contact Name</FormLabel>
-                    <div className="w-full">
-                      <FormControl>
-                        <Input
-                          placeholder="Emergency Contact Full Name"
-                          type="text"
-                          className="w-full"
-                          {...field}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -326,7 +334,9 @@ export default function PatientRegistrationDialog() {
                 name="emergencyContactPhone"
                 render={({ field }) => (
                   <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
-                    <FormLabel className="flex shrink-0">Emergency Contact Phone</FormLabel>
+                    <FormLabel className="flex shrink-0">
+                      Emergency Contact Phone <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
+                    </FormLabel>
                     <div className="w-full">
                       <FormControl>
                         <Input
@@ -334,6 +344,7 @@ export default function PatientRegistrationDialog() {
                           type="tel"
                           className="w-full"
                           {...field}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />

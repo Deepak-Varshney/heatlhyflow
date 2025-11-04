@@ -289,6 +289,14 @@ type PopulatedAppointment = {
   };
   doctor: { firstName: string; lastName: string; specialty: string };
   prescription?: any;
+  treatments?: Array<{
+    treatment: string;
+    name: string;
+    price: number;
+  }>;
+  doctorFee?: number;
+  discount?: number;
+  totalAmount?: number;
 };
 
 export default function ConsultationClientPage({ initialAppointment }: { initialAppointment: PopulatedAppointment }) {
@@ -296,6 +304,7 @@ export default function ConsultationClientPage({ initialAppointment }: { initial
   const [patientHistory, setPatientHistory] = useState([]); // NAYI STATE: History ke liye
 
   const [showPrintPreview, setShowPrintPreview] = useState(false);
+  const [printType, setPrintType] = useState<'consultation' | 'bill' | 'prescription'>('consultation');
   const now = new Date();
   const startTime = new Date(appointment.startTime);
   const endTime = new Date(appointment.endTime);
@@ -391,9 +400,14 @@ export default function ConsultationClientPage({ initialAppointment }: { initial
                 </CardHeader>
                 <CardContent>
                   <p className="mb-4">The prescription has been issued for this consultation.</p>
-                  <Button onClick={() => setShowPrintPreview(true)}>
-                    <Printer className="mr-2 h-4 w-4" /> View & Print Report
-                  </Button>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button onClick={() => { setPrintType('consultation'); setShowPrintPreview(true); }}>
+                      <Printer className="mr-2 h-4 w-4" /> Print Consultation
+                    </Button>
+                    <Button variant="outline" onClick={() => { setPrintType('bill'); setShowPrintPreview(true); }}>
+                      <Printer className="mr-2 h-4 w-4" /> Print Bill
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ) : true ? (
@@ -426,6 +440,7 @@ export default function ConsultationClientPage({ initialAppointment }: { initial
           isOpen={showPrintPreview}
           onClose={() => setShowPrintPreview(false)}
           appointment={appointment}
+          initialPrintType={printType}
         />
       )}
     </>

@@ -165,13 +165,21 @@ type PopulatedAppointment = {
     chiefComplaint: string;
     diagnosis: string;
     medicines: { name: string; dosage: string; timings: { morning: boolean; afternoon: boolean; night: boolean } }[];
-    tests: { name: string; reportImageUrl?: string; notes: string }[];
+    tests: { name: string; reportImageUrl?: string; notes: string; price?: number }[];
     notes?: string;
   };
+  treatments?: Array<{
+    treatment: string;
+    name: string;
+    price: number;
+  }>;
+  doctorFee?: number;
+  discount?: number;
+  totalAmount?: number;
 };
 
 export function PrintablePrescription({ appointment }: { appointment: PopulatedAppointment }) {
-  const { patient, doctor, prescription, startTime } = appointment;
+  const { patient, doctor, prescription, startTime, treatments, doctorFee, discount, totalAmount } = appointment;
   const age = new Date().getFullYear() - new Date(patient.dateOfBirth).getFullYear();
   
   // Use a smaller padding (p-4 instead of p-8) and smaller base font size (text-sm)
@@ -284,10 +292,56 @@ export function PrintablePrescription({ appointment }: { appointment: PopulatedA
 
       {/* Notes */}
       {prescription.notes && (
-        <div>
-          {/* Reduced font size from text-lg to text-base */}
+        <div className="mb-4">
           <h2 className="text-base font-semibold border-b pb-1 mb-2">Additional Notes</h2>
           <p className="text-gray-700 text-sm">{prescription.notes}</p>
+        </div>
+      )}
+
+      {/* Price Breakdown */}
+      {(appointment.treatments?.length || appointment.doctorFee || appointment.totalAmount || prescription.tests?.some(t => t.price && t.price > 0)) && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <h2 className="text-base font-semibold border-b pb-1 mb-3">Price Breakdown</h2>
+          <div className="space-y-2 text-sm">
+            {appointment.doctorFee && appointment.doctorFee > 0 && (
+              <div className="flex justify-between">
+                <span>Doctor Consultation Fee:</span>
+                <span className="font-medium">₹{appointment.doctorFee.toFixed(2)}</span>
+              </div>
+            )}
+            {appointment.treatments && appointment.treatments.length > 0 && (
+              <>
+                {appointment.treatments.map((treatment, index) => (
+                  <div key={index} className="flex justify-between">
+                    <span>{treatment.name}:</span>
+                    <span className="font-medium">₹{treatment.price.toFixed(2)}</span>
+                  </div>
+                ))}
+              </>
+            )}
+            {prescription.tests && prescription.tests.some(t => t.price && t.price > 0) && (
+              <>
+                {prescription.tests.filter(t => t.price && t.price > 0).map((test, index) => (
+                  <div key={index} className="flex justify-between">
+                    <span>{test.name} (Test):</span>
+                    <span className="font-medium">₹{(test.price || 0).toFixed(2)}</span>
+                  </div>
+                ))}
+              </>
+            )}
+            {appointment.discount && appointment.discount > 0 && (
+              <div className="flex justify-between text-red-600">
+                <span>Discount:</span>
+                <span className="font-medium">-₹{appointment.discount.toFixed(2)}</span>
+              </div>
+            )}
+            {appointment.totalAmount !== undefined && (
+              <div className="flex justify-between pt-2 border-t border-gray-300 font-semibold text-base">
+                <span>Total Amount:</span>
+                <span>₹{Math.max(0, appointment.totalAmount).toFixed(2)}</span>
+              </div>
+            )}
+          </div>
         </div>
       )}
       

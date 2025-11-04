@@ -109,6 +109,8 @@ import { Badge } from "@/components/ui/badge";
 import { Mail, Phone, Briefcase, Star, Info } from "lucide-react";
 import { getMongoUser } from "@/lib/CheckUser";
 import ManageAvailabilityDialog from "@/components/doctor-availability";
+import ManageTreatmentsDialog from "@/components/doctor-treatments";
+import ManageClinicSettingsDialog from "@/components/doctor-clinic-settings";
 import { UserProfile } from "@clerk/nextjs";  // Importing the UserProfile component from Clerk
 
 const DoctorProfilePage = async () => {
@@ -196,7 +198,11 @@ const DoctorProfilePage = async () => {
           </Card>
 
           {/* Optional: Manage Availability Dialog */}
-          <ManageAvailabilityDialog />
+          <div className="space-y-4">
+            <ManageAvailabilityDialog />
+            <ManageTreatmentsDialog />
+            <ManageClinicSettingsDialog />
+          </div>
         </div>
       </div>
 

@@ -15,6 +15,7 @@ interface ITest {
   name: string;
   notes?: string;       // Har test ke liye alag notes
   reportImageUrl?: string; // Report ki image ka URL
+  price?: number;       // Test price
 }
 
 export interface IPrescription extends Document {
@@ -32,6 +33,7 @@ const TestSchema = new Schema<ITest>({
   name: { type: String, required: true },
   notes: { type: String },
   reportImageUrl: { type: String },
+  price: { type: Number, min: 0 },
 }, { _id: false });
 
 

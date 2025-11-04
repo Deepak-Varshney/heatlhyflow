@@ -275,8 +275,25 @@ export async function createPrescription(data: any) {
     const doctor = await getMongoUser();
     if (!doctor) throw new Error("Doctor not authenticated");
 
-    // const { appointmentId, patientId, chiefComplaint, medicines, tests, notes } = data;
-    const { appointmentId, patientId, chiefComplaint, diagnosis, medicines, tests, notes } = data;
+    const {
+      appointmentId,
+      patientId,
+      chiefComplaint,
+      diagnosis,
+      medicines,
+      tests,
+      notes,
+      treatments,
+      doctorFee,
+      discount,
+    } = data;
+
+    // Calculate total amount
+    const treatmentsTotal = treatments?.reduce((sum: number, t: any) => sum + (t.price || 0), 0) || 0;
+    const testsTotal = tests?.reduce((sum: number, t: any) => sum + (t.price || 0), 0) || 0;
+    const fee = doctorFee || 0;
+    const discountAmount = discount || 0;
+    const totalAmount = treatmentsTotal + testsTotal + fee - discountAmount;
 
     // 1. Create the new prescription document
     const newPrescription = new Prescription({
@@ -295,17 +312,29 @@ export async function createPrescription(data: any) {
         name: t.name,
         notes: t.notes,
         reportImageUrl: t.reportImageUrl,
+        price: t.price || 0,
       })) || [],
-
       notes,
     });
     await newPrescription.save({ session });
 
-    // 2. Update the appointment to "Completed" and link the prescription
-    await Appointment.findByIdAndUpdate(appointmentId, {
-      status: 'Completed',
-      prescription: newPrescription._id,
-    }, { session });
+    // 2. Update the appointment to "completed" and link the prescription with pricing info
+    await Appointment.findByIdAndUpdate(
+      appointmentId,
+      {
+        status: 'completed',
+        prescription: newPrescription._id,
+        treatments: treatments?.map((t: any) => ({
+          treatment: t.treatmentId,
+          name: t.name,
+          price: t.price,
+        })),
+        doctorFee: fee,
+        discount: discountAmount,
+        totalAmount: Math.max(0, totalAmount), // Ensure total is not negative
+      },
+      { session }
+    );
 
     await session.commitTransaction();
     revalidatePath(`/doctor/appointments/${appointmentId}`);

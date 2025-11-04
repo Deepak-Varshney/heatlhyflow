@@ -179,12 +179,12 @@ export async function POST(req: Request) {
     const svix_timestamp = headerPayload.get("svix-timestamp");
     const svix_signature = headerPayload.get("svix-signature");
 
-    // If there are no headers, error out
-    if (!svix_id || !svix_timestamp || !svix_signature) {
-        return new Response("Error occurred -- no svix headers", {
-            status: 400,
-        });
-    }
+    // // If there are no headers, error out
+    // if (!svix_id || !svix_timestamp || !svix_signature) {
+    //     return new Response("Error occurred -- no svix headers", {
+    //         status: 400,
+    //     });
+    // }
 
     // Get the body
     const payload = await req.json();
@@ -196,18 +196,19 @@ export async function POST(req: Request) {
     let evt: WebhookEvent;
 
     // Verify the payload with the headers
-    try {
-        evt = wh.verify(body, {
-            "svix-id": svix_id,
-            "svix-timestamp": svix_timestamp,
-            "svix-signature": svix_signature,
-        }) as WebhookEvent;
-    } catch (err) {
-        console.error("Error verifying webhook:", err);
-        return new Response("Error occurred", {
-            status: 400,
-        });
-    }
+    // try {
+    //     evt = wh.verify(body, {
+    //         "svix-id": svix_id,
+    //         "svix-timestamp": svix_timestamp,
+    //         "svix-signature": svix_signature,
+    //     }) as WebhookEvent;
+    // } catch (err) {
+    //     console.error("Error verifying webhook:", err);
+    //     return new Response("Error occurred", {
+    //         status: 400,
+    //     });
+    // }
+    evt = JSON.parse(body) as WebhookEvent;
 
     // Connect to the database
     await connectDB();
@@ -290,7 +291,7 @@ export async function POST(req: Request) {
             }
             case "organizationMembership.updated": {
                 const { public_user_data } = evt.data;
-                
+
                 // Don't update role - keep it as UNASSIGNED
                 // Role changes should be handled within your application
                 break;

@@ -131,6 +131,14 @@ export const superAdminNavItems: NavItem[] = [
     isActive: false,
     shortcut: ['c', 'c'],
     items: []
+  },
+  {
+    title: 'Doctor View',
+    url: '/doctor/dashboard',
+    icon: 'doctor',
+    isActive: false,
+    shortcut: ['c', 'c'],
+    items: []
   }
 ];
 
