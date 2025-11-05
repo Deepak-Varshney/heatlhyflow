@@ -333,7 +333,6 @@ export default clerkMiddleware(async (auth, req) => {
 
   const { userId, sessionClaims } = await auth();
   const { pathname } = req.nextUrl;
-
   // Not logged in? Redirect to sign-in
   if (!userId) {
     const signInUrl = new URL("/auth/sign-in", req.url);
@@ -370,8 +369,8 @@ export default clerkMiddleware(async (auth, req) => {
       role === "DOCTOR"
         ? "/doctor/dashboard"
         : role === "RECEPTIONIST"
-        ? "/receptionist/dashboard"
-        : "/dashboard";
+          ? "/receptionist/dashboard"
+          : "/dashboard";
 
     return NextResponse.redirect(new URL(dashboardUrl, req.url));
   }
@@ -382,8 +381,8 @@ export default clerkMiddleware(async (auth, req) => {
       role === "DOCTOR"
         ? "/doctor/dashboard"
         : role === "RECEPTIONIST"
-        ? "/receptionist/dashboard"
-        : "/dashboard";
+          ? "/receptionist/dashboard"
+          : "/dashboard";
 
     return NextResponse.redirect(new URL(dashboardUrl, req.url));
   }

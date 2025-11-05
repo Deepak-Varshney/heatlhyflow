@@ -19,17 +19,16 @@ export async function createPatient(patientData: any) {
       firstName: patientData.firstName,
       lastName: patientData.lastName,
       dateOfBirth: patientData.dateOfBirth,
-      email: patientData.email,
       phoneNumber: patientData.phoneNumber,
-      address: patientData.address,
-      emergencyContact: {
-        name: patientData.emergencyContactName,
+      email: patientData.email || undefined,
+      address: patientData.address || undefined,
+      emergencyContact: patientData.emergencyContactPhone ? {
         phone: patientData.emergencyContactPhone,
-      },
+      } : undefined,
       organization: user.organization,
-      bp: patientData.bp, // Add blood pressure
-      weight: patientData.weight, // Add weight
-      occupation: patientData.occupation, // Add occupation
+      bp: patientData.bp || undefined,
+      weight: patientData.weight || undefined,
+      occupation: patientData.occupation || undefined,
     });
 
     await newPatient.save();

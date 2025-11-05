@@ -71,7 +71,7 @@ export default async function RootLayout({
           >
             <Providers activeThemeValue={activeThemeValue as string}>
               <Toaster />
-              <ThemePasteDialog />
+              {/* <ThemePasteDialog /> */}
 
               {children}
             </Providers>

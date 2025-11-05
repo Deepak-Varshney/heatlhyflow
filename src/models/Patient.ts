@@ -5,11 +5,10 @@ export interface IPatient extends Document {
   firstName: string;
   lastName: string;
   dateOfBirth: Date;
-  email: string;
   phoneNumber: string;
-  address: string;
-  emergencyContact: {
-    name: string;
+  email?: string;
+  address?: string;
+  emergencyContact?: {
     phone: string;
   };
   organization: Schema.Types.ObjectId;
@@ -36,33 +35,26 @@ const PatientSchema = new Schema<IPatient>(
       type: Date,
       required: [true, "Date of birth is required"],
     },
-    email: {
-      type: String,
-      required: [true, "Email is required"],
-      unique: true,
-      lowercase: true,
-      trim: true,
-      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, "Please enter a valid email"],
-    },
     phoneNumber: {
       type: String,
       required: [true, "Phone number is required"],
       trim: true,
     },
+    email: {
+      type: String,
+      unique: true,
+      sparse: true, // Allow null/undefined values while still enforcing uniqueness
+      lowercase: true,
+      trim: true,
+      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, "Please enter a valid email"],
+    },
     address: {
       type: String,
-      required: [true, "Address is required"],
       trim: true,
     },
     emergencyContact: {
-      name: {
-        type: String,
-        required: [true, "Emergency contact name is required"],
-        trim: true,
-      },
       phone: {
         type: String,
-        required: [true, "Emergency contact phone is required"],
         trim: true,
       },
     },

@@ -294,7 +294,7 @@ export async function POST(req: Request) {
             }
             case "organizationMembership.updated": {
                 const { public_user_data } = evt.data;
-                
+
                 // Don't update role - keep it as UNASSIGNED
                 // Role changes should be handled within your application
                 break;

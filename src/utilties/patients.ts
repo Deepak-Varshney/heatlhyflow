@@ -2,6 +2,7 @@ import connectDB from "@/lib/mongodb";
 import Patient from "@/models/Patient";
 import mongoose from "mongoose";
 import Appointment from "../models/Appointment";
+import { getMongoUser } from "@/lib/CheckUser";
 
 interface GetPatientParams {
     page?: number;
@@ -49,15 +50,22 @@ export const serialize = (data: any) => {
         ? data.map(toPlainObject)
         : toPlainObject(data);
 };
-
 export async function getAllPatients() {
     await connectDB();
 
-    const rawpatients = await Patient.find({})
+    const user = await getMongoUser();
+    if (!user) throw new Error("User not authenticated");
+
+    const query: any = {};
+
+    // Apply organization filter only if user is not SUPERADMIN
+    if (user.role !== "SUPERADMIN") {
+        query.organization = user.organization;
+    }
+
+    const rawpatients = await Patient.find(query)
         .populate({
             path: "appointments",
-            // select: "date doctorName reasonForVisit status", // Uncomment if needed
-            // match: { status: { $in: ["Scheduled", "Completed"] } },
         })
         .lean(); // lean comes AFTER populate
 
