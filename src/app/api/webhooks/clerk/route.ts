@@ -222,6 +222,7 @@ export async function POST(req: Request) {
             // --- USER EVENTS ---
             case "user.created": {
                 const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+                console.log(evt.data)
                 await User.create({
                     clerkUserId: id,
                     email: email_addresses[0].email_address,
@@ -234,6 +235,8 @@ export async function POST(req: Request) {
             }
             case "user.updated": {
                 const { id, email_addresses, first_name, last_name, image_url } = evt.data;
+                console.log(evt.data)
+
                 await User.findOneAndUpdate({ clerkUserId: id }, {
                     email: email_addresses[0].email_address,
                     firstName: first_name,
@@ -251,6 +254,8 @@ export async function POST(req: Request) {
             // --- ORGANIZATION EVENTS ---
             case "organization.created": {
                 const { id, name, created_by } = evt.data;
+                console.log(evt.data)
+
                 const owner = await User.findOne({ clerkUserId: created_by });
                 if (!owner) throw new Error("Owner not found for organization creation.");
 
@@ -271,6 +276,8 @@ export async function POST(req: Request) {
             }
             case "organization.updated": {
                 const { id, name } = evt.data;
+                console.log(evt.data)
+
                 await Organization.findOneAndUpdate({ clerkOrgId: id }, { name: name });
                 break;
             }
@@ -283,16 +290,22 @@ export async function POST(req: Request) {
 
             // --- MEMBERSHIP EVENTS ---
             case "organizationMembership.created": {
+                console.log(evt.data)
+
                 const { organization, public_user_data } = evt.data;
-                
+
+                // Fetch full user data from Clerk to get email and other details
+                const client = await clerkClient();
+                const clerkUser = await client.users.getUser(public_user_data.user_id);
+
                 // Find or create the user in MongoDB
                 let mongoUser = await User.findOne({ clerkUserId: public_user_data.user_id });
-                
+
                 // If user doesn't exist yet (invited user signs up), create them
                 if (!mongoUser) {
                     mongoUser = await User.create({
                         clerkUserId: public_user_data.user_id,
-                        email: public_user_data.email_addresses?.[0]?.email_address || "",
+                        email: clerkUser.emailAddresses[0]?.emailAddress || "",
                         firstName: public_user_data.first_name || "",
                         lastName: public_user_data.last_name || "",
                         imageUrl: public_user_data.image_url,
@@ -324,8 +337,8 @@ export async function POST(req: Request) {
                 }
 
                 // Update Clerk user metadata with organizationStatus: "ACTIVE"
-                const client = await clerkClient();
-                const currentMetadata = public_user_data.public_metadata || {};
+                const currentMetadata = clerkUser.publicMetadata || {};
+
                 await client.users.updateUserMetadata(public_user_data.user_id, {
                     publicMetadata: {
                         ...currentMetadata,
@@ -345,7 +358,7 @@ export async function POST(req: Request) {
             }
             case "organizationMembership.deleted": {
                 const { organization, public_user_data } = evt.data;
-                
+
                 // Find the user
                 const mongoUser = await User.findOne({ clerkUserId: public_user_data.user_id });
                 if (!mongoUser) {
@@ -378,7 +391,8 @@ export async function POST(req: Request) {
 
                 // Update Clerk user metadata to remove organizationStatus
                 const client = await clerkClient();
-                const currentMetadata = public_user_data.public_metadata || {};
+                const clerkUser = await client.users.getUser(public_user_data.user_id);
+                const currentMetadata = clerkUser.publicMetadata || {};
                 await client.users.updateUserMetadata(public_user_data.user_id, {
                     publicMetadata: {
                         ...currentMetadata,
