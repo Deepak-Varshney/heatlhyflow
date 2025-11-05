@@ -3,6 +3,7 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import connectDB from "@/lib/mongodb";
 import User from "@/models/User";
 import Organization from "@/models/Organization";
@@ -258,6 +259,7 @@ export async function POST(req: Request) {
                     name: name,
                     status: "PENDING",
                     owner: owner._id,
+                    members: [owner._id], // Add owner as the first member
                 });
 
                 // Also update the user who created it
@@ -282,14 +284,56 @@ export async function POST(req: Request) {
             // --- MEMBERSHIP EVENTS ---
             case "organizationMembership.created": {
                 const { organization, public_user_data } = evt.data;
+                
+                // Find or create the user in MongoDB
+                let mongoUser = await User.findOne({ clerkUserId: public_user_data.user_id });
+                
+                // If user doesn't exist yet (invited user signs up), create them
+                if (!mongoUser) {
+                    mongoUser = await User.create({
+                        clerkUserId: public_user_data.user_id,
+                        email: public_user_data.email_addresses?.[0]?.email_address || "",
+                        firstName: public_user_data.first_name || "",
+                        lastName: public_user_data.last_name || "",
+                        imageUrl: public_user_data.image_url,
+                        role: "UNASSIGNED",
+                    });
+                }
+
+                // Find the organization
                 const mongoOrg = await Organization.findOne({ clerkOrgId: organization.id });
                 if (!mongoOrg) throw new Error("Organization not found during membership creation.");
 
-                // Always set role to UNASSIGNED - ignore Clerk's role
-                await User.findOneAndUpdate({ clerkUserId: public_user_data.user_id }, {
+                // Update user with organization reference and keep role as UNASSIGNED
+                await User.findByIdAndUpdate(mongoUser._id, {
                     organization: mongoOrg._id,
-                    role: "UNASSIGNED",
+                    role: "UNASSIGNED", // Always set to UNASSIGNED - they need to complete onboarding
                 });
+
+                // Add user to organization members array (if not already present)
+                // Use $addToSet which automatically prevents duplicates
+                await Organization.findByIdAndUpdate(mongoOrg._id, {
+                    $addToSet: { members: mongoUser._id }, // $addToSet prevents duplicates
+                });
+
+                // Set organization status to ACTIVE if it's PENDING
+                if (mongoOrg.status === "PENDING") {
+                    await Organization.findByIdAndUpdate(mongoOrg._id, {
+                        status: "ACTIVE",
+                    });
+                }
+
+                // Update Clerk user metadata with organizationStatus: "ACTIVE"
+                const client = await clerkClient();
+                const currentMetadata = public_user_data.public_metadata || {};
+                await client.users.updateUserMetadata(public_user_data.user_id, {
+                    publicMetadata: {
+                        ...currentMetadata,
+                        organizationStatus: "ACTIVE",
+                    },
+                });
+
+                console.log(`Added user ${public_user_data.user_id} to organization ${organization.id}`);
                 break;
             }
             case "organizationMembership.updated": {
@@ -300,12 +344,49 @@ export async function POST(req: Request) {
                 break;
             }
             case "organizationMembership.deleted": {
-                const { public_user_data } = evt.data;
+                const { organization, public_user_data } = evt.data;
+                
+                // Find the user
+                const mongoUser = await User.findOne({ clerkUserId: public_user_data.user_id });
+                if (!mongoUser) {
+                    console.warn(`User ${public_user_data.user_id} not found during membership deletion`);
+                    break;
+                }
+
+                // Find the organization
+                const mongoOrg = await Organization.findOne({ clerkOrgId: organization.id });
+                if (mongoOrg && mongoUser._id) {
+                    // Remove user from organization members array
+                    await Organization.findByIdAndUpdate(mongoOrg._id, {
+                        $pull: { members: mongoUser._id },
+                    });
+
+                    // Check if organization has any members left (excluding owner)
+                    const updatedOrg = await Organization.findById(mongoOrg._id);
+                    if (updatedOrg && updatedOrg.members.length === 0) {
+                        // If no members left, you might want to set status to DISABLED or keep it as is
+                        // For now, we'll leave it as is - organization might still be valid
+                        console.log(`Organization ${organization.id} has no members left`);
+                    }
+                }
+
                 // Reset user's role and remove them from the organization
-                await User.findOneAndUpdate({ clerkUserId: public_user_data.user_id }, {
+                await User.findByIdAndUpdate(mongoUser._id, {
                     role: 'UNASSIGNED',
-                    $unset: { organization: "" } // Removes the organization field
+                    $unset: { organization: "" }, // Removes the organization field
                 });
+
+                // Update Clerk user metadata to remove organizationStatus
+                const client = await clerkClient();
+                const currentMetadata = public_user_data.public_metadata || {};
+                await client.users.updateUserMetadata(public_user_data.user_id, {
+                    publicMetadata: {
+                        ...currentMetadata,
+                        organizationStatus: undefined, // Remove organizationStatus
+                    },
+                });
+
+                console.log(`Removed user ${public_user_data.user_id} from organization ${organization.id}`);
                 break;
             }
             default:

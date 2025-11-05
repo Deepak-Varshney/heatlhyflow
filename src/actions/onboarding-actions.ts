@@ -35,12 +35,20 @@ export async function updateUserOnboarding(data: OnboardingData) {
     await userToUpdate.save();
 
     // Sync role AND verification status to Clerk metadata for the middleware
+    // Preserve organizationStatus if it already exists (from membership invitation)
     const client = await clerkClient();
+    const currentUser = await client.users.getUser(clerkUserId);
+    const currentMetadata = currentUser.publicMetadata || {};
+    const existingOrgStatus = currentMetadata.organizationStatus || "PENDING";
+    
     await client.users.updateUserMetadata(clerkUserId, {
       publicMetadata: {
+        ...currentMetadata,
         role: data.role,
         verificationStatus: "PENDING",
-        organizationStatus: "PENDING"
+        // Preserve organizationStatus if it's already ACTIVE (from invitation)
+        // Otherwise set to PENDING
+        organizationStatus: existingOrgStatus === "ACTIVE" ? "ACTIVE" : "PENDING",
       },
     });
 
