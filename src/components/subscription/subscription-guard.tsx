@@ -218,7 +218,7 @@ export function UsageLimit({ current, max, type, onUpgrade }: UsageLimitProps) {
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription className="flex items-center justify-between">
-            <span>You've reached your {typeInfo.label} limit</span>
+            <span>You&apos;ve reached your {typeInfo.label} limit</span>
             <Button size="sm" onClick={onUpgrade}>
               Upgrade
             </Button>

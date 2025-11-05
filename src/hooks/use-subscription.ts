@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { SubscriptionContext } from "@/lib/subscription";
+import { SubscriptionLimits } from "@/types/subscription";
 
 export function useSubscription() {
   const [subscription, setSubscription] = useState<SubscriptionContext | null>(null);
@@ -86,12 +87,12 @@ export function useSubscription() {
     fetchSubscription();
   }, []);
 
-  const canPerformAction = (action: keyof typeof subscription.limits): boolean => {
+  const canPerformAction = (action: keyof SubscriptionLimits): boolean => {
     if (!subscription) return false;
     return subscription.limits[action] && subscription.isActive;
   };
 
-  const isFeatureAvailable = (feature: keyof typeof subscription.limits): boolean => {
+  const isFeatureAvailable = (feature: keyof SubscriptionLimits): boolean => {
     if (!subscription) return false;
     return subscription.limits[feature];
   };

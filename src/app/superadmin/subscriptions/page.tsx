@@ -223,7 +223,7 @@ const ClerkSubscriptionsPage = async () => {
             <div>
               <h4 className="font-medium">Current Setup</h4>
               <p className="text-sm text-muted-foreground">
-                Subscriptions are managed through Clerk's subscription system
+                Subscriptions are managed through Clerk&apos;s subscription system
               </p>
             </div>
             <div>
@@ -240,7 +240,7 @@ const ClerkSubscriptionsPage = async () => {
           <div className="pt-4 border-t">
             <p className="text-sm text-muted-foreground mb-4">
               To manage subscriptions, billing, and customer data, use the Clerk Dashboard. 
-              This page provides an overview of your organization's subscription status.
+              This page provides an overview of your organization&apos;s subscription status.
             </p>
             
             <div className="flex gap-2">

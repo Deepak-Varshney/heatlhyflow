@@ -8,13 +8,14 @@ import { CreditCard, AlertTriangle, CheckCircle } from "lucide-react";
 import Link from "next/link";
 
 interface BillingPageProps {
-  searchParams?: {
+  searchParams?: Promise<{
     feature?: string;
-  };
+  }>;
 }
 
 const BillingPage = async ({ searchParams }: BillingPageProps) => {
   const subscriptionContext = await getClerkSubscriptionContext();
+  const resolvedSearchParams = await searchParams;
   
   const getFeatureMessage = (feature: string) => {
     switch (feature) {
@@ -40,11 +41,11 @@ const BillingPage = async ({ searchParams }: BillingPageProps) => {
       </div>
 
       {/* Feature Upgrade Alert */}
-      {searchParams?.feature && (
+      {resolvedSearchParams?.feature && (
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            {getFeatureMessage(searchParams.feature)}
+            {getFeatureMessage(resolvedSearchParams.feature)}
           </AlertDescription>
         </Alert>
       )}

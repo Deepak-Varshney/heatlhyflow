@@ -18,7 +18,7 @@ import {
   BarChart3
 } from "lucide-react";
 import { SubscriptionContext } from "@/lib/subscription";
-import { SUBSCRIPTION_PLANS } from "@/types/subscription";
+import { SUBSCRIPTION_PLANS, SubscriptionPlan } from "@/types/subscription";
 
 interface SubscriptionStatusProps {
   subscription: SubscriptionContext | null;
@@ -36,7 +36,8 @@ export function SubscriptionStatus({ subscription }: SubscriptionStatusProps) {
     );
   }
 
-  const plan = SUBSCRIPTION_PLANS[subscription.subscription?.planType || "FREE"];
+  const planType: SubscriptionPlan = (subscription.subscription?.planType || "FREE") as SubscriptionPlan;
+  const plan = SUBSCRIPTION_PLANS[planType];
   const isActive = subscription.isActive;
   const daysUntilExpiry = subscription.daysUntilExpiry;
 

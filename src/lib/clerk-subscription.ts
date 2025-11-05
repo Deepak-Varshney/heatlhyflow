@@ -34,35 +34,13 @@ export const getClerkSubscriptionContext = async (): Promise<ClerkSubscriptionCo
     const user = await User.findOne({ clerkUserId: userId }).populate('organization');
     if (!user || !user.organization) return null;
 
-    // Get current user from Clerk to access subscription info
-    const clerkUser = await currentUser();
-    if (!clerkUser) return null;
-
-    // Get organization subscription from Clerk
-    const organization = clerkUser.organizationMemberships?.[0]?.organization;
-    if (!organization) return null;
-
-    // Get subscription from Clerk organization
-    const subscription = organization.subscription;
+    // For now, we'll use the organization from MongoDB
+    // Clerk subscription integration would need to be implemented separately
+    // using Clerk's organization API or webhooks
+    // TODO: Integrate with Clerk subscription API to get actual subscription data
     
-    // Determine plan type based on Clerk subscription
-    let planType: SubscriptionPlan = "FREE";
-    if (subscription) {
-      // Map Clerk plan slug to our plan type
-      switch (subscription.planSlug) {
-        case "basic":
-          planType = "BASIC";
-          break;
-        case "professional":
-          planType = "PROFESSIONAL";
-          break;
-        case "enterprise":
-          planType = "ENTERPRISE";
-          break;
-        default:
-          planType = "FREE";
-      }
-    }
+    // Default to FREE plan for now
+    const planType: SubscriptionPlan = "FREE";
 
     // Get plan details
     const planDetails = SUBSCRIPTION_PLANS[planType];
@@ -70,20 +48,17 @@ export const getClerkSubscriptionContext = async (): Promise<ClerkSubscriptionCo
     // Get current usage
     const usage = await getCurrentUsage(user.organization._id);
 
-    // Check if subscription is active
-    const isActive = subscription?.status === "active" || planType === "FREE";
+    // Check if subscription is active (FREE plan is always active)
+    const isActive = true; // FREE plan is always active
 
     // Get subscription limits
     const limits = checkSubscriptionLimits(planDetails, usage);
 
-    // Get days until expiry (if applicable)
-    const daysUntilExpiry = subscription?.currentPeriodEnd 
-      ? Math.max(0, Math.ceil((new Date(subscription.currentPeriodEnd).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
-      : 365; // Free plan doesn't expire
+    // Free plan doesn't expire
+    const daysUntilExpiry = 365;
 
     return {
       subscription: {
-        ...subscription,
         planType,
         features: planDetails.features,
         pricePerMonth: planDetails.price.monthly,
