@@ -17,9 +17,7 @@ export default async function PatientListingPage({ }: PatientListingPage) {
 
   const filters = {
     page,
-    phone,
     limit: pageLimit,
-    address,
     ...(search && { search }),
     ...(categories && { categories: categories })
   };

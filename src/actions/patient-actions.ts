@@ -61,10 +61,6 @@ export async function getPatients({
   limit = 10,
   sort,
   search,
-  name,
-  email,
-  phone,
-  address,
 }: GetPatientsParams) {
   await connectDB();
   const user = await getMongoUser();
@@ -73,32 +69,22 @@ export async function getPatients({
   const offset = (page - 1) * limit;
   const query: any = {};
 
-  // Only apply organization filter if user is not SUPERADMIN
+  // Organization restriction unless SUPERADMIN
   if (user.role !== "SUPERADMIN") {
     query.organization = user.organization;
   }
 
-  // General search query across multiple fields
+  // Unified search across all fields
   if (search) {
+    const regex = { $regex: search, $options: "i" };
     query.$or = [
-      { firstName: { $regex: search, $options: 'i' } },
-      { lastName: { $regex: search, $options: 'i' } },
-      { address: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
-      { phoneNumber: { $regex: search, $options: 'i' } },
+      { firstName: regex },
+      { lastName: regex },
+      { email: regex },
+      { phoneNumber: regex },
+      { address: regex },
     ];
   }
-
-  // Specific filters
-  if (name) {
-    query.$or = [
-      { firstName: { $regex: name, $options: 'i' } },
-      { lastName: { $regex: name, $options: 'i' } },
-    ]
-  }
-  if (email) query.email = { $regex: email, $options: 'i' };
-  if (phone) query.phoneNumber = { $regex: phone, $options: 'i' };
-  if (address) query.address = { $regex: address, $options: 'i' };
 
   const sortQuery = parseSortParameter(sort);
 
@@ -116,6 +102,7 @@ export async function getPatients({
     currentPage: page,
   };
 }
+
 
 export async function getPatientById(patientId: string) {
   try {

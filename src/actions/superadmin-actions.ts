@@ -193,7 +193,7 @@ export async function getAllUsers({
     .select('-weeklyAvailability -appointments') // Exclude heavy fields
     .sort(sortQuery)
     .skip(offset)
-    .limit(limit)
+    // .limit(limit)
     .lean();
 
   return {

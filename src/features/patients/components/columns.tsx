@@ -18,12 +18,29 @@ export const columns: ColumnDef<IPatient>[] = [
     },
     meta: {
       label: 'Patient Name',
-      placeholder: 'Global Search...',
+      placeholder: 'Search...',
       variant: 'text',
     },
     enableColumnFilter: true,
   },
 
+  {
+    accessorKey: 'RecentTreatment',
+    header: "Recent Treatment"
+  },
+  {
+    accessorKey: 'phoneNumber',
+    id: 'phone',
+    header: 'Phone Number',
+    cell: ({ cell }) => (
+      <div className="line-clamp-2 text-muted-foreground">
+        {cell.getValue<string>()}
+      </div>
+    ),
+  },
+  {
+    header: "Prescription"
+  },
   {
     id: 'address',
     accessorKey: 'address',
@@ -34,35 +51,13 @@ export const columns: ColumnDef<IPatient>[] = [
       <div className="line-clamp-2 text-muted-foreground">
         {cell.getValue<string>()}
       </div>
-    ),
-    meta: {
-      label: 'Address',
-      placeholder: 'Search Address',
-      variant: 'text',
-    },
-    enableColumnFilter: true,
+    )
   },
   {
     accessorKey: 'email',
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Email" />
     ),
-  },
-  {
-    accessorKey: 'phoneNumber',
-    id:'phone',
-    header: 'Phone Number',
-    cell: ({ cell }) => (
-      <div className="line-clamp-2 text-muted-foreground">
-        {cell.getValue<string>()}
-      </div>
-    ),
-    meta: {
-      label: 'Phone Number',
-      placeholder: 'Search number...',
-      variant: 'text',
-    },
-    enableColumnFilter: true,
   },
   {
     accessorKey: 'dateOfBirth',
