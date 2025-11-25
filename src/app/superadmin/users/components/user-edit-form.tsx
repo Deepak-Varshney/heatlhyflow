@@ -33,7 +33,6 @@ export function UserEditForm({ user, onClose, currentUserRole }: UserEditFormPro
     const data = {
       firstName: formData.get("firstName") as string,
       lastName: formData.get("lastName") as string,
-      email: formData.get("email") as string,
       role: formData.get("role") as any,
       specialty: formData.get("specialty") as string,
       experience: parseInt(formData.get("experience") as string) || 0,
@@ -58,11 +57,11 @@ export function UserEditForm({ user, onClose, currentUserRole }: UserEditFormPro
             <Input name="lastName" defaultValue={user.lastName} required />
           </div>
         </div>
-
+{/* 
         <div>
           <Label htmlFor="email">Email</Label>
           <Input name="email" type="email" defaultValue={user.email} required />
-        </div>
+        </div> */}
 
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -75,8 +74,8 @@ export function UserEditForm({ user, onClose, currentUserRole }: UserEditFormPro
                 <SelectItem value="UNASSIGNED">Unassigned</SelectItem>
                 <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
                 <SelectItem value="DOCTOR">Doctor</SelectItem>
-                <SelectItem value="SUPERADMIN">Super Admin</SelectItem>
-                <SelectItem value="DEVIL">🔥 DEVIL 🔥</SelectItem>
+                {/* <SelectItem value="SUPERADMIN">Super Admin</SelectItem>
+                <SelectItem value="DEVIL">🔥 DEVIL 🔥</SelectItem> */}
               </SelectContent>
             </Select>
           </div>

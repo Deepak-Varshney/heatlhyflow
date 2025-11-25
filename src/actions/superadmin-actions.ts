@@ -235,6 +235,7 @@ interface UpdateUserData {
   verificationStatus?: "PENDING" | "VERIFIED" | "REJECTED";
 }
 
+
 export async function updateUser(userId: string, data: UpdateUserData) {
   await connectDB();
   const user = await getMongoUser();
@@ -247,22 +248,52 @@ export async function updateUser(userId: string, data: UpdateUserData) {
     throw new Error("User not found");
   }
 
-  // Update MongoDB user
+  // Keep a copy of the old email to detect change
+  const oldEmail = targetUser.email;
+
+  // Update MongoDB user record
   const updatedUser = await User.findByIdAndUpdate(
     userId,
     { $set: data },
-    { new: true }
-  );
+    { new: true, runValidators: true }
+  ).lean();
 
-  // Update Clerk metadata if role or verification status changed
-  if (data.role || data.verificationStatus) {
-    const client = await clerkClient();
-    await client.users.updateUserMetadata(targetUser.clerkUserId, {
-      publicMetadata: {
-        role: data.role || targetUser.role,
-        verificationStatus: data.verificationStatus || targetUser.verificationStatus,
-      },
-    });
+  // Sync to Clerk: require clerkUserId on targetUser
+  try {
+    if (targetUser.clerkUserId) {
+      // 1) Update basic fields on Clerk user (firstName, lastName, publicMetadata)
+      const clerkUpdatePayload: any = {};
+      if (data.firstName) clerkUpdatePayload.firstName = data.firstName;
+      if (data.lastName) clerkUpdatePayload.lastName = data.lastName;
+
+      const client = await clerkClient();
+      const clerkUser = await client.users.getUser(targetUser.clerkUserId);
+
+      // Merge existing Clerk metadata with any Mongo-stored metadata before overriding specific keys.
+      const mergedPublicMetadata = {
+        ...(clerkUser.publicMetadata || {}),
+        ...(targetUser.publicMetadata || {}),
+      };
+      const incomingRole = data.role ?? targetUser.role;
+      const incomingVerification = data.verificationStatus ?? targetUser.verificationStatus;
+      if (incomingRole) mergedPublicMetadata.role = incomingRole;
+      if (incomingVerification) mergedPublicMetadata.verificationStatus = incomingVerification;
+      clerkUpdatePayload.publicMetadata = mergedPublicMetadata;
+
+      // Update the Clerk user (first name / last name / metadata)
+      await client.users.updateUser(targetUser.clerkUserId, clerkUpdatePayload);
+    } else {
+      // If clerkUserId missing, log or handle it (you should store clerkUserId on registration)
+      console.warn(`updateUser: target user ${userId} has no clerkUserId; Clerk not updated.`);
+    }
+  } catch (err) {
+    // Don't crash the whole action silently — bubble a helpful error
+    console.error("Failed to sync user with Clerk:", err);
+    // Option A: throw to signal failure (uncomment if you want action to fail)
+    // throw new Error("User updated in DB but failed to sync with Clerk: " + (err as Error).message);
+
+    // Option B: swallow but log (keeps DB change); choose whichever fits your policy.
+    // Here we continue while having logged the failure.
   }
 
   revalidatePath("/superadmin/users");
