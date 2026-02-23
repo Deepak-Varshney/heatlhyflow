@@ -23,7 +23,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useState } from "react";
-import { createPatient } from "@/actions/patient-actions";
+import { createPatient } from "@/app/actions/patient-actions";
 import { toast } from "sonner";
 import { IconPlus } from "@tabler/icons-react";
 
@@ -34,7 +34,7 @@ export default function PatientRegistrationDialog() {
     firstName: z.string().min(1, { message: "First name is required" }),
     lastName: z.string().min(1, { message: "Last name is required" }),
     dateOfBirth: z.date({
-      required_error: "Date of birth is required.",
+      error: "Date of birth is required.",
     }),
     phoneNumber: z.string().min(1, { message: "Phone number is required" }),
     email: z
@@ -45,7 +45,7 @@ export default function PatientRegistrationDialog() {
     address: z.string().optional(),
     emergencyContactPhone: z.string().optional(),
     bp: z.string().optional(),
-    weight: z.coerce.number().optional(),
+    weight: z.number().nullable().optional(),
     occupation: z.string().optional(),
   });
 

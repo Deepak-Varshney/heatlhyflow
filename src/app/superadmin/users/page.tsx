@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { getAllUsers, getUserStats } from "@/actions/superadmin-actions";
+import { getAllUsers, getUserStats } from "@/app/actions/superadmin-actions";
 import { getMongoUser } from "@/lib/CheckUser";
 import { UserStats } from "./components/user-stats";
 import { UserFilters } from "./components/user-filters";

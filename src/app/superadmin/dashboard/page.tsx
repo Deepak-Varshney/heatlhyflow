@@ -1,302 +1,282 @@
+import { Building2, CheckCircle2, Clock3, ShieldAlert, Users } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import PageContainer from "@/components/layout/page-container";
 import connectDB from "@/lib/mongodb";
 import Organization from "@/models/Organization";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { updateOrganizationStatus, manageUserVerification, getUserStats } from "@/actions/superadmin-actions";
-import User from "@/models/User";
-import { ThemePasteDialog } from "./theme-editor";
-import { Users, Building2, UserCheck, UserX, Clock, TrendingUp, CreditCard, DollarSign, Calendar } from "lucide-react";
-import Link from "next/link";
-// ActionForm for Organization status updates
-const ActionForm = ({ orgId, status, children, variant, clerkUserId }: {
-    orgId: string,
-    status: "ACTIVE" | "REJECTED",
-    children: React.ReactNode,
-    variant: "default" | "destructive",
-    clerkUserId: string
-}) => {
-    return (
-        <form action={async () => {
-            "use server";
-            await updateOrganizationStatus(orgId, status, clerkUserId);
-        }}>
-            <Button type="submit" variant={variant}>{children}</Button>
-        </form>
-    );
-};
+import { getUserStats } from "@/actions/superadmin-actions";
+import { getOnboardingRequests } from "@/actions/onboarding-request-actions";
+import { RequestDetailsModal } from "@/components/request-details-modal";
+import Link from 'next/link';
 
-// ActionForm for User status updates (New Component)
-const UserActionForm = ({ userId, status, children, variant }: {
-    userId: string,
-    status: "PENDING" | "VERIFIED" | "REJECTED",
-    children: React.ReactNode,
-    variant: "default" | "destructive",
-}) => {
-    return (
-        <form action={async () => {
-            "use server";
-            // NOTE: Assuming an 'updateUserStatus' server action is available
-            await manageUserVerification(userId, status);
-        }}>
-            <Button type="submit" variant={variant}>{children}</Button>
-        </form>
-    );
-};
+const glassCardClass =
+    "relative overflow-hidden border border-primary/15 bg-background/70 backdrop-blur supports-[backdrop-filter]:bg-background/60";
 
-const SuperAdminDashboard = async () => {
+export default async function SuperAdminDashboard() {
     await connectDB();
-    // Populate the 'owner' field for organizations to get user details
-    const pendingOrgs = await Organization.find({ status: "PENDING" }).populate("owner");
-    // Fetch pending users
-    const pendingUsers = await User.find({ verificationStatus: "PENDING" });
-    
-    // Get user statistics
+
     const userStats = await getUserStats();
-    
-    // Get organization statistics
-    const totalOrgs = await Organization.countDocuments();
-    const activeOrgs = await Organization.countDocuments({ status: "ACTIVE" });
-    const pendingOrgCount = await Organization.countDocuments({ status: "PENDING" });
-    
-    // Calculate subscription stats from organizations
-    const orgsWithSubscriptions = await Organization.countDocuments({ 
-      status: "ACTIVE",
-      subscription: { $exists: true }
-    });
-    
-    // Mock revenue calculation - in real implementation, this would come from Clerk
-    const estimatedMonthlyRevenue = activeOrgs * 10; // Assuming $10/month per active org
-    
+    const organizationsTotal = await Organization.countDocuments();
+    const organizationsActive = await Organization.countDocuments({ status: "ACTIVE" });
+    const organizationsPending = await Organization.countDocuments({ status: "PENDING" });
+
+    const allRequestsResult = await getOnboardingRequests();
+    const allRequests: any[] = allRequestsResult.success
+        ? (allRequestsResult.requests ?? [])
+        : [];
+    const pendingRequests = allRequests.filter((request: any) => request.status === 'PENDING');
+    const approvedRequests = allRequests.filter((request: any) => request.status === 'APPROVED');
+    const rejectedRequests = allRequests.filter((request: any) => request.status === 'REJECTED');
+    const recentRequests = allRequests.slice(0, 5);
+
     return (
-        <div className="p-4 sm:p-6 lg:p-8 space-y-8 overflow-scroll h-[90vh]">
-            {/* Statistics Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-3">
-                            <Users className="h-8 w-8 text-blue-600" />
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-                                <p className="text-2xl font-bold">{userStats.totalUsers}</p>
-                            </div>
+        <PageContainer scrollable={true}>
+            <div className="w-full space-y-8">
+                <section className="space-y-2">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
+                            <ShieldAlert className="h-5 w-5 text-primary" />
                         </div>
-                    </CardContent>
-                </Card>
-                
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-3">
-                            <UserCheck className="h-8 w-8 text-green-600" />
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Verified Users</p>
-                                <p className="text-2xl font-bold">{userStats.verifiedUsers}</p>
-                            </div>
+                        <div>
+                            <h1 className="text-2xl font-semibold">Superadmin Control Center</h1>
+                            <p className="text-sm text-muted-foreground">
+                                Global oversight for users, organizations, and onboarding approvals.
+                            </p>
                         </div>
-                    </CardContent>
-                </Card>
-                
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-3">
-                            <Clock className="h-8 w-8 text-yellow-600" />
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Pending Users</p>
-                                <p className="text-2xl font-bold">{userStats.pendingUsers}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-3">
-                            <Building2 className="h-8 w-8 text-purple-600" />
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Active Organizations</p>
-                                <p className="text-2xl font-bold">{activeOrgs}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Subscription Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-3">
-                            <CreditCard className="h-8 w-8 text-indigo-600" />
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Active Subscriptions</p>
-                                <p className="text-2xl font-bold">{orgsWithSubscriptions}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-3">
-                            <DollarSign className="h-8 w-8 text-green-600" />
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Estimated Revenue</p>
-                                <p className="text-2xl font-bold">${estimatedMonthlyRevenue}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-3">
-                            <TrendingUp className="h-8 w-8 text-orange-600" />
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Organizations</p>
-                                <p className="text-2xl font-bold">{totalOrgs}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-3">
-                            <Calendar className="h-8 w-8 text-red-600" />
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Pending Approvals</p>
-                                <p className="text-2xl font-bold">{pendingOrgCount}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="flex flex-wrap gap-4">
-                <Link href="/superadmin/users">
-                    <Button variant="outline" className="flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        Manage Users
-                    </Button>
-                </Link>
-                <Link href="/superadmin/clinics">
-                    <Button variant="outline" className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4" />
-                        Manage Organizations
-                    </Button>
-                </Link>
-                <Link href="/superadmin/subscriptions">
-                    <Button variant="outline" className="flex items-center gap-2">
-                        <CreditCard className="h-4 w-4" />
-                        Manage Subscriptions
-                    </Button>
-                </Link>
-                <ThemePasteDialog />
-            </div>
-            {/* Pending Clinic Approvals Card */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Pending Clinic Approvals</CardTitle>
-                    <CardDescription>Review and approve or reject new clinic registrations.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {pendingOrgs.length > 0 ? (
-                            pendingOrgs.map((org: any) => ( // Using 'any' for simplicity, should use proper type for Organization
-                                <div key={org._id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-md gap-4">
-                                    <div>
-                                        <p className="font-bold text-lg">{org.name}</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Owner: {org.owner.firstName} {org.owner.lastName} ({org.owner.email})
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Role: {org.owner.role}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">
-                                            Request Date: {new Date(org.createdAt).toLocaleDateString()}
-                                        </p>
-                                    </div>
-                                    <div className="flex gap-2 self-end sm:self-center">
-                                        <ActionForm
-                                            orgId={org._id.toString()}
-                                            clerkUserId={org.owner.clerkUserId.toString()}
-                                            status="ACTIVE"
-                                            variant="default"
-                                        >
-                                            Approve
-                                        </ActionForm>
-                                        <ActionForm
-                                            orgId={org._id.toString()}
-                                            clerkUserId={org.owner.clerkUserId.toString()}
-                                            status="REJECTED"
-                                            variant="destructive"
-                                        >
-                                            Reject
-                                        </ActionForm>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-center text-muted-foreground py-8">No pending approvals.</p>
-                        )}
                     </div>
-                </CardContent>
-            </Card>
+                </section>
 
-            {/* --- */}
+                <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                    <StatCard
+                        icon={<Users className="h-5 w-5 text-primary" />}
+                        label="Total Users"
+                        value={userStats.totalUsers}
+                        trend="All accounts"
+                    />
+                    <StatCard
+                        icon={<CheckCircle2 className="h-5 w-5 text-emerald-600" />}
+                        label="Verified Users"
+                        value={userStats.verifiedUsers}
+                        trend="Cleared access"
+                    />
+                    <StatCard
+                        icon={<Building2 className="h-5 w-5 text-sky-600" />}
+                        label="Organizations"
+                        value={organizationsTotal}
+                        trend={`${organizationsActive} active`}
+                    />
+                    <StatCard
+                        icon={<Clock3 className="h-5 w-5 text-amber-600" />}
+                        label="Pending Orgs"
+                        value={organizationsPending}
+                        trend="Awaiting approval"
+                    />
+                </section>
 
-            {/* Pending User Approvals Card (New Section) */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Pending User Approvals</CardTitle>
-                    <CardDescription>Review and approve or reject new user registrations without a clinic.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <div className="space-y-4">
-                        {pendingUsers.length > 0 ? (
-                            pendingUsers.map((user: any) => ( // Using 'any' for simplicity, should use proper type for User
-                                <div key={user._id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-md gap-4">
-                                    <div>
-                                        <p className="font-bold text-lg">{user.firstName} {user.lastName}</p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Email: {user.email}
-                                        </p>
-                                        <p className="text-sm text-muted-foreground">
-                                            Role: {user.role}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">
-                                            Request Date: {new Date(user.createdAt).toLocaleDateString()}
-                                        </p>
-                                        <Badge variant="secondary" className="mt-1">{user.role}</Badge>
+                <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <Card className={`${glassCardClass} lg:col-span-2`}>
+                        <CardHeader>
+                            <CardTitle>Onboarding Requests</CardTitle>
+                            <CardDescription>
+                                Review pending, approved, and rejected clinic applications.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                                <StatusPill label="Pending" value={pendingRequests.length} tone="warning" />
+                                <StatusPill label="Approved" value={approvedRequests.length} tone="success" />
+                                <StatusPill label="Rejected" value={rejectedRequests.length} tone="danger" />
+                            </div>
+                            {recentRequests.length === 0 ? (
+                                <EmptyState />
+                            ) : (
+                                recentRequests.map((request: any) => (
+                                    <div
+                                        key={request._id}
+                                        className="rounded-xl border border-border/60 bg-background/80 p-4 space-y-4"
+                                    >
+                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                            <div className="space-y-1">
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="text-base font-semibold">
+                                                        {request.organizationName}
+                                                    </h3>
+                                                    <Badge variant="secondary">{request.organizationType}</Badge>
+                                                    <Badge variant="outline">{request.status}</Badge>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {request.firstName} {request.lastName} · {request.email}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Submitted {new Date(request.createdAt).toLocaleDateString()}
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-col sm:flex-row gap-2">
+                                                <RequestDetailsModal request={request} />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2 self-end sm:self-center">
-                                        <UserActionForm
-                                            userId={user._id.toString()}
-                                            status="VERIFIED"
-                                            variant="default"
-                                        >
-                                            Approve User
-                                        </UserActionForm>
-                                        <UserActionForm
-                                            userId={user._id.toString()}
-                                            status="REJECTED"
-                                            variant="destructive"
-                                        >
-                                            Reject User
-                                        </UserActionForm>
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-center text-muted-foreground py-8">No pending user approvals.</p>
-                        )}
+                                ))
+                            )}
+                            <div className="flex justify-end">
+                                <Button variant="outline" size="sm" asChild>
+                                    <Link href="/superadmin/join-requests">View all requests</Link>
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className={glassCardClass}>
+                        <CardHeader>
+                            <CardTitle>Quick Actions</CardTitle>
+                            <CardDescription>Instant access to high-impact actions.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <QuickAction
+                                title="Review Join Requests"
+                                description="Approve clinics faster"
+                                href="/superadmin/join-requests"
+                            />
+                            <Separator />
+                            <QuickAction
+                                title="Audit Users"
+                                description="Verify or suspend access"
+                                href="/superadmin/users"
+                            />
+                            <Separator />
+                            <QuickAction
+                                title="Manage Organizations"
+                                description="Edit, deactivate, or delete"
+                                href="/superadmin/clinics"
+                            />
+                        </CardContent>
+                    </Card>
+                </section>
+
+                <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <Card className={glassCardClass}>
+                        <CardHeader>
+                            <CardTitle>Role Breakdown</CardTitle>
+                            <CardDescription>Live headcount by role.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <RoleRow label="Doctors" value={userStats.doctors} />
+                            <RoleRow label="Receptionists" value={userStats.receptionists} />
+                            <RoleRow label="Unassigned" value={userStats.unassignedUsers} />
+                        </CardContent>
+                    </Card>
+
+                    <Card className={glassCardClass}>
+                        <CardHeader>
+                            <CardTitle>Compliance & Alerts</CardTitle>
+                            <CardDescription>Keep the system clean and safe.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <AlertRow title="Pending Approvals" value={organizationsPending} />
+                            <AlertRow title="Rejected Users" value={userStats.rejectedUsers} />
+                            <AlertRow title="Pending Users" value={userStats.pendingUsers} />
+                        </CardContent>
+                    </Card>
+                </section>
+            </div>
+        </PageContainer>
+    );
+}
+
+function StatCard({
+    icon,
+    label,
+    value,
+    trend
+}: {
+    icon: React.ReactNode;
+    label: string;
+    value: number;
+    trend: string;
+}) {
+    return (
+        <Card className={glassCardClass}>
+            <CardContent className="p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
+                        {icon}
                     </div>
-                </CardContent>
-            </Card>
+                    <span className="text-xs text-muted-foreground">{trend}</span>
+                </div>
+                <div>
+                    <p className="text-sm text-muted-foreground">{label}</p>
+                    <p className="text-2xl font-semibold">{value}</p>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
 
+function QuickAction({ title, description, href }: { title: string; description: string; href: string }) {
+    return (
+        <div className="flex items-center justify-between gap-4">
+            <div>
+                <p className="text-sm font-medium">{title}</p>
+                <p className="text-xs text-muted-foreground">{description}</p>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+                <Link href={href}>Open</Link>
+            </Button>
         </div>
     );
-};
+}
 
-export default SuperAdminDashboard;
+function StatusPill({
+    label,
+    value,
+    tone,
+}: {
+    label: string;
+    value: number;
+    tone: 'warning' | 'success' | 'danger';
+}) {
+    const toneClass =
+        tone === 'success'
+            ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+            : tone === 'danger'
+              ? 'border-rose-200 bg-rose-50 text-rose-700'
+              : 'border-amber-200 bg-amber-50 text-amber-700';
+
+    return (
+        <div className={`rounded-xl border px-4 py-3 ${toneClass}`}>
+            <p className="text-xs uppercase tracking-wide">{label}</p>
+            <p className="text-2xl font-semibold">{value}</p>
+        </div>
+    );
+}
+
+function RoleRow({ label, value }: { label: string; value: number }) {
+    return (
+        <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/80 px-3 py-2">
+            <span className="text-sm text-muted-foreground">{label}</span>
+            <span className="text-sm font-semibold">{value}</span>
+        </div>
+    );
+}
+
+function AlertRow({ title, value }: { title: string; value: number }) {
+    return (
+        <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/80 px-3 py-2">
+            <span className="text-sm text-muted-foreground">{title}</span>
+            <Badge variant="secondary">{value}</Badge>
+        </div>
+    );
+}
+
+function EmptyState() {
+    return (
+        <div className="rounded-xl border border-dashed border-border/60 p-8 text-center space-y-2">
+            <p className="text-sm font-medium">No pending requests</p>
+            <p className="text-xs text-muted-foreground">
+                New clinic applications will appear here for approval.
+            </p>
+        </div>
+    );
+}

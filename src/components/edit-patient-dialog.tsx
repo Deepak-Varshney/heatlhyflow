@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { updatePatient } from "@/actions/patient-actions";
+import { updatePatient } from "@/app/actions/patient-actions";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -29,12 +29,14 @@ const formSchema = z.object({
   phoneNumber: z.string().min(1, "Phone number is required"),
   address: z.string().min(1, "Address is required"),
   bp: z.string().optional(),
-  weight: z.coerce.number().optional(), // coerce string ko number mein badal deta hai
+  weight: z.number().optional(),
 });
+
+type EditPatientFormValues = z.infer<typeof formSchema>;
 
 export function EditPatientDialog({ patient, open, onOpenChange }: { patient: any; open: boolean; onOpenChange: (open: boolean) => void; }) {
   const router = useRouter();
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<EditPatientFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: patient,
   });
@@ -44,7 +46,7 @@ export function EditPatientDialog({ patient, open, onOpenChange }: { patient: an
     form.reset(patient);
   }, [patient, form]);
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: EditPatientFormValues) {
     const result = await updatePatient(patient._id, values);
     if (result.success) {
       toast.success("Patient details updated successfully!");

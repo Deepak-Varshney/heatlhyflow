@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { saveCustomTheme } from '@/actions/theme' // Import your server action
+import { saveCustomTheme } from '@/app/actions/theme' // Import your server action
 
 export function ThemePasteDialog() {
   const [themeInput, setThemeInput] = useState('')

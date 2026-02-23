@@ -31,17 +31,21 @@ import {
   deleteTreatment,
   updateConsultationFee,
   getConsultationFee,
-} from "@/actions/treatment-actions";
+} from "@/app/actions/treatment-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const treatmentSchema = z.object({
   name: z.string().min(1, "Treatment name is required"),
-  price: z.coerce.number().min(0, "Price must be positive"),
+  price: z.number().min(0, "Price must be positive"),
 });
 
+type TreatmentFormValues = z.infer<typeof treatmentSchema>;
+
 const consultationFeeSchema = z.object({
-  consultationFee: z.coerce.number().min(0, "Fee must be positive"),
+  consultationFee: z.number().min(0, "Fee must be positive"),
 });
+
+type ConsultationFeeFormValues = z.infer<typeof consultationFeeSchema>;
 
 export default function ManageTreatmentsDialog() {
   const [open, setOpen] = useState(false);
@@ -51,7 +55,7 @@ export default function ManageTreatmentsDialog() {
   const [consultationFee, setConsultationFee] = useState<number>(0);
   const [isLoadingFee, setIsLoadingFee] = useState(false);
 
-  const treatmentForm = useForm<z.infer<typeof treatmentSchema>>({
+  const treatmentForm = useForm<TreatmentFormValues>({
     resolver: zodResolver(treatmentSchema),
     defaultValues: {
       name: "",
@@ -59,7 +63,7 @@ export default function ManageTreatmentsDialog() {
     },
   });
 
-  const feeForm = useForm<z.infer<typeof consultationFeeSchema>>({
+  const feeForm = useForm<ConsultationFeeFormValues>({
     resolver: zodResolver(consultationFeeSchema),
     defaultValues: {
       consultationFee: 0,
@@ -92,7 +96,7 @@ export default function ManageTreatmentsDialog() {
     }
   };
 
-  const onTreatmentSubmit = async (values: z.infer<typeof treatmentSchema>) => {
+  const onTreatmentSubmit = async (values: TreatmentFormValues) => {
     if (editingId) {
       // Update existing treatment
       const result = await updateTreatment(editingId, values);
@@ -143,7 +147,7 @@ export default function ManageTreatmentsDialog() {
     treatmentForm.reset();
   };
 
-  const onFeeSubmit = async (values: z.infer<typeof consultationFeeSchema>) => {
+  const onFeeSubmit = async (values: ConsultationFeeFormValues) => {
     setIsLoadingFee(true);
     try {
       const result = await updateConsultationFee(values.consultationFee);
@@ -163,7 +167,7 @@ export default function ManageTreatmentsDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" className="w-full justify-start">
           <Stethoscope className="mr-2 h-4 w-4" />
           Manage Treatments & Fees
         </Button>

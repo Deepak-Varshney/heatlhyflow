@@ -21,7 +21,7 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
-    title: 'Pateints',
+    title: 'Patients',
     url: '/dashboard/patients',
     icon: 'patient',
     shortcut: ['p', 'p'],
@@ -29,7 +29,7 @@ export const navItems: NavItem[] = [
     items: []
   },
   {
-    title: 'Appopintments',
+    title: 'Appointments',
     url: '/dashboard/appointments',
     icon: 'appointments',
     shortcut: ['a', 'a'],
@@ -38,7 +38,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Organization',
-    url: '/dashboard/manage-client',
+    url: '/dashboard/organization',
     icon: 'organization',
     shortcut: ['o', 'o'],
     isActive: false,
@@ -52,7 +52,7 @@ export const navItems: NavItem[] = [
     items: [
       {
         title: 'Profile',
-        url: '/profile',
+        url: '/dashboard/profile',
         icon: 'userPen',
         shortcut: ['m', 'm']
       },
@@ -65,48 +65,6 @@ export const navItems: NavItem[] = [
     ]
   }
 ];
-
-export const doctorNavItems: NavItem[] = [
-  {
-    title: 'Dashboard',
-    url: '/doctor/dashboard',
-    icon: 'dashboard',
-    isActive: false,
-    shortcut: ['d', 'd'],
-    items: []
-  },
-  {
-    title: 'Pateints',
-    url: '/doctor/patients',
-    icon: 'patient',
-    shortcut: ['p', 'p'],
-    isActive: false,
-    items: []
-  },
-  {
-    title: 'Appopintments',
-    url: '/doctor/appointments',
-    icon: 'appointments',
-    shortcut: ['a', 'a'],
-    isActive: false,
-    items: []
-  },
-  {
-    title: 'Organization',
-    url: '/doctor/manage-client',
-    icon: 'organization',
-    shortcut: ['o', 'o'],
-    isActive: false,
-    items: []
-  },
-  {
-    title: 'Profile',
-    url: '/doctor/profile',
-    icon: 'userPen',
-    shortcut: ['m', 'm']
-  }
-];
-
 export const superAdminNavItems: NavItem[] = [
   {
     title: 'Dashboard',
@@ -133,6 +91,14 @@ export const superAdminNavItems: NavItem[] = [
     items: []
   },
   {
+    title: 'Onboarding Requests',
+    url: '/superadmin/join-requests',
+    icon: 'page',
+    isActive: false,
+    shortcut: ['j', 'j'],
+    items: []
+  },
+  {
     title: 'Subscriptions',
     url: '/superadmin/subscriptions',
     icon: 'billing',
@@ -142,37 +108,18 @@ export const superAdminNavItems: NavItem[] = [
   }
 ];
 
-export const receptionistNavItems: NavItem[] = [
-  {
-    title: 'Dashboard',
-    url: '/receptionist/dashboard',
-    icon: 'dashboard',
-    isActive: false,
-    shortcut: ['d', 'd'],
-    items: []
-  },
-  {
-    title: 'Pateints',
-    url: '/receptionist/patients',
-    icon: 'patient',
-    shortcut: ['p', 'p'],
-    isActive: false,
-    items: []
-  },
-  {
-    title: 'Appopintments',
-    url: '/receptionist/appointments',
-    icon: 'appointments',
-    shortcut: ['a', 'a'],
-    isActive: false,
-    items: []
-  },
-  {
-    title: 'Organization',
-    url: '/receptionist/manage-client',
-    icon: 'organization',
-    shortcut: ['o', 'o'],
-    isActive: false,
-    items: []
+export const getNavItemsForRole = (role?: string) => {
+  if (role === 'SUPERADMIN' || role === 'DEVIL') {
+    return superAdminNavItems;
   }
-];
+
+  if (role === 'ADMIN') {
+    return navItems;
+  }
+
+  if (role === 'RECEPTIONIST') {
+    return navItems.filter((item) => item.title !== 'Organization');
+  }
+
+  return navItems;
+};

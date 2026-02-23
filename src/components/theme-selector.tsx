@@ -15,12 +15,12 @@ import {
 
 // ⬇️ Add your extended themes here
 const DEFAULT_THEMES = [
-  { name: 'Default', value: 'default' },
-  { name: 'Gray', value: 'gray' },
-  { name: 'Green', value: 'green' },
+  { name: 'Cyan', value: 'cyan' },
+  { name: 'Rose Gold', value: 'rosegold' },
+  { name: 'Blue', value: 'blue' },
   { name: 'Amber', value: 'amber' },
-  { name: 'Purple', value: 'purple' },     // 💜 NEW
-  { name: 'Fuchsia', value: 'fuchsia' }    // 🌸 NEW
+  { name: 'Purple', value: 'purple' },
+  { name: 'Fuchsia', value: 'fuchsia' }
 ];
 
 export function ThemeSelector() {

@@ -18,7 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Building2, Loader2, Upload } from "lucide-react";
-import { getClinicSettings, updateClinicSettings } from "@/actions/treatment-actions";
+import { getClinicSettings, updateClinicSettings } from "@/app/actions/treatment-actions";
 
 const formSchema = z.object({
   clinicName: z.string().min(1, "Clinic name is required"),

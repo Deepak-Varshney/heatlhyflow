@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { UserCheck, UserX, Trash2, MoreHorizontal } from "lucide-react";
-import { bulkUpdateUsers, deleteUser } from "@/actions/superadmin-actions";
+import { bulkUpdateUsers, deleteUser } from "@/app/actions/superadmin-actions";
 import { DevilAlert } from "./devil-alert";
 
 interface UserActionsProps {

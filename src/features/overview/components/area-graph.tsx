@@ -50,10 +50,10 @@ export function AreaGraph() {
           Showing total visitors for the last 6 months
         </CardDescription>
       </CardHeader>
-      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
+      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6 min-h-72'>
         <ChartContainer
           config={chartConfig}
-          className='aspect-auto h-[250px] w-full'
+          className='aspect-auto h-64 w-full min-h-64 min-w-0'
         >
           <AreaChart
             data={chartData}

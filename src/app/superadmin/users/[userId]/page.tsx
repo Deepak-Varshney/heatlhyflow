@@ -2,9 +2,9 @@ import { notFound } from 'next/navigation';
 import FormCardSkeleton from '@/components/form-card-skeleton';
 import PageContainer from '@/components/layout/page-container';
 import { Suspense } from 'react';
-import { getPatientById } from '@/actions/patient-actions';
+import { getPatientById } from '@/app/actions/patient-actions';
 import UserDetailPage from '@/components/user-details';
-import { getUserById } from '@/actions/superadmin-actions';
+import { getUserById } from '@/app/actions/superadmin-actions';
 
 export const metadata = {
   title: 'SUPERADMIN : User View',

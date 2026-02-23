@@ -24,8 +24,8 @@ import {
 } from "@/components/ui/card";
 import { PlusCircle, Trash2, Loader2, Upload, DollarSign } from "lucide-react";
 import { toast } from "sonner";
-import { createPrescription } from "@/actions/appointment-actions";
-import { getDoctorTreatments, getConsultationFee } from "@/actions/treatment-actions";
+import { createPrescription } from "@/app/actions/appointment-actions";
+import { getDoctorTreatments, getConsultationFee } from "@/app/actions/treatment-actions";
 import { useState, useEffect } from "react";
 import {
   Select,
@@ -36,36 +36,40 @@ import {
 } from "@/components/ui/select";
 
 const formSchema = z.object({
-  chiefComplaint: z.string().min(5, "Please enter the patient&apos;s main problem."),
-  diagnosis: z.string().min(5, "Please enter your diagnosis."), // NAYA FIELD
-  medicines: z
-    .array(
-      z.object({
-        name: z.string().min(1, "Medicine name is required."),
-        dosage: z.string().min(1, "Dosage is required."),
-        timings: z.object({
-          morning: z.boolean().default(false),
-          afternoon: z.boolean().default(false),
-          night: z.boolean().default(false),
-        }),
-      })
-    )
-    .optional(),
-  tests: z.array(z.object({
-    name: z.string().min(1, "Test name is required."),
-    notes: z.string().optional(),
-    reportImageUrl: z.string().url().optional().or(z.literal('')), // Report URL ke liye
-    price: z.coerce.number().min(0).optional(),
-  })).optional(),
-  notes: z.string().optional(),
-  treatments: z.array(z.object({
-    treatmentId: z.string(),
-    name: z.string(),
-    price: z.number(),
-  })).optional(),
-  doctorFee: z.coerce.number().min(0).optional(),
-  discount: z.coerce.number().min(0).optional(),
+  chiefComplaint: z.string().min(5, "Please enter the patient's main problem."),
+  diagnosis: z.string().min(5, "Please enter your diagnosis."),
+  medicines: z.array(
+    z.object({
+      name: z.string().min(1, "Medicine name is required."),
+      dosage: z.string().min(1, "Dosage is required."),
+      timings: z.object({
+        morning: z.boolean(),
+        afternoon: z.boolean(),
+        night: z.boolean(),
+      }),
+    })
+  ),
+  tests: z.array(
+    z.object({
+      name: z.string().min(1, "Test name is required."),
+      notes: z.string().optional(),
+      reportImageUrl: z.string().url().optional().or(z.literal("")),
+      price: z.number().min(0),
+    })
+  ),
+  notes: z.string(),
+  treatments: z.array(
+    z.object({
+      treatmentId: z.string(),
+      name: z.string(),
+      price: z.number(),
+    })
+  ),
+  doctorFee: z.number().min(0),
+  discount: z.number().min(0),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 export function PrescriptionForm({
   appointmentId,
@@ -80,7 +84,7 @@ export function PrescriptionForm({
   const [defaultFee, setDefaultFee] = useState<number>(0);
   const [isLoadingTreatments, setIsLoadingTreatments] = useState(true);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       chiefComplaint: "",
@@ -336,7 +340,7 @@ export function PrescriptionForm({
                   )} />
 
                   <FormField control={form.control} name={`tests.${index}.price`} render={({ field }) => (
-                    <FormItem><FormLabel>Price</FormLabel><FormControl><Input type="number" step="0.01" placeholder="0.00" {...field} value={field.value || ""} onChange={(e) => {
+                    <FormItem><FormLabel>Price</FormLabel><FormControl><Input type="number" step="0.01" placeholder="0.00" {...field} onChange={(e) => {
                       const value = parseFloat(e.target.value) || 0;
                       field.onChange(value);
                     }} /></FormControl><FormMessage /></FormItem>

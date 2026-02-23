@@ -18,6 +18,18 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
   '/dashboard/product': [
     { title: 'Dashboard', link: '/dashboard' },
     { title: 'Product', link: '/dashboard/product' }
+  ],
+  '/dashboard/patients': [
+    { title: 'Dashboard', link: '/dashboard' },
+    { title: 'Patients', link: '/dashboard/patients' }
+  ],
+  '/dashboard/appointments': [
+    { title: 'Dashboard', link: '/dashboard' },
+    { title: 'Appointments', link: '/dashboard/appointments' }
+  ],
+  '/dashboard/organization': [
+    { title: 'Dashboard', link: '/dashboard' },
+    { title: 'Organization', link: '/dashboard/organization' }
   ]
   // Add more custom mappings as needed
 };

@@ -19,23 +19,37 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover";
 import { toast } from "sonner";
-import { IPatient } from "@/models/Patient";
-import { getAvailableSlots } from "@/actions/availability-actions"; 
+import type { IPatient } from "@/types/patient";
+import { getAvailableSlots } from "@/app/actions/availability-actions"; 
 import { DoctorCombobox } from "./doctor-combobox";
 import { PatientCombobox } from "./patient-combobox";
-import { bookAppointment } from "@/actions/appointment-actions";
-import { IAvailability, IUser } from "@/models/User";
+import { bookAppointment } from "@/app/actions/appointment-actions";
+import type { IAvailability, IUser } from "@/types/user";
 export default function AppointmentBooking({
     patients,
     doctors,
+    defaultPatientId,
+    onSuccess,
+    open: controlledOpen,
+    onOpenChange: controlledOnOpenChange,
 }: {
     patients: IPatient[];
     doctors: IUser[];
+    defaultPatientId?: string;
+    onSuccess?: () => void;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }) {
-    const [open, setOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    
+    // Use controlled open state if provided, otherwise use internal state
+    const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+    const setOpen = controlledOnOpenChange !== undefined ? controlledOnOpenChange : setInternalOpen;
 
     // Form State
-    const [selectedPatient, setSelectedPatient] = useState<IPatient | null>(null);
+    const [selectedPatient, setSelectedPatient] = useState<IPatient | null>(
+        defaultPatientId ? patients.find(p => p._id === defaultPatientId) || null : null
+    );
     const [selectedDoctor, setSelectedDoctor] = useState<IUser | null>(null);
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
     const [selectedSlot, setSelectedSlot] = useState<IAvailability | null>(null);
@@ -82,8 +96,8 @@ export default function AppointmentBooking({
             ({
                 patientId: selectedPatient._id,
                 doctorId: selectedDoctor._id,
-                startTime: selectedSlot.startTime,
-                endTime: selectedSlot.endTime,
+                startTime: new Date(selectedSlot.startTime),
+                endTime: new Date(selectedSlot.endTime),
                 // reason: "Optional reason from another form field"
             });
 
@@ -98,6 +112,11 @@ export default function AppointmentBooking({
             setSelectedDate(new Date());
             setSelectedSlot(null);
             setOpen(false);
+            
+            // Call the success callback if provided
+            if (onSuccess) {
+                onSuccess();
+            }
         } else {
             toast.error(result.error);
         }

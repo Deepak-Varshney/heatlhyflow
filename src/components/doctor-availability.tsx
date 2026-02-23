@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { CalendarClock, Loader2 } from "lucide-react";
-import { getDoctorAvailability, updateDoctorAvailability } from "@/actions/availability-actions";
+import { getDoctorAvailability, updateDoctorAvailability } from "@/app/actions/availability-actions";
 // Import your real server actions here
 
 // Zod schema for validation
@@ -26,7 +26,7 @@ const availabilitySchema = z.object({
   dayOfWeek: z.string(),
   startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)"),
   endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:MM)"),
-  enabled: z.boolean().default(false),
+  enabled: z.boolean(),
 });
 const formSchema = z.object({
   schedule: z.array(availabilitySchema),
@@ -105,7 +105,7 @@ export default function ManageAvailabilityDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
+        <Button variant="outline" className="w-full justify-start">
             <CalendarClock className="mr-2 h-4 w-4" />
             Manage Weekly Schedule
         </Button>

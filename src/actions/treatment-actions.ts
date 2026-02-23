@@ -45,7 +45,7 @@ export async function createTreatment(data: { name: string; price: number }) {
 
     await treatment.save();
 
-    revalidatePath("/doctor/profile");
+    revalidatePath("/dashboard/profile");
     return { success: true, treatment: JSON.parse(JSON.stringify(treatment)) };
   } catch (error) {
     console.error("Error creating treatment:", error);
@@ -81,7 +81,7 @@ export async function updateTreatment(
 
     await treatment.save();
 
-    revalidatePath("/doctor/profile");
+    revalidatePath("/dashboard/profile");
     return { success: true };
   } catch (error) {
     console.error("Error updating treatment:", error);
@@ -106,7 +106,7 @@ export async function deleteTreatment(treatmentId: string) {
       { isActive: false }
     );
 
-    revalidatePath("/doctor/profile");
+    revalidatePath("/dashboard/profile");
     return { success: true };
   } catch (error) {
     console.error("Error deleting treatment:", error);
@@ -147,7 +147,7 @@ export async function updateConsultationFee(fee: number) {
     const User = (await import("@/models/User")).default;
     await User.findByIdAndUpdate(user._id, { consultationFee: fee });
 
-    revalidatePath("/doctor/profile");
+    revalidatePath("/dashboard/profile");
     return { success: true };
   } catch (error) {
     console.error("Error updating consultation fee:", error);
@@ -208,7 +208,7 @@ export async function updateClinicSettings(data: {
 
     await User.findByIdAndUpdate(user._id, updateData);
 
-    revalidatePath("/doctor/profile");
+    revalidatePath("/dashboard/profile");
     return { success: true };
   } catch (error) {
     console.error("Error updating clinic settings:", error);

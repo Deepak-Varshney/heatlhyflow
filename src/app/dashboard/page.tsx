@@ -6,8 +6,14 @@ export default async function Dashboard() {
   const role = (sessionClaims as any)?.publicMetadata?.role as string;
   if (!userId) {
     return redirect('/auth/sign-in');
-  } else if (role === 'SUPERADMIN') {
+  } else if (role === 'SUPERADMIN' || role === 'DEVIL') {
     redirect('/superadmin/dashboard');
+  } else if (role === 'DOCTOR') {
+    redirect('/dashboard/overview');
+  } else if (role === 'RECEPTIONIST') {
+    redirect('/dashboard/overview');
+  } else if (role === 'UNASSIGNED' || !role) {
+    redirect('/onboarding');
   } else {
     redirect('/dashboard/overview');
   }

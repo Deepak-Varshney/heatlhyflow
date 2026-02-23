@@ -5,7 +5,7 @@ import Organization from "@/models/Organization";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { updateOrganizationStatus } from "@/actions/superadmin-actions";
+import { updateOrganizationStatus } from "@/app/actions/superadmin-actions";
 
 const ToggleStatusForm = ({ orgId, currentStatus, clerkUserId }: {
   orgId: string,
@@ -16,7 +16,7 @@ const ToggleStatusForm = ({ orgId, currentStatus, clerkUserId }: {
   return (
     <form action={async () => {
       "use server";
-      await updateOrganizationStatus(orgId, newStatus, clerkUserId);
+      await updateOrganizationStatus(orgId, newStatus === "ACTIVE");
     }}>
       <Button type="submit" variant={newStatus === "ACTIVE" ? "default" : "destructive"}>
         {newStatus === "ACTIVE" ? "Enable" : "Disable"}

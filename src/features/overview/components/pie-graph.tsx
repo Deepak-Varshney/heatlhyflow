@@ -69,10 +69,10 @@ export function PieGraph() {
           <span className='@[540px]/card:hidden'>Browser distribution</span>
         </CardDescription>
       </CardHeader>
-      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
+      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6 min-h-72'>
         <ChartContainer
           config={chartConfig}
-          className='mx-auto aspect-square h-[250px]'
+          className='mx-auto aspect-square h-64 min-h-64 min-w-0'
         >
           <PieChart>
             <defs>

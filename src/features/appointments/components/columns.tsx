@@ -4,7 +4,7 @@ import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-h
 import { Product } from '@/constants/data';
 import { Column, ColumnDef } from '@tanstack/react-table';
 import { CellAction } from './cell-action';
-import { IAppointment } from '@/models/Appointment';
+import type { IAppointment } from '@/types/appointment';
 import { format } from 'date-fns';
 import { CheckCircle2, Text, XCircle } from 'lucide-react';
 import Image from 'next/image';

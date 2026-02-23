@@ -1,8 +1,8 @@
 import { ServerDataTable } from '@/features/products/components/product-tables';
 import { searchParamsCache } from '@/lib/searchparams';
 import { columns } from './columns';
-import { getPatients } from '@/actions/patient-actions';
-import { IPatient } from '@/models/Patient';
+import { getPatients } from '@/app/actions/patient-actions';
+import type { IPatient } from '@/types/patient';
 
 type PatientListingPage = {};
 
@@ -22,15 +22,24 @@ export default async function PatientListingPage({ }: PatientListingPage) {
     ...(categories && { categories: categories })
   };
 
-  const data = await getPatients(filters);
+  const data = await getPatients({
+      page,
+      limit: pageLimit,
+      ...(search && { search }),
+      ...(categories && { categories: categories }),
+      ...(phone && { phone }),
+      ...(address && { address })
+  });
   const totalpatients = data.total;
   const patients: IPatient[] = data.data;
 
   return (
-    <ServerDataTable
-      data={patients}
-      totalItems={totalpatients}
-      columns={columns}
-    />
+    <>
+      <ServerDataTable
+        data={patients}
+        totalItems={totalpatients}
+        columns={columns}
+      />
+    </>
   );
 }

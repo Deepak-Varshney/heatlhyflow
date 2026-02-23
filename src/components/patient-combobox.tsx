@@ -20,7 +20,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import PatientRegistrationDialog from "./PatientRegistration";
-import { IPatient } from "@/models/Patient";
+import type { IPatient } from "@/types/patient";
 
 
 interface PatientComboboxProps {
@@ -56,10 +56,10 @@ export function PatientCombobox({
           <CommandInput placeholder="Search patient by name or phone..." />
           <CommandList>
             {/* This part shows up if the search returns no results */}
+              <PatientRegistrationDialog />
             <CommandEmpty className="py-4 px-2 text-center text-sm">
               <p className="mb-2">No patient found.</p>
               {/* Here we embed your "Add New" patient dialog */}
-              <PatientRegistrationDialog />
             </CommandEmpty>
 
             <CommandGroup>

@@ -183,7 +183,7 @@ export default function AppSidebar({navItems}:{navItems:NavItem[]}) {
 
                 <DropdownMenuGroup>
                   <DropdownMenuItem
-                    onClick={() => router.push('/profile')}
+                    onClick={() => router.push('/dashboard/profile')}
                   >
                     <IconUserCircle className='mr-2 h-4 w-4' />
                     Profile

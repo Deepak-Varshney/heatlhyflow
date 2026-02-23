@@ -19,7 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { IUser } from "@/models/User";
+import type { IUser } from "@/types/user";
 
 interface DoctorComboboxProps {
   doctors: IUser[];

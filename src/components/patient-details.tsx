@@ -21,7 +21,7 @@ type PatientWithAppointments = {
   address: string;
   bp?: string;
   weight?: number;
-  emergencyContact: { name: string; phone: string; };
+  emergencyContact?: { phone?: string };
   appointments: {
     _id: string;
     startTime: string;
@@ -65,7 +65,7 @@ export default function PatientDetailsClientPage({ patient }: { patient: Patient
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
               <div className="flex items-center gap-3"><Cake className="h-4 w-4 text-muted-foreground" /> <span>{calculateAge(patient.dateOfBirth)} years old ({format(new Date(patient.dateOfBirth), 'PPP')})</span></div>
-              <div className="flex items-center gap-3"><Mail className="h-4 w-4 text-muted-foreground" /> <span>{patient.email}</span></div>
+              <div className="flex items-center gap-3"><Mail className="h-4 w-4 text-muted-foreground" /> <span>{patient.email || 'N/A'}</span></div>
               <div className="flex items-center gap-3"><Phone className="h-4 w-4 text-muted-foreground" /> <span>{patient.phoneNumber}</span></div>
               <div className="flex items-center gap-3"><Home className="h-4 w-4 text-muted-foreground" /> <span>{patient.address}</span></div>
             </CardContent>
@@ -80,8 +80,7 @@ export default function PatientDetailsClientPage({ patient }: { patient: Patient
           <Card>
             <CardHeader><CardTitle className="flex items-center gap-3"><ShieldAlert className="h-5 w-5" /> Emergency Contact</CardTitle></CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <p><strong>Name:</strong> {patient.emergencyContact.name}</p>
-              <p><strong>Phone:</strong> {patient.emergencyContact.phone}</p>
+              <p><strong>Phone:</strong> {patient.emergencyContact?.phone || 'N/A'}</p>
             </CardContent>
           </Card>
         </div>
@@ -108,7 +107,7 @@ export default function PatientDetailsClientPage({ patient }: { patient: Patient
                         <TableCell>Dr. {appt.doctor.firstName} {appt.doctor.lastName}</TableCell>
                         <TableCell><Badge>{appt.status}</Badge></TableCell>
                         <TableCell>
-                          <Link href={`/doctor/appointments/${appt._id}`}>
+                          <Link href={`/dashboard/appointments/${appt._id}`}>
                             <Button variant="outline" size="sm">View</Button>
                           </Link>
                         </TableCell>

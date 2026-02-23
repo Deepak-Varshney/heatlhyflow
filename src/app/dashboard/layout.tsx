@@ -5,7 +5,8 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 
-import { navItems } from '@/constants/data';
+import { getNavItemsForRole } from '@/constants/data';
+import { getMongoUser } from '@/lib/CheckUser';
 
 export const metadata: Metadata = {
   title: 'Healthyflow',
@@ -18,6 +19,8 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const user = await getMongoUser();
+  const navItems = getNavItemsForRole(user?.role);
 
   // Persisting the sidebar state in the cookie.
   const cookieStore = await cookies();
@@ -33,7 +36,7 @@ export default async function DashboardLayout({
             <SidebarInset>
 
               <Header />
-              <main className="flex-1 p-8 bg-gray-50">{children}</main>
+              <main className="flex-1">{children}</main>
             </SidebarInset>
           </SidebarProvider>
         </KBar>

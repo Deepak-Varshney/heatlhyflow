@@ -33,7 +33,7 @@ export async function createPatient(patientData: any) {
 
     await newPatient.save();
 
-    revalidatePath("/patients"); // Optional: if you have a patients page
+    revalidatePath("/dashboard/patients");
 
     return { success: true };
   } catch (error) {
@@ -171,7 +171,7 @@ export async function updatePatient(patientId: string, data: PatientUpdateData) 
 
     // Yeh bahut zaroori hai! Yeh Next.js ko batata hai ki is page ka data
     // badal gaya hai, aur use naya data fetch karna chahiye.
-    revalidatePath(`/patients/${patientId}`);
+    revalidatePath(`/dashboard/patients/${patientId}`);
 
     return { success: true };
   } catch (error) {

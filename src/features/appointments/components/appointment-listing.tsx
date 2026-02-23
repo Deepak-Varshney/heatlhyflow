@@ -2,7 +2,7 @@ import { ServerDataTable } from '@/features/products/components/product-tables';
 import { searchParamsCache } from '@/lib/searchparams';
 import { columns } from './columns';
 import { getAllAppointments } from '@/utilties/appointments';
-import { getAppointments } from '@/actions/appointment-actions';
+import { getAppointments } from '@/app/actions/appointment-actions';
 
 type AppointmentListingPage = {};
 

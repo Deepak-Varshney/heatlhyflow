@@ -1,8 +1,7 @@
 'use client';
 import { Column, ColumnDef } from '@tanstack/react-table';
-import { CellAction } from './cell-action'; // We will create this component
-import { IPatient } from '@/models/Patient';
-import { Checkbox } from '@/components/ui/checkbox';
+import { CellAction } from './cell-action';
+import type { IPatient } from '@/types/patient';
 import { DataTableColumnHeader } from '@/components/ui/table/data-table-column-header';
 
 export const columns: ColumnDef<IPatient>[] = [
@@ -25,10 +24,6 @@ export const columns: ColumnDef<IPatient>[] = [
   },
 
   {
-    accessorKey: 'RecentTreatment',
-    header: "Recent Treatment"
-  },
-  {
     accessorKey: 'phoneNumber',
     id: 'phone',
     header: 'Phone Number',
@@ -39,7 +34,13 @@ export const columns: ColumnDef<IPatient>[] = [
     ),
   },
   {
-    header: "Prescription"
+    id: 'appointments',
+    header: 'Appointments',
+    cell: ({ row }) => (
+      <span className='text-sm text-muted-foreground'>
+        {row.original.appointments?.length || 0}
+      </span>
+    ),
   },
   {
     id: 'address',
@@ -62,6 +63,14 @@ export const columns: ColumnDef<IPatient>[] = [
   {
     accessorKey: 'dateOfBirth',
     header: 'Date of Birth',
+    cell: ({ cell }) => {
+      const date = cell.getValue<string>();
+      return <span>{new Date(date).toLocaleDateString()}</span>;
+    },
+  },
+  {
+    accessorKey: 'createdAt',
+    header: 'Registered',
     cell: ({ cell }) => {
       const date = cell.getValue<string>();
       return <span>{new Date(date).toLocaleDateString()}</span>;

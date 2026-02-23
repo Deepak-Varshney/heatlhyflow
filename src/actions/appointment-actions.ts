@@ -71,7 +71,7 @@ export async function bookAppointment(params: BookAppointmentParams) {
     );
 
     await session.commitTransaction();
-    revalidatePath("/appointments");
+    revalidatePath("/dashboard/appointments");
     return { success: true, appointment: JSON.parse(JSON.stringify(newAppointment)) };
 
   } catch (error) {
@@ -337,8 +337,8 @@ export async function createPrescription(data: any) {
     );
 
     await session.commitTransaction();
-    revalidatePath(`/doctor/appointments/${appointmentId}`);
-    revalidatePath('/doctor/dashboard');
+    revalidatePath(`/dashboard/appointments/${appointmentId}`);
+    revalidatePath('/dashboard/overview');
     return { success: true };
   } catch (error) {
     await session.abortTransaction();

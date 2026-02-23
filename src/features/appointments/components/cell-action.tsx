@@ -1,11 +1,9 @@
+
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-import { IconEdit, IconDotsVertical, IconTrash, IconPrinter } from '@tabler/icons-react';
-import { PrintablePrescription } from '@/app/doctor/appointments/printable-prescription';
-
+import { IconEdit, IconDotsVertical, IconTrash } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,48 +12,57 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { AlertModal } from '@/components/modal/alert-modal';
+import { toast } from 'sonner';
+import { deleteAppointment } from '@/app/actions/appointment-actions';
+import { AppointmentViewModal } from './appointment-view-modal';
+import { AppointmentEditModal } from './appointment-edit-modal';
 
 interface CellActionProps {
   data: any; // Or IAppointment
 }
 
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
-  const [printModalOpen, setPrintModalOpen] = useState(false);
   const router = useRouter();
+  const [viewOpen, setViewOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handlePrint = () => {
-    // Optional: Delay to allow modal content to fully render
-    setTimeout(() => {
-      window.print();
-    }, 100);
+  const onConfirmDelete = async () => {
+    setLoading(true);
+    const result = await deleteAppointment(data?._id);
+    if (result.success) {
+      toast.success('Appointment deleted successfully.');
+      router.refresh();
+      setDeleteOpen(false);
+    } else {
+      toast.error(result.error || 'Failed to delete appointment.');
+    }
+    setLoading(false);
   };
 
   return (
     <>
-      {/* Print Modal */}
-      <Dialog open={printModalOpen} onOpenChange={setPrintModalOpen}>
-        <DialogContent className="max-w-4xl w-full print:block">
-          <DialogHeader className="print:hidden">
-            <DialogTitle>Prescription Preview</DialogTitle>
-          </DialogHeader>
-
-          <div className="max-h-[70vh] overflow-auto print:overflow-visible print:h-auto">
-            <PrintablePrescription appointment={data} />
-          </div>
-
-          <DialogFooter className="print:hidden">
-            <Button variant="secondary" onClick={() => setPrintModalOpen(false)}>
-              Close
-            </Button>
-            <Button onClick={handlePrint}>
-              <IconPrinter className="mr-2 h-4 w-4" />
-              Print
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
+      <AlertModal
+        isOpen={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onConfirm={onConfirmDelete}
+        loading={loading}
+      />
+      <AppointmentViewModal
+        appointmentId={data?._id}
+        open={viewOpen}
+        onOpenChange={setViewOpen}
+      />
+      <AppointmentEditModal
+        appointmentId={data?._id}
+        currentStatus={data?.status}
+        currentReason={data?.reason}
+        currentNotes={data?.notes}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
       {/* Dropdown Menu */}
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
@@ -67,17 +74,15 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
 
-          <DropdownMenuItem onClick={() => router.push(`/doctor/appointments/${data?._id}`)}>
+          <DropdownMenuItem onClick={() => setViewOpen(true)}>
             <IconEdit className="mr-2 h-4 w-4" />
             View
           </DropdownMenuItem>
-
-          <DropdownMenuItem onClick={() => setPrintModalOpen(true)}>
-            <IconPrinter className="mr-2 h-4 w-4" />
-            Print
+          <DropdownMenuItem onClick={() => setEditOpen(true)}>
+            <IconEdit className="mr-2 h-4 w-4" />
+            Edit
           </DropdownMenuItem>
-
-          <DropdownMenuItem onClick={() => {/* handle delete */}}>
+          <DropdownMenuItem onClick={() => setDeleteOpen(true)}>
             <IconTrash className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>

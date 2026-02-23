@@ -45,8 +45,8 @@ export async function createPrescription(data: CreatePrescriptionParams) {
     }, { session });
 
     await session.commitTransaction();
-    revalidatePath(`/doctor/dashboard`);
-    revalidatePath(`/doctor/appointments/${appointmentId}`);
+    revalidatePath(`/dashboard/overview`);
+    revalidatePath(`/dashboard/appointments/${appointmentId}`);
     return { success: true, prescriptionId: newPrescription._id };
 
   } catch (error) {

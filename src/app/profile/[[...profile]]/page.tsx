@@ -1,11 +1,9 @@
-import { UserProfile } from "@clerk/nextjs";
+import { redirect } from 'next/navigation';
 
 export const metadata = {
     title: 'Dashboard : Profile'
 };
 
 export default async function Page() {
-    return (<div className='flex w-full flex-col p-4'>
-        <UserProfile />
-    </div>)
+    redirect('/dashboard/profile');
 }

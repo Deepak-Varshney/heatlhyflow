@@ -26,9 +26,9 @@ export function DataTable<TData>({
   return (
     <div className='flex flex-1 flex-col space-y-4'>
       {children}
-      <div className='relative flex flex-1'>
-        <div className='absolute inset-0 flex overflow-hidden rounded-lg border'>
-          <ScrollArea className='h-full w-full'>
+      <div className='rounded-lg border'>
+        <ScrollArea className='w-full'>
+          <div className='min-h-[240px] max-h-[520px]'>
             <Table>
               <TableHeader className='bg-muted sticky top-0 z-10'>
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -86,9 +86,9 @@ export function DataTable<TData>({
                 )}
               </TableBody>
             </Table>
-            <ScrollBar orientation='horizontal' />
-          </ScrollArea>
-        </div>
+          </div>
+          <ScrollBar orientation='horizontal' />
+        </ScrollArea>
       </div>
       <div className='flex flex-col gap-2.5'>
         <DataTablePagination table={table} />

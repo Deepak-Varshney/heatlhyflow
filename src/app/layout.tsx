@@ -10,7 +10,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import './globals.css';
 import './theme.css';
 import { ThemePasteDialog } from './superadmin/dashboard/theme-editor';
-import { getCustomTheme } from '@/actions/theme';
+import { getCustomTheme } from '@/app/actions/theme';
 
 const META_THEME_COLORS = {
   light: '#ffffff',

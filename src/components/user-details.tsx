@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { getUserById, updateUser, deleteUser, permanentlyDeleteUser } from "@/actions/superadmin-actions";
+import { getUserById, updateUser, deleteUser, permanentlyDeleteUser } from "@/app/actions/superadmin-actions";
 import { ArrowLeft, Edit, Trash2, UserCheck, UserX, Calendar, Mail, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
 

@@ -15,12 +15,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SPECIALTIES } from "@/lib/specialities"; // Assuming you have this file
 import { toast } from "sonner";
-import { updateUserOnboarding } from "@/actions/onboarding-actions";
+import { updateUserOnboarding } from "@/app/actions/onboarding-actions";
 
 // Zod schema for the doctor details form
 const doctorFormSchema = z.object({
   specialty: z.string().min(1, "Specialty is required"),
-  experience: z.coerce.number({ invalid_type_error: "Experience must be a number" }).int().min(0),
+  experience: z.coerce.number({ error: "Experience must be a number" }).int().min(0),
   description: z.string().min(20, "Description must be at least 20 characters"),
 });
 

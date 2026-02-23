@@ -84,9 +84,7 @@ const SubscriptionSchema = new Schema<ISubscription>(
   { timestamps: true }
 );
 
-// Index for efficient queries
-SubscriptionSchema.index({ organization: 1 });
-SubscriptionSchema.index({ clerkOrgId: 1 });
+// Index for efficient queries (organization and clerkOrgId indexes created automatically by unique: true)
 SubscriptionSchema.index({ status: 1 });
 
 const Subscription = models.Subscription || model<ISubscription>("Subscription", SubscriptionSchema);
