@@ -11,8 +11,8 @@ export default function SignInPage() {
     <div className="min-h-screen flex flex-col">
       {/* Gradient background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ backgroundColor: 'var(--primary)' }}></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ backgroundColor: 'var(--primary)' }}></div>
       </div>
 
       <div className="flex-1 flex items-center justify-center p-4 relative z-10">
@@ -22,11 +22,11 @@ export default function SignInPage() {
             <div className="space-y-4">
               <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
                 Manage Your{" "}
-                <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, var(--primary), #06b6d4)' }}>
                   Healthcare Practice
                 </span>
               </h1>
-              <p className="text-lg text-gray-600 leading-relaxed">
+              <p className="text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
                 HealthyFlow is the all-in-one platform for healthcare professionals to manage patients, appointments, and medical records with ease.
               </p>
             </div>
@@ -34,51 +34,52 @@ export default function SignInPage() {
             {/* Features */}
             <div className="space-y-4">
               <div className="flex gap-4 items-start">
-                <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <Shield className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}>
+                  <Shield className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Secure & Compliant</h3>
-                  <p className="text-sm text-gray-600">HIPAA-compliant platform with enterprise-grade security</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Secure & Compliant</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">HIPAA-compliant platform with enterprise-grade security</p>
                 </div>
               </div>
 
               <div className="flex gap-4 items-start">
-                <div className="w-12 h-12 rounded-lg bg-cyan-100 flex items-center justify-center flex-shrink-0">
-                  <Clock className="w-6 h-6 text-cyan-600" />
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}>
+                  <Clock className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Save Time</h3>
-                  <p className="text-sm text-gray-600">Automate scheduling, patient management, and billing</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Save Time</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Automate scheduling, patient management, and billing</p>
                 </div>
               </div>
 
               <div className="flex gap-4 items-start">
-                <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <Users className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}>
+                  <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">Collaborate Easily</h3>
-                  <p className="text-sm text-gray-600">Work seamlessly with your team and colleagues</p>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">Collaborate Easily</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Work seamlessly with your team and colleagues</p>
                 </div>
               </div>
             </div>
 
             {/* Social proof */}
-            <div className="pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600 mb-3">Trusted by healthcare professionals</p>
+            <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Trusted by healthcare professionals</p>
               <div className="flex items-center gap-4">
                 <div className="flex -space-x-2">
                   {[...Array(4)].map((_, i) => (
                     <div
                       key={i}
-                      className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 border-2 border-white flex items-center justify-center text-white text-xs font-bold"
+                      className="w-10 h-10 rounded-full border-2 border-white dark:border-gray-800 flex items-center justify-center text-white text-xs font-bold"
+                      style={{ backgroundColor: 'var(--primary)' }}
                     >
                       {String.fromCharCode(65 + i)}
                     </div>
                   ))}
                 </div>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   <strong>500+</strong> healthcare professionals
                 </span>
               </div>

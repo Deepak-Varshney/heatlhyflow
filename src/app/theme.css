@@ -38,14 +38,49 @@ body {
 }
 
 .theme-gray,
-.theme-blue-scaled {
-
+.theme-gray-scaled {
   --primary: var(--color-neutral-600);
   --primary-foreground: var(--color-neutral-50);
 
   @variant dark {
     --primary: var(--color-neutral-500);
     --primary-foreground: var(--color-neutral-50);
+  }
+}
+
+/* 🔵 BLUE THEME */
+.theme-blue,
+.theme-blue-scaled {
+  --primary: var(--color-blue-600);
+  --primary-foreground: var(--color-blue-50);
+
+  @variant dark {
+    --primary: var(--color-blue-500);
+    --primary-foreground: var(--color-blue-50);
+  }
+}
+
+/* 💎 CYAN THEME */
+.theme-cyan,
+.theme-cyan-scaled {
+  --primary: var(--color-cyan-600);
+  --primary-foreground: var(--color-cyan-50);
+
+  @variant dark {
+    --primary: var(--color-cyan-500);
+    --primary-foreground: var(--color-cyan-50);
+  }
+}
+
+/* 🌹 ROSE GOLD THEME */
+.theme-rosegold,
+.theme-rosegold-scaled {
+  --primary: var(--color-rose-600);
+  --primary-foreground: var(--color-rose-50);
+
+  @variant dark {
+    --primary: var(--color-rose-500);
+    --primary-foreground: var(--color-rose-50);
   }
 }
 

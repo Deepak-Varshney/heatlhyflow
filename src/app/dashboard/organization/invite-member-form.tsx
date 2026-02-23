@@ -70,7 +70,6 @@ export default function InviteMemberForm() {
           <SelectContent>
             <SelectItem value='DOCTOR'>Doctor</SelectItem>
             <SelectItem value='RECEPTIONIST'>Receptionist</SelectItem>
-            <SelectItem value='ADMIN'>Clinic Admin</SelectItem>
           </SelectContent>
         </Select>
       </div>

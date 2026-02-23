@@ -7,6 +7,7 @@ import Organization from "@/models/Organization";
 import User from "@/models/User";
 import { getMongoUser } from "@/lib/CheckUser";
 import { sendEmail } from "@/lib/email-service";
+import { sendMemberInvitationEmail } from "@/lib/email-templates";
 
 export async function getOrganizationDashboardData() {
   await connectDB();
@@ -116,12 +117,7 @@ export async function inviteOrganizationMember(params: InviteMemberParams) {
   await sendEmail({
     to: params.email,
     subject: "You have been invited to HealthyFlow",
-    html: `
-      <p>Hello ${params.firstName},</p>
-      <p>You have been invited to join ${organization.name} on HealthyFlow as a ${params.role.toLowerCase()}.</p>
-      <p>Use your email to sign in. If you do not have a password yet, click "Forgot Password" on the sign-in page to set one.</p>
-      <p><a href="${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/sign-in">Open Sign-In</a></p>
-    `,
+    html: sendMemberInvitationEmail(params.firstName, organization.name, params.role),
   });
 
   revalidatePath("/dashboard/organization");

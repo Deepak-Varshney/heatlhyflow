@@ -55,18 +55,18 @@ export function CustomSignIn() {
 
   return (
     <div className="w-full max-w-md">
-      <Card className="border-0 shadow-lg bg-white/95 backdrop-blur">
+      <Card className="border-0 shadow-lg bg-white/95 dark:bg-slate-900/95 backdrop-blur">
         <CardHeader className="space-y-3 pb-6">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center">
-              <span className="text-white font-bold">HF</span>
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}>
+              <span className="font-bold">HF</span>
             </div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+            <CardTitle className="text-3xl font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(to right, var(--primary), #06b6d4)' }}>
               HealthyFlow
             </CardTitle>
           </div>
           <div className="space-y-1">
-            <p className="text-sm font-medium text-gray-700">Welcome Back</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-200">Welcome Back</p>
             <CardDescription className="text-sm">
               Sign in to access your healthcare dashboard
             </CardDescription>
@@ -82,11 +82,11 @@ export function CustomSignIn() {
             )}
 
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-semibold text-gray-900">
+              <label htmlFor="email" className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3.5 h-4 w-4 text-blue-500" />
+                <Mail className="absolute left-3 top-3.5 h-4 w-4" style={{ color: 'var(--primary)' }} />
                 <Input
                   id="email"
                   type="email"
@@ -95,20 +95,23 @@ export function CustomSignIn() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
                   required
-                  className="pl-10 h-11 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all"
+                  className="pl-10 h-11 border-2 border-gray-200 dark:border-gray-700 transition-all dark:bg-slate-800 dark:text-white"
+                  style={{ '--tw-ring-color': 'var(--primary)' } as any}
+                  onFocus={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = ''}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm font-semibold text-gray-900">
+                <label htmlFor="password" className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                   Password
                 </label>
                 <ForgotPasswordDialog />
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-3.5 h-4 w-4 text-blue-500" />
+                <Lock className="absolute left-3 top-3.5 h-4 w-4" style={{ color: 'var(--primary)' }} />
                 <Input
                   id="password"
                   type="password"
@@ -117,14 +120,18 @@ export function CustomSignIn() {
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
                   required
-                  className="pl-10 h-11 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20 transition-all"
+                  className="pl-10 h-11 border-2 border-gray-200 dark:border-gray-700 transition-all dark:bg-slate-800 dark:text-white"
+                  style={{ '--tw-ring-color': 'var(--primary)' } as any}
+                  onFocus={(e) => e.currentTarget.style.borderColor = 'var(--primary)'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = ''}
                 />
               </div>
             </div>
 
             <Button
               type="submit"
-              className="w-full h-11 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold shadow-md hover:shadow-lg transition-all"
+              className="w-full h-11 text-white font-semibold shadow-md hover:shadow-lg transition-all"
+              style={{ backgroundColor: 'var(--primary)' }}
               disabled={loading || !isLoaded}
               size="lg"
             >
@@ -145,10 +152,10 @@ export function CustomSignIn() {
           <div className="mt-7 space-y-4">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200"></div>
+                <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="bg-white px-2 text-gray-500 font-medium">
+                <span className="bg-white dark:bg-slate-900 px-2 text-gray-500 dark:text-gray-400 font-medium">
                   New to HealthyFlow?
                 </span>
               </div>
@@ -157,7 +164,10 @@ export function CustomSignIn() {
             <Link href="/onboarding">
               <Button 
                 variant="outline" 
-                className="w-full h-11 border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 text-gray-700 font-semibold transition-all"
+                className="w-full h-11 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-semibold transition-all"
+                style={{ borderColor: 'var(--primary)', '--hover-bg': 'var(--primary)' } as any}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--primary) 5%, transparent)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
                 size="lg"
               >
                 Request Access
@@ -166,9 +176,9 @@ export function CustomSignIn() {
             </Link>
           </div>
 
-          <p className="text-xs text-gray-500 text-center mt-5">
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-5">
             By signing in, you agree to our{' '}
-            <Link href="#" className="text-blue-600 hover:underline font-medium">
+            <Link href="#" className="hover:underline font-medium" style={{ color: 'var(--primary)' }}>
               Terms of Service
             </Link>
           </p>

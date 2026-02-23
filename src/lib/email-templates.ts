@@ -683,3 +683,260 @@ export const sendRejectionEmail = (
 </html>
   `;
 };
+
+export const sendMemberInvitationEmail = (
+  firstName: string,
+  organizationName: string,
+  role: string
+): string => {
+  const currentYear = new Date().getFullYear();
+  const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/auth/sign-in`;
+  
+  return `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You're Invited to HealthyFlow</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        margin: 0;
+        padding: 0;
+        background-color: #f9f9f9;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+      }
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 20px;
+        text-align: center;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: bold;
+      }
+      .content {
+        padding: 40px 30px;
+      }
+      .message-box {
+        background-color: #f0f7ff;
+        border-left: 4px solid #667eea;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+      .role-badge {
+        display: inline-block;
+        background-color: #667eea;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        margin: 10px 0;
+      }
+      .button {
+        display: block;
+        background-color: #667eea;
+        color: white;
+        padding: 14px 30px;
+        text-decoration: none;
+        border-radius: 4px;
+        margin: 20px auto;
+        font-weight: bold;
+        text-align: center;
+        width: fit-content;
+      }
+      .button:hover {
+        background-color: #764ba2;
+      }
+      .details {
+        background-color: #f5f5f5;
+        padding: 20px;
+        border-radius: 4px;
+        margin: 20px 0;
+      }
+      .details-row {
+        display: flex;
+        padding: 10px 0;
+        border-bottom: 1px solid #ddd;
+      }
+      .details-row:last-child {
+        border-bottom: none;
+      }
+      .label {
+        font-weight: bold;
+        width: 150px;
+        color: #667eea;
+      }
+      .value {
+        flex: 1;
+        color: #333;
+      }
+      .next-steps {
+        background-color: #e8f5e9;
+        border-left: 4px solid #4caf50;
+        padding: 20px;
+        margin: 20px 0;
+        border-radius: 4px;
+      }
+      .next-steps h3 {
+        margin-top: 0;
+        color: #4caf50;
+      }
+      .next-steps ol {
+        margin: 10px 0;
+        padding-left: 20px;
+      }
+      .next-steps li {
+        margin: 8px 0;
+      }
+      .important {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 4px;
+        color: #856404;
+      }
+      .footer {
+        background-color: #f5f5f5;
+        padding: 30px;
+        text-align: center;
+        color: #666;
+        font-size: 12px;
+      }
+      .footer-links {
+        margin: 20px 0;
+      }
+      .footer-links a {
+        color: #667eea;
+        text-decoration: none;
+        margin: 0 10px;
+      }
+      .divider {
+        border-top: 1px solid #ddd;
+        margin: 20px 0;
+      }
+      .logo {
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <p class="logo">HealthyFlow</p>
+        <h1>You're Invited! 🎉</h1>
+        <p>Join us on HealthyFlow</p>
+      </div>
+
+      <!-- Main Content -->
+      <div class="content">
+        <div class="greeting">
+          Hello <strong>${firstName}</strong>,
+        </div>
+
+        <div class="message-box">
+          <p>
+            You have been invited to join <strong>${organizationName}</strong> on HealthyFlow 
+            as a <span class="role-badge">${role.toLowerCase()}</span>.
+          </p>
+          <p>
+            HealthyFlow is a comprehensive healthcare management platform designed to streamline 
+            appointments, patient management, prescriptions, and more. We're excited to have you on the team!
+          </p>
+        </div>
+
+        <h2>Your Invitation Details</h2>
+        <div class="details">
+          <div class="details-row">
+            <span class="label">Organization:</span>
+            <span class="value">${organizationName}</span>
+          </div>
+          <div class="details-row">
+            <span class="label">Role:</span>
+            <span class="value">${role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()}</span>
+          </div>
+          <div class="details-row">
+            <span class="label">Invited:</span>
+            <span class="value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          </div>
+        </div>
+
+        <div style="text-align: center;">
+          <a href="${loginUrl}" class="button">Sign In to HealthyFlow</a>
+        </div>
+
+        <h2>Getting Started</h2>
+        <div class="next-steps">
+          <h3>How to Get Started</h3>
+          <ol>
+            <li>Click the sign-in button above to go to the login page</li>
+            <li>Use your email address to sign in</li>
+            <li>If you don't have a password yet, click "Forgot Password" to set one</li>
+            <li>Complete your profile and start managing HealthyFlow</li>
+          </ol>
+        </div>
+
+        <div class="important">
+          <strong>ℹ️ Note:</strong> If this is your first time signing in, you can use Google Authentication 
+          or set up a password through the "Forgot Password" link for a smooth experience.
+        </div>
+
+        <h2>Need Help?</h2>
+        <p>
+          If you have any questions or need assistance, our support team is ready to help:
+        </p>
+        <ul>
+          <li><strong>Email:</strong> <a href="mailto:support@healthyflow.com">support@healthyflow.com</a></li>
+          <li><strong>Support Hours:</strong> Monday - Friday, 9 AM - 6 PM IST</li>
+        </ul>
+
+        <p style="color: #666; font-size: 14px;">
+          <strong>Note:</strong> This invitation is valid for 30 days. If the link expires, 
+          please contact your organization administrator.
+        </p>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p style="margin: 0; margin-bottom: 20px;">
+          © ${currentYear} HealthyFlow. All rights reserved.
+        </p>
+        
+        <div class="footer-links">
+          <a href="https://healthyflow.com">Website</a>
+          <a href="https://healthyflow.com/docs">Documentation</a>
+          <a href="https://healthyflow.com/support">Support</a>
+          <a href="https://healthyflow.com/privacy">Privacy Policy</a>
+        </div>
+
+        <p style="margin: 20px 0 0 0; color: #999; font-size: 11px;">
+          This is an automated email. Please do not reply directly to this message.
+          <br>
+          If you did not expect this invitation, please contact your organization administrator.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
+  `;
+};

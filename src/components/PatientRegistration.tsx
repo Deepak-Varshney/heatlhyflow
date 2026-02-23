@@ -91,7 +91,7 @@ export default function PatientRegistrationDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
-          <IconPlus /> Add New
+          <IconPlus /> Add Patient
         </Button>
 
       </DialogTrigger>
