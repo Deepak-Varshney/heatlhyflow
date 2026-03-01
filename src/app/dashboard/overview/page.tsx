@@ -141,11 +141,6 @@ export default async function OverviewPage(props: PageProps) {
   const quickActions = isDoctor
     ? [
         {
-          label: 'Schedule Appointment',
-          icon: <IconCalendar className='h-4 w-4' />,
-          href: '/dashboard/appointments'
-        },
-        {
           label: 'Manage Patients',
           icon: <IconUserCheck className='h-4 w-4' />,
           href: '/dashboard/patients'

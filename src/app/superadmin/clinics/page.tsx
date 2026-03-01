@@ -1,66 +1,59 @@
-// app/superadmin/clinics/page.tsx
-
 import connectDB from "@/lib/mongodb";
 import Organization from "@/models/Organization";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { updateOrganizationStatus } from "@/app/actions/superadmin-actions";
+import { ManageClinicsPageContent } from "./clinics-content";
 
-const ToggleStatusForm = ({ orgId, currentStatus, clerkUserId }: {
-  orgId: string,
-  currentStatus: "ACTIVE" | "DISABLED"
-  clerkUserId: any,
-}) => {
-  const newStatus = currentStatus === "ACTIVE" ? "DISABLED" : "ACTIVE";
-  return (
-    <form action={async () => {
-      "use server";
-      await updateOrganizationStatus(orgId, newStatus === "ACTIVE");
-    }}>
-      <Button type="submit" variant={newStatus === "ACTIVE" ? "default" : "destructive"}>
-        {newStatus === "ACTIVE" ? "Enable" : "Disable"}
-      </Button>
-    </form>
-  );
-};
+interface IOrganization {
+  _id: string;
+  name: string;
+  owner: {
+    firstName: string;
+    lastName: string;
+    clerkUserId: string;
+  };
+  status: 'ACTIVE' | 'DISABLED' | 'REJECTED';
+  createdAt: string;
+  email?: string;
+  phone?: string;
+  members: Array<{
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+    specialty?: string;
+  }>;
+}
 
 const ManageClinicsPage = async () => {
   await connectDB();
   const allOrgs = await Organization.find({ status: { $ne: "PENDING" } })
     .populate("owner")
+    .populate("members")
     .sort({ createdAt: -1 });
 
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Manage All Clinics</CardTitle>
-          <CardDescription>View and manage all active, disabled, or rejected clinics on the platform.</CardDescription>
-        </CardHeader>
-        <CardContent className="overflow-scroll h-[500px]">
-          <div className="space-y-4">
-            {allOrgs.map((org) => (
-              <div key={org._id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-md gap-4">
-                <div>
-                  <p className="font-bold text-lg">{org.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Owner: {org.owner.firstName} {org.owner.lastName}
-                  </p>
-                </div>
-                <div className="flex items-center gap-4 self-end sm:self-center">
-                  <Badge variant={org.status === 'ACTIVE' ? 'default' : 'destructive'}>{org.status}</Badge>
-                  {org.status !== 'REJECTED' && (
-                    <ToggleStatusForm orgId={org._id.toString()} clerkUserId={org.owner.clerkUserId.toString()} currentStatus={org.status as "ACTIVE" | "DISABLED"} />
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  const serializedOrgs: IOrganization[] = allOrgs.map(org => ({
+    _id: org._id.toString(),
+    name: org.name,
+    owner: {
+      firstName: org.owner.firstName,
+      lastName: org.owner.lastName,
+      clerkUserId: org.owner.clerkUserId,
+    },
+    status: org.status,
+    createdAt: org.createdAt.toISOString(),
+    email: org.email,
+    phone: org.phone,
+    members: (org.members || []).map((member: any) => ({
+      _id: member._id.toString(),
+      firstName: member.firstName,
+      lastName: member.lastName,
+      email: member.email,
+      role: member.role,
+      specialty: member.specialty,
+    })),
+  }));
+
+  return <ManageClinicsPageContent allOrgs={serializedOrgs} />;
 };
 
 export default ManageClinicsPage;

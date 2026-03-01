@@ -36,7 +36,7 @@ export default async function SuperAdminDashboard() {
             <div className="w-full space-y-8">
                 <section className="space-y-2">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
+                        <div className="h-10 w-10 rounded-xl bg-linear-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
                             <ShieldAlert className="h-5 w-5 text-primary" />
                         </div>
                         <div>
@@ -200,7 +200,7 @@ function StatCard({
         <Card className={glassCardClass}>
             <CardContent className="p-5 space-y-4">
                 <div className="flex items-center justify-between">
-                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
+                    <div className="h-10 w-10 rounded-xl bg-linear-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20">
                         {icon}
                     </div>
                     <span className="text-xs text-muted-foreground">{trend}</span>

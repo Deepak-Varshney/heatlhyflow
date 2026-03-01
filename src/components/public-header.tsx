@@ -16,11 +16,11 @@ export function PublicHeader() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="px-4 sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="px-4 sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
         {/* Logo/Brand */}
         <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white">
+          <div className="w-8 h-8 rounded-lg bg-linear-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white">
             HF
           </div>
           <span className="hidden sm:inline">HealthyFlow</span>

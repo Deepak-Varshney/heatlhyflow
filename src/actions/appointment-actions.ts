@@ -239,11 +239,11 @@ export async function getAppointmentDetails(appointmentId: string) {
         path: 'patient',
         model: Patient
       })
-      // Populate the doctor's details, but only select the necessary fields
+      // Populate the doctor's details, including watermark image URL for printing
       .populate({
         path: 'doctor',
         model: User,
-        select: 'firstName lastName specialty'
+        select: 'firstName lastName specialty watermarkImageUrl'
       })
       // If a prescription exists, populate its details as well
       .populate({

@@ -258,11 +258,11 @@ export async function getAppointmentDetails(appointmentId: string) {
         path: 'patient',
         model: Patient
       })
-      // Populate the doctor's details, but only select the necessary fields
+      // Populate the doctor's details, including watermark image URL for printing
       .populate({
         path: 'doctor',
         model: User,
-        select: 'firstName lastName specialty'
+        select: 'firstName lastName specialty watermarkImageUrl'
       })
       // If a prescription exists, populate its details as well
       .populate({
@@ -303,16 +303,22 @@ export async function createPrescription(data: any) {
       tests,
       notes,
       treatments,
-      doctorFee,
-      discount,
+      discountType,
+      discountValue,
     } = data;
 
     // Calculate total amount
     const treatmentsTotal = treatments?.reduce((sum: number, t: any) => sum + (t.price || 0), 0) || 0;
     const testsTotal = tests?.reduce((sum: number, t: any) => sum + (t.price || 0), 0) || 0;
-    const fee = doctorFee || 0;
-    const discountAmount = discount || 0;
-    const totalAmount = treatmentsTotal + testsTotal + fee - discountAmount;
+    const fee = doctor.consultationFee || 0;
+    const normalizedDiscountType = discountType === "percentage" ? "percentage" : "amount";
+    const numericDiscountValue = typeof discountValue === "number" ? discountValue : 0;
+    const subtotal = treatmentsTotal + testsTotal + fee;
+    const rawDiscount = normalizedDiscountType === "percentage"
+      ? subtotal * (numericDiscountValue / 100)
+      : numericDiscountValue;
+    const discountAmount = Math.max(0, Math.min(subtotal, rawDiscount));
+    const totalAmount = subtotal - discountAmount;
 
     // 1. Create the new prescription document
     const newPrescription = new Prescription({
@@ -349,7 +355,9 @@ export async function createPrescription(data: any) {
           price: t.price,
         })),
         doctorFee: fee,
-        discount: discountAmount,
+        discountType: normalizedDiscountType,
+        discountValue: numericDiscountValue,
+        discount: Math.max(0, Math.min(treatmentsTotal + testsTotal + fee, discountAmount)),
         totalAmount: Math.max(0, totalAmount), // Ensure total is not negative
       },
       { session }
@@ -363,6 +371,93 @@ export async function createPrescription(data: any) {
     await session.abortTransaction();
     console.error("Error creating prescription:", error);
     return { success: false, error: "Failed to save prescription." };
+  } finally {
+    session.endSession();
+  }
+}
+
+/**
+ * Updates an existing prescription and refreshes pricing on the appointment.
+ */
+export async function updatePrescription(data: any) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const doctor = await getMongoUser();
+    if (!doctor) throw new Error("Doctor not authenticated");
+
+    const {
+      appointmentId,
+      prescriptionId,
+      chiefComplaint,
+      diagnosis,
+      medicines,
+      tests,
+      notes,
+      treatments,
+      discountType,
+      discountValue,
+    } = data;
+
+    const treatmentsTotal = treatments?.reduce((sum: number, t: any) => sum + (t.price || 0), 0) || 0;
+    const testsTotal = tests?.reduce((sum: number, t: any) => sum + (t.price || 0), 0) || 0;
+    const fee = doctor.consultationFee || 0;
+    const normalizedDiscountType = discountType === "percentage" ? "percentage" : "amount";
+    const numericDiscountValue = typeof discountValue === "number" ? discountValue : 0;
+    const subtotal = treatmentsTotal + testsTotal + fee;
+    const rawDiscount = normalizedDiscountType === "percentage"
+      ? subtotal * (numericDiscountValue / 100)
+      : numericDiscountValue;
+    const discountAmount = Math.max(0, Math.min(subtotal, rawDiscount));
+    const totalAmount = subtotal - discountAmount;
+
+    await Prescription.findByIdAndUpdate(
+      prescriptionId,
+      {
+        chiefComplaint,
+        diagnosis,
+        medicines: medicines?.map((m: any) => ({
+          name: m.name,
+          dosage: m.dosage,
+          timings: m.timings,
+        })) || [],
+        tests: tests?.map((t: any) => ({
+          name: t.name,
+          notes: t.notes,
+          reportImageUrl: t.reportImageUrl,
+          price: t.price || 0,
+        })) || [],
+        notes,
+      },
+      { session }
+    );
+
+    await Appointment.findByIdAndUpdate(
+      appointmentId,
+      {
+        status: 'completed',
+        treatments: treatments?.map((t: any) => ({
+          treatment: t.treatmentId,
+          name: t.name,
+          price: t.price,
+        })),
+        doctorFee: fee,
+        discountType: normalizedDiscountType,
+        discountValue: numericDiscountValue,
+        discount: discountAmount,
+        totalAmount: Math.max(0, totalAmount),
+      },
+      { session }
+    );
+
+    await session.commitTransaction();
+    revalidatePath(`/dashboard/appointments/${appointmentId}`);
+    revalidatePath('/dashboard/overview');
+    return { success: true };
+  } catch (error) {
+    await session.abortTransaction();
+    console.error("Error updating prescription:", error);
+    return { success: false, error: "Failed to update prescription." };
   } finally {
     session.endSession();
   }

@@ -1,14 +1,21 @@
 import { CustomSignIn } from "@/components/custom-sign-in";
+import { currentUser } from "@clerk/nextjs/server";
 import { ArrowRight, Shield, Clock, Users } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export const metadata = {
   title: "Sign In - HealthyFlow",
   description: "Sign in to your HealthyFlow account to manage your healthcare practice.",
 };
 
-export default function SignInPage() {
+export default async function SignInPage() {
+  const user = await currentUser();
+
+  if (user) {
+    redirect('/dashboard');
+  }
   return (
-    <div className="min-h-screen flex flex-col">
+    !user && <div className="min-h-screen flex flex-col">
       {/* Gradient background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-20" style={{ backgroundColor: 'var(--primary)' }}></div>
@@ -34,7 +41,7 @@ export default function SignInPage() {
             {/* Features */}
             <div className="space-y-4">
               <div className="flex gap-4 items-start">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}>
                   <Shield className="w-6 h-6" />
                 </div>
                 <div>
@@ -44,7 +51,7 @@ export default function SignInPage() {
               </div>
 
               <div className="flex gap-4 items-start">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}>
                   <Clock className="w-6 h-6" />
                 </div>
                 <div>
@@ -54,7 +61,7 @@ export default function SignInPage() {
               </div>
 
               <div className="flex gap-4 items-start">
-                <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}>
+                <div className="w-12 h-12 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}>
                   <Users className="w-6 h-6" />
                 </div>
                 <div>

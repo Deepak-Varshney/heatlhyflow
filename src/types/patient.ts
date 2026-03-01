@@ -6,6 +6,10 @@ export interface IPatient {
   phoneNumber: string;
   email?: string;
   address?: string;
+  occupation?: string;
+  medicalHistory?: string;
+  bp?: string;
+  weight?: number;
   appointments?: Array<{ _id?: string } | string>;
   createdAt?: string;
 }

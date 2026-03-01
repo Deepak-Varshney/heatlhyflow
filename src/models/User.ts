@@ -23,7 +23,7 @@ export interface IUser extends Document {
   firstName: string;
   lastName: string;
   imageUrl?: string;
-  role: "UNASSIGNED" | "RECEPTIONIST" | "DOCTOR" | "ADMIN" | "SUPERADMIN" | "DEVIL";
+  role: "UNASSIGNED" | "RECEPTIONIST" | "DOCTOR"  | "SUPERADMIN" | "DEVIL";
   organization: Schema.Types.ObjectId;
   _id: Schema.Types.ObjectId | any;
 

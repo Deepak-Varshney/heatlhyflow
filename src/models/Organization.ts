@@ -9,7 +9,6 @@ export interface IOrganization extends Document {
   status: "PENDING" | "ACTIVE" | "DISABLED" | "REJECTED";
   owner?: Schema.Types.ObjectId; // Reference to the User who created it
   members: Schema.Types.ObjectId[]; // Array of all members (including owner) in the organization
-  subscription?: Schema.Types.ObjectId; // Reference to the Subscription
   settings?: {
     timezone?: string;
     locale?: string;
@@ -36,7 +35,6 @@ const OrganizationSchema = new Schema<IOrganization>(
     },
     owner: { type: Schema.Types.ObjectId, ref: "User" },
     members: [{ type: Schema.Types.ObjectId, ref: "User" }],
-    subscription: { type: Schema.Types.ObjectId, ref: "Subscription" },
     settings: {
       timezone: { type: String },
       locale: { type: String },

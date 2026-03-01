@@ -13,9 +13,19 @@ export async function getDoctorTreatments() {
     if (!user || user.role !== "DOCTOR") {
       throw new Error("Unauthorized");
     }
+    const orgFromCookie = await getCurrentOrganizationFromCookie();
+    const organizationId = orgFromCookie?.id || user.organization;
+
+    if (!organizationId) {
+      console.error("Doctor organization is missing while fetching treatments", {
+        doctorId: user._id,
+      });
+      return [];
+    }
 
     const treatments = await Treatment.find({
       doctor: user._id,
+      organization: organizationId,
       isActive: true,
     })
       .sort({ name: 1 })
@@ -35,13 +45,21 @@ export async function createTreatment(data: { name: string; price: number }) {
     if (!user || user.role !== "DOCTOR") {
       return { success: false, error: "Unauthorized" };
     }
-    const orgId = await getCurrentOrganizationFromCookie();
+    const orgFromCookie = await getCurrentOrganizationFromCookie();
+    const organizationId = orgFromCookie?.id || user.organization;
+
+    if (!organizationId) {
+      return {
+        success: false,
+        error: "Doctor organization is missing. Please select an organization and try again.",
+      };
+    }
 
     const treatment = new Treatment({
       name: data.name,
       price: data.price,
       doctor: user._id,
-      organization: orgId,
+      organization: organizationId,
       isActive: true,
     });
 
@@ -69,9 +87,13 @@ export async function updateTreatment(
       return { success: false, error: "Unauthorized" };
     }
 
+    const orgFromCookie = await getCurrentOrganizationFromCookie();
+    const organizationId = orgFromCookie?.id || user.organization;
+
     const treatment = await Treatment.findOne({
       _id: treatmentId,
       doctor: user._id,
+      ...(organizationId ? { organization: organizationId } : {}),
     });
 
     if (!treatment) {
@@ -102,9 +124,16 @@ export async function deleteTreatment(treatmentId: string) {
       return { success: false, error: "Unauthorized" };
     }
 
+    const orgFromCookie = await getCurrentOrganizationFromCookie();
+    const organizationId = orgFromCookie?.id || user.organization;
+
     // Soft delete by setting isActive to false
     await Treatment.findOneAndUpdate(
-      { _id: treatmentId, doctor: user._id },
+      {
+        _id: treatmentId,
+        doctor: user._id,
+        ...(organizationId ? { organization: organizationId } : {}),
+      },
       { isActive: false }
     );
 

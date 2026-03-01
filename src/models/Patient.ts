@@ -17,6 +17,7 @@ export interface IPatient extends Document {
   bp?: string;
   occupation?: string;
   weight?: number;
+  medicalHistory?: string;
 }
 
 const PatientSchema = new Schema<IPatient>(
@@ -71,6 +72,10 @@ const PatientSchema = new Schema<IPatient>(
     },
     occupation: {
       type: String, // Occupation as a string (e.g. 'Teacher')
+    },
+    medicalHistory: {
+      type: String,
+      trim: true,
     },
     appointments: [
       { type: Schema.Types.ObjectId, ref: 'Appointment' }, // Reference to Appointments model

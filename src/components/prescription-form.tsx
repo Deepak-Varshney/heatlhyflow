@@ -24,9 +24,10 @@ import {
 } from "@/components/ui/card";
 import { PlusCircle, Trash2, Loader2, Upload, DollarSign } from "lucide-react";
 import { toast } from "sonner";
-import { createPrescription } from "@/app/actions/appointment-actions";
-import { getDoctorTreatments, getConsultationFee } from "@/app/actions/treatment-actions";
-import { useState, useEffect } from "react";
+import { createPrescription, updatePrescription } from "@/app/actions/appointment-actions";
+import { createTreatment, getDoctorTreatments, getConsultationFee } from "@/app/actions/treatment-actions";
+import { uploadTestReport } from "@/actions/upload-actions";
+import { useState, useEffect, useMemo } from "react";
 import {
   Select,
   SelectContent,
@@ -34,6 +35,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const formSchema = z.object({
   chiefComplaint: z.string().min(5, "Please enter the patient's main problem."),
@@ -43,9 +52,12 @@ const formSchema = z.object({
       name: z.string().min(1, "Medicine name is required."),
       dosage: z.string().min(1, "Dosage is required."),
       timings: z.object({
-        morning: z.boolean(),
-        afternoon: z.boolean(),
-        night: z.boolean(),
+        beforeBreakfast: z.boolean(),
+        afterBreakfast: z.boolean(),
+        beforeLunch: z.boolean(),
+        afterLunch: z.boolean(),
+        beforeDinner: z.boolean(),
+        afterDinner: z.boolean(),
       }),
     })
   ),
@@ -66,7 +78,8 @@ const formSchema = z.object({
     })
   ),
   doctorFee: z.number().min(0),
-  discount: z.number().min(0),
+  discountType: z.enum(["amount", "percentage"]),
+  discountValue: z.number().min(0),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -75,33 +88,63 @@ export function PrescriptionForm({
   appointmentId,
   patientId,
   onSaveSuccess,
+  prescriptionId,
+  initialValues,
 }: {
   appointmentId: string;
   patientId: string;
   onSaveSuccess: () => void;
+  prescriptionId?: string;
+  initialValues?: Partial<FormValues>;
 }) {
   const [availableTreatments, setAvailableTreatments] = useState<any[]>([]);
   const [defaultFee, setDefaultFee] = useState<number>(0);
   const [isLoadingTreatments, setIsLoadingTreatments] = useState(true);
+  const [isAddTreatmentOpen, setIsAddTreatmentOpen] = useState(false);
+  const [addTreatmentTargetIndex, setAddTreatmentTargetIndex] = useState<number | null>(null);
+  const [newTreatmentName, setNewTreatmentName] = useState("");
+  const [newTreatmentPrice, setNewTreatmentPrice] = useState<number>(0);
+  const [isCreatingTreatment, setIsCreatingTreatment] = useState(false);
+
+  const baseDefaults: FormValues = {
+    chiefComplaint: "",
+    diagnosis: "",
+    medicines: [
+      {
+        name: "",
+        dosage: "",
+        timings: {
+          beforeBreakfast: false,
+          afterBreakfast: false,
+          beforeLunch: false,
+          afterLunch: false,
+          beforeDinner: false,
+          afterDinner: false,
+        },
+      },
+    ],
+    tests: [],
+    notes: "",
+    treatments: [],
+    doctorFee: 0,
+    discountType: "amount",
+    discountValue: 0,
+  };
+
+  const mergedDefaults = useMemo(() => {
+    if (!initialValues) return baseDefaults;
+    return {
+      ...baseDefaults,
+      ...initialValues,
+      medicines: initialValues.medicines?.length ? initialValues.medicines : baseDefaults.medicines,
+      tests: initialValues.tests?.length ? initialValues.tests : baseDefaults.tests,
+      treatments: initialValues.treatments?.length ? initialValues.treatments : baseDefaults.treatments,
+    } as FormValues;
+  }, [initialValues]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      chiefComplaint: "",
-      diagnosis: "",
-      medicines: [
-        {
-          name: "",
-          dosage: "",
-          timings: { morning: true, afternoon: false, night: true },
-        },
-      ],
-      tests: [],
-      notes: "",
-      treatments: [],
-      doctorFee: 0,
-      discount: 0,
-    },
+    defaultValues: mergedDefaults,
   });
 
   // Fetch treatments and default consultation fee
@@ -128,6 +171,12 @@ export function PrescriptionForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (initialValues) {
+      form.reset(mergedDefaults);
+    }
+  }, [form, mergedDefaults, initialValues]);
+
   const {
     fields: medFields,
     append: appendMed,
@@ -148,29 +197,121 @@ export function PrescriptionForm({
   const treatments = form.watch("treatments") || [];
   const tests = form.watch("tests") || [];
   const doctorFee = form.watch("doctorFee") || 0;
-  const discount = form.watch("discount") || 0;
+  const discountType = form.watch("discountType") || "amount";
+  const discountValue = form.watch("discountValue") || 0;
   const treatmentsTotal = treatments.reduce((sum, t) => sum + (t.price || 0), 0);
   const testsTotal = tests.reduce((sum, t) => sum + (t.price || 0), 0);
-  const totalAmount = treatmentsTotal + testsTotal + doctorFee - discount;
+  const subtotal = treatmentsTotal + testsTotal + doctorFee;
+  const discountAmount = discountType === "percentage"
+    ? Math.min(subtotal, (subtotal * discountValue) / 100)
+    : Math.min(subtotal, discountValue);
+  const totalAmount = subtotal - discountAmount;
   
-  // Image upload handler - replace with actual upload service (e.g., uploadthing, cloudinary)
-  const handleImageUpload = async (file: File) => {
-    console.log("Uploading file:", file.name);
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Network delay simulate karein
-    // Asli URL return karein jo upload service se milega
-    const fakeUrl = `https://fake-upload-service.com/uploads/${file.name}`;
-    console.log("File uploaded to:", fakeUrl);
-    return fakeUrl;
+  // Image upload handler using Cloudinary
+  const handleImageUpload = async (file: File): Promise<string> => {
+    try {
+      // Convert file to base64
+      const reader = new FileReader();
+      return new Promise((resolve, reject) => {
+        reader.onload = async () => {
+          try {
+            const base64Data = reader.result as string;
+            const result = await uploadTestReport(base64Data, file.name);
+            
+            if (result.success && result.url) {
+              toast.success("Test report uploaded successfully!");
+              resolve(result.url);
+            } else {
+              toast.error(result.error || "Failed to upload test report");
+              reject(new Error(result.error || "Upload failed"));
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Upload failed";
+            toast.error(errorMessage);
+            reject(error);
+          }
+        };
+        reader.onerror = () => {
+          reject(new Error("Failed to read file"));
+        };
+        reader.readAsDataURL(file);
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Upload failed";
+      toast.error(errorMessage);
+      throw error;
+    }
+  };
+
+  const openAddTreatmentDialog = (index: number) => {
+    setAddTreatmentTargetIndex(index);
+    setNewTreatmentName("");
+    setNewTreatmentPrice(0);
+    setIsAddTreatmentOpen(true);
+  };
+
+  const handleCreateTreatmentFromPrescription = async () => {
+    const trimmedName = newTreatmentName.trim();
+    if (!trimmedName) {
+      toast.error("Treatment name is required.");
+      return;
+    }
+
+    if (newTreatmentPrice < 0) {
+      toast.error("Treatment price cannot be negative.");
+      return;
+    }
+
+    setIsCreatingTreatment(true);
+    try {
+      const result = await createTreatment({
+        name: trimmedName,
+        price: Number(newTreatmentPrice) || 0,
+      });
+
+      if (!result.success || !result.treatment) {
+        toast.error(result.error || "Failed to create treatment.");
+        return;
+      }
+
+      const createdTreatment = result.treatment as any;
+      setAvailableTreatments((prev) => {
+        const next = [...prev, createdTreatment];
+        return next.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+      });
+
+      if (addTreatmentTargetIndex !== null) {
+        form.setValue(`treatments.${addTreatmentTargetIndex}.treatmentId`, createdTreatment._id);
+        form.setValue(`treatments.${addTreatmentTargetIndex}.name`, createdTreatment.name);
+        form.setValue(`treatments.${addTreatmentTargetIndex}.price`, createdTreatment.price);
+      }
+
+      toast.success("Treatment created and added to profile.");
+      setIsAddTreatmentOpen(false);
+      setAddTreatmentTargetIndex(null);
+    } catch {
+      toast.error("Failed to create treatment.");
+    } finally {
+      setIsCreatingTreatment(false);
+    }
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const result = await createPrescription({
-      appointmentId,
-      patientId,
-      ...values,
-    });
+    const result = prescriptionId
+      ? await updatePrescription({
+          appointmentId,
+          prescriptionId,
+          patientId,
+          ...values,
+        })
+      : await createPrescription({
+          appointmentId,
+          patientId,
+          ...values,
+        });
+
     if (result.success) {
-      toast.success("Prescription saved successfully!");
+      toast.success(prescriptionId ? "Prescription updated successfully!" : "Prescription saved successfully!");
       onSaveSuccess();
     } else {
       toast.error(result.error || "Failed to save prescription.");
@@ -241,49 +382,76 @@ export function PrescriptionForm({
                 />
                 <FormItem className="col-span-12 sm:col-span-5">
                   <FormLabel>Timings</FormLabel>
-                  <div className="flex items-center space-x-4 pt-2">
+                  <div className="grid grid-cols-2 gap-3 pt-2 text-sm">
                     <FormField
                       control={form.control}
-                      name={`medicines.${index}.timings.morning`}
+                      name={`medicines.${index}.timings.beforeBreakfast`}
                       render={({ field }) => (
                         <FormItem className="flex items-center gap-2 space-y-0">
                           <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                           </FormControl>
-                          <FormLabel>Morning</FormLabel>
+                          <FormLabel>Before breakfast</FormLabel>
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name={`medicines.${index}.timings.afternoon`}
+                      name={`medicines.${index}.timings.afterBreakfast`}
                       render={({ field }) => (
                         <FormItem className="flex items-center gap-2 space-y-0">
                           <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                           </FormControl>
-                          <FormLabel>Afternoon</FormLabel>
+                          <FormLabel>After breakfast</FormLabel>
                         </FormItem>
                       )}
                     />
                     <FormField
                       control={form.control}
-                      name={`medicines.${index}.timings.night`}
+                      name={`medicines.${index}.timings.beforeLunch`}
                       render={({ field }) => (
                         <FormItem className="flex items-center gap-2 space-y-0">
                           <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                           </FormControl>
-                          <FormLabel>Night</FormLabel>
+                          <FormLabel>Before lunch</FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`medicines.${index}.timings.afterLunch`}
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2 space-y-0">
+                          <FormControl>
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                          <FormLabel>After lunch</FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`medicines.${index}.timings.beforeDinner`}
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2 space-y-0">
+                          <FormControl>
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                          <FormLabel>Before dinner</FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`medicines.${index}.timings.afterDinner`}
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2 space-y-0">
+                          <FormControl>
+                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                          </FormControl>
+                          <FormLabel>After dinner</FormLabel>
                         </FormItem>
                       )}
                     />
@@ -310,9 +478,12 @@ export function PrescriptionForm({
                   name: "",
                   dosage: "",
                   timings: {
-                    morning: false,
-                    afternoon: false,
-                    night: false,
+                    beforeBreakfast: false,
+                    afterBreakfast: false,
+                    beforeLunch: false,
+                    afterLunch: false,
+                    beforeDinner: false,
+                    afterDinner: false,
                   },
                 })
               }
@@ -415,6 +586,14 @@ export function PrescriptionForm({
             <div className="space-y-4">
               <FormLabel>Treatments</FormLabel>
               {treatmentFields.map((field, index) => {
+                const selectedTreatmentId = form.watch(`treatments.${index}.treatmentId`);
+                const selectedTreatment = availableTreatments.find((t) => t._id === selectedTreatmentId);
+                const currentPrice = Number(form.watch(`treatments.${index}.price`) || 0);
+                const defaultTreatmentPrice = Number(selectedTreatment?.price || 0);
+                const isCustomPrice = Boolean(
+                  selectedTreatment && Math.abs(currentPrice - defaultTreatmentPrice) > 0.0001
+                );
+
                 return (
                   <div key={field.id} className="grid grid-cols-12 gap-4 border p-4 rounded-md items-end">
                     <FormField
@@ -425,6 +604,11 @@ export function PrescriptionForm({
                           <FormLabel>Treatment</FormLabel>
                           <Select
                             onValueChange={(value) => {
+                              if (value === "__add_new__") {
+                                openAddTreatmentDialog(index);
+                                return;
+                              }
+
                               const treatment = availableTreatments.find((t) => t._id === value);
                               if (treatment) {
                                 form.setValue(`treatments.${index}.treatmentId`, treatment._id);
@@ -445,8 +629,12 @@ export function PrescriptionForm({
                                   {treatment.name} - ₹{treatment.price}
                                 </SelectItem>
                               ))}
+                              <SelectItem value="__add_new__">+ Add new treatment</SelectItem>
                             </SelectContent>
                           </Select>
+                          <div className="pt-2 text-xs text-muted-foreground">
+                            Can't find treatment? Select "+ Add new treatment".
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -470,6 +658,11 @@ export function PrescriptionForm({
                             />
                           </FormControl>
                           <FormMessage />
+                          {isCustomPrice && (
+                            <p className="text-xs text-amber-600">
+                              Custom amount applied (default: ₹{defaultTreatmentPrice}).
+                            </p>
+                          )}
                         </FormItem>
                       )}
                     />
@@ -497,6 +690,52 @@ export function PrescriptionForm({
               </Button>
             </div>
 
+            <Dialog open={isAddTreatmentOpen} onOpenChange={setIsAddTreatmentOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Treatment</DialogTitle>
+                  <DialogDescription>
+                    This treatment will be saved to your profile and available for future prescriptions.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-2">
+                  <div className="space-y-2">
+                    <FormLabel>Treatment Name</FormLabel>
+                    <Input
+                      value={newTreatmentName}
+                      onChange={(e) => setNewTreatmentName(e.target.value)}
+                      placeholder="e.g., Nebulization"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <FormLabel>Price</FormLabel>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={newTreatmentPrice}
+                      onChange={(e) => setNewTreatmentPrice(parseFloat(e.target.value) || 0)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsAddTreatmentOpen(false);
+                      setAddTreatmentTargetIndex(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="button" onClick={handleCreateTreatmentFromPrescription} disabled={isCreatingTreatment}>
+                    {isCreatingTreatment ? "Saving..." : "Save Treatment"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
             {/* Doctor Fee & Discount */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
               <FormField
@@ -511,38 +750,62 @@ export function PrescriptionForm({
                         step="0.01"
                         placeholder="0.00"
                         {...field}
-                        onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
-                          field.onChange(value);
-                        }}
+                        readOnly
+                        className="bg-muted/50"
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="discount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Discount</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                        onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
-                          field.onChange(value);
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <FormField
+                  control={form.control}
+                  name="discountType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Discount Type</FormLabel>
+                      <FormControl>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="amount">Amount (₹)</SelectItem>
+                            <SelectItem value="percentage">Percentage (%)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="discountValue"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Discount {discountType === "percentage" ? "(%)" : "(₹)"}
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder={discountType === "percentage" ? "0" : "0.00"}
+                          max={discountType === "percentage" ? 100 : undefined}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value === "" ? 0 : parseFloat(e.target.value);
+                            field.onChange(isNaN(value) ? 0 : value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             {/* Total Amount Display */}
@@ -570,10 +833,10 @@ export function PrescriptionForm({
                     <span>₹{doctorFee.toFixed(2)}</span>
                   </div>
                 )}
-                {discount > 0 && (
+                {discountAmount > 0 && (
                   <div className="flex justify-between text-red-600">
                     <span>Discount:</span>
-                    <span>-₹{discount.toFixed(2)}</span>
+                    <span>-₹{discountAmount.toFixed(2)}</span>
                   </div>
                 )}
               </div>
@@ -588,6 +851,8 @@ export function PrescriptionForm({
         >
           {form.formState.isSubmitting ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : prescriptionId ? (
+            "Update Prescription"
           ) : (
             "Save Prescription & End Consultation"
           )}

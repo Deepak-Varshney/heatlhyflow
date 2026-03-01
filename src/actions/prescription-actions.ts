@@ -10,7 +10,18 @@ import { getMongoUser } from "@/lib/CheckUser";
 // Yeh data prescription form se aayega
 interface CreatePrescriptionParams {
   appointmentId: string;
-  medicines: { name: string; dosage: string; timings: { morning: boolean; afternoon: boolean; night: boolean; } }[];
+  medicines: {
+    name: string;
+    dosage: string;
+    timings: {
+      beforeBreakfast: boolean;
+      afterBreakfast: boolean;
+      beforeLunch: boolean;
+      afterLunch: boolean;
+      beforeDinner: boolean;
+      afterDinner: boolean;
+    };
+  }[];
   tests: { name: string }[];
   notes?: string;
 }

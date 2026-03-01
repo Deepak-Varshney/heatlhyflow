@@ -11,7 +11,11 @@ const nextConfig: NextConfig = {
       }
     ]
   },
-  transpilePackages: ['geist']
+  transpilePackages: ['geist'],
+  serverActions: {
+    bodySize: '5MB', // Increased from default 1MB to support medical file uploads
+    allowedOrigins: ['localhost', 'localhost:3000'],
+  }
 };
 
 export default nextConfig;

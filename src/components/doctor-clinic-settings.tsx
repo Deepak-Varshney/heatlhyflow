@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Building2, Loader2, Upload } from "lucide-react";
 import { getClinicSettings, updateClinicSettings } from "@/app/actions/treatment-actions";
+import { uploadWatermark } from "@/actions/upload-actions";
 
 const formSchema = z.object({
   clinicName: z.string().min(1, "Clinic name is required"),
@@ -69,23 +70,46 @@ export default function ManageClinicSettingsDialog() {
     }
   }, [open, form]);
 
-  // Image upload handler - replace with actual upload service (e.g., uploadthing, cloudinary)
-  const handleImageUpload = async (file: File) => {
-    console.log("Uploading file:", file.name);
-    setIsUploading(true);
+  // Image upload handler using Cloudinary for watermark
+  const handleImageUpload = async (file: File): Promise<string> => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Network delay simulate karein
-      // Asli URL return karein jo upload service se milega
-      const fakeUrl = `https://fake-upload-service.com/uploads/${file.name}`;
-      console.log("File uploaded to:", fakeUrl);
-      form.setValue("watermarkImageUrl", fakeUrl);
-      toast.success("Image uploaded successfully!");
-      return fakeUrl;
+      setIsUploading(true);
+      
+      // Convert file to base64
+      const reader = new FileReader();
+      return new Promise((resolve, reject) => {
+        reader.onload = async () => {
+          try {
+            const base64Data = reader.result as string;
+            const result = await uploadWatermark(base64Data, file.name);
+            
+            if (result.success && result.url) {
+              form.setValue("watermarkImageUrl", result.url);
+              toast.success("Watermark uploaded successfully!");
+              resolve(result.url);
+            } else {
+              toast.error(result.error || "Failed to upload watermark");
+              reject(new Error(result.error || "Upload failed"));
+            }
+          } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Upload failed";
+            toast.error(errorMessage);
+            reject(error);
+          } finally {
+            setIsUploading(false);
+          }
+        };
+        reader.onerror = () => {
+          setIsUploading(false);
+          reject(new Error("Failed to read file"));
+        };
+        reader.readAsDataURL(file);
+      });
     } catch (error) {
-      toast.error("Failed to upload image.");
-      throw error;
-    } finally {
       setIsUploading(false);
+      const errorMessage = error instanceof Error ? error.message : "Upload failed";
+      toast.error(errorMessage);
+      throw error;
     }
   };
 

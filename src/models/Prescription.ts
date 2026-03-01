@@ -5,9 +5,12 @@ interface IMedicine {
   name: string;
   dosage: string; // e.g., "500mg", "1 tablet"
   timings: {
-    morning: boolean;
-    afternoon: boolean;
-    night: boolean;
+    beforeBreakfast: boolean;
+    afterBreakfast: boolean;
+    beforeLunch: boolean;
+    afterLunch: boolean;
+    beforeDinner: boolean;
+    afterDinner: boolean;
   };
 }
 // Test ke liye naya, detailed sub-schema
@@ -41,9 +44,12 @@ const MedicineSchema = new Schema<IMedicine>({
   name: { type: String, required: true },
   dosage: { type: String, required: true },
   timings: {
-    morning: { type: Boolean, default: false },
-    afternoon: { type: Boolean, default: false },
-    night: { type: Boolean, default: false },
+    beforeBreakfast: { type: Boolean, default: false },
+    afterBreakfast: { type: Boolean, default: false },
+    beforeLunch: { type: Boolean, default: false },
+    afterLunch: { type: Boolean, default: false },
+    beforeDinner: { type: Boolean, default: false },
+    afterDinner: { type: Boolean, default: false },
   },
 });
 

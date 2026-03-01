@@ -23,7 +23,7 @@ export const columns: ColumnDef<IPatient>[] = [
     enableColumnFilter: true,
   },
 
-  {
+  { 
     accessorKey: 'phoneNumber',
     id: 'phone',
     header: 'Phone Number',

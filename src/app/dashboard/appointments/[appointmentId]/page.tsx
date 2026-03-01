@@ -2,6 +2,7 @@ import PageContainer from '@/components/layout/page-container';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getAppointmentDetails } from '@/actions/appointment-actions';
+import { PrintActions } from './print-actions';
 import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
 
@@ -23,9 +24,12 @@ export default async function AppointmentDetailsPage({
   return (
     <PageContainer>
       <div className='flex flex-1 flex-col gap-6'>
-        <div>
-          <h1 className='text-2xl font-semibold tracking-tight'>Appointment Details</h1>
-          <p className='text-sm text-muted-foreground'>Review visit details and clinical notes.</p>
+        <div className='flex flex-wrap items-center justify-between gap-3'>
+          <div>
+            <h1 className='text-2xl font-semibold tracking-tight'>Appointment Details</h1>
+            <p className='text-sm text-muted-foreground'>Review visit details and clinical notes.</p>
+          </div>
+          <PrintActions appointment={appointment} />
         </div>
 
         <div className='grid gap-4 lg:grid-cols-3'>

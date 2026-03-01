@@ -97,14 +97,6 @@ export const superAdminNavItems: NavItem[] = [
     isActive: false,
     shortcut: ['j', 'j'],
     items: []
-  },
-  {
-    title: 'Subscriptions',
-    url: '/superadmin/subscriptions',
-    icon: 'billing',
-    isActive: false,
-    shortcut: ['s', 's'],
-    items: []
   }
 ];
 

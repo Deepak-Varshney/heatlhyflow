@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -30,6 +31,8 @@ const formSchema = z.object({
   address: z.string().min(1, "Address is required"),
   bp: z.string().optional(),
   weight: z.number().optional(),
+  occupation: z.string().optional(),
+  medicalHistory: z.string().optional(),
 });
 
 type EditPatientFormValues = z.infer<typeof formSchema>;
@@ -58,7 +61,7 @@ export function EditPatientDialog({ patient, open, onOpenChange }: { patient: an
   }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-150">
         <DialogHeader>
           <DialogTitle>Edit Patient Details</DialogTitle>
           <DialogDescription>
@@ -75,6 +78,9 @@ export function EditPatientDialog({ patient, open, onOpenChange }: { patient: an
                 <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
+            <FormField name="occupation" control={form.control} render={({ field }) => (
+              <FormItem><FormLabel>Occupation</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
             <FormField name="email" control={form.control} render={({ field }) => (
               <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
@@ -92,6 +98,9 @@ export function EditPatientDialog({ patient, open, onOpenChange }: { patient: an
                 <FormItem><FormLabel>Weight (kg)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
+            <FormField name="medicalHistory" control={form.control} render={({ field }) => (
+              <FormItem><FormLabel>Patient History</FormLabel><FormControl><Textarea rows={3} {...field} /></FormControl><FormMessage /></FormItem>
+            )} />
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>

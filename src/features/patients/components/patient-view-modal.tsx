@@ -35,6 +35,8 @@ type PatientDetails = {
   address?: string;
   bp?: string;
   weight?: number;
+  occupation?: string;
+  medicalHistory?: string;
   appointments: PatientAppointment[];
 };
 
@@ -95,6 +97,10 @@ export function PatientViewModal({ patientId, open, onOpenChange }: PatientViewM
                     <span className='text-muted-foreground'>Address</span>
                     <span className='text-right'>{patient.address || 'N/A'}</span>
                   </div>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-muted-foreground'>Occupation</span>
+                    <span>{patient.occupation || 'N/A'}</span>
+                  </div>
                 </CardContent>
               </Card>
               <Card>
@@ -119,6 +125,15 @@ export function PatientViewModal({ patientId, open, onOpenChange }: PatientViewM
                 </CardContent>
               </Card>
             </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Patient History</CardTitle>
+              </CardHeader>
+              <CardContent className='text-sm text-muted-foreground'>
+                {patient.medicalHistory || 'No history recorded.'}
+              </CardContent>
+            </Card>
 
             <Card>
               <CardHeader>

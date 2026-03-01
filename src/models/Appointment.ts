@@ -21,6 +21,8 @@ export interface IAppointment extends Document {
   }>;
   doctorFee?: number;
   discount?: number;
+  discountType?: 'amount' | 'percentage';
+  discountValue?: number;
   totalAmount?: number;
 }
 
@@ -78,6 +80,16 @@ const AppointmentSchema = new Schema<IAppointment>(
       min: 0,
     },
     discount: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+    discountType: {
+      type: String,
+      enum: ['amount', 'percentage'],
+      default: 'amount',
+    },
+    discountValue: {
       type: Number,
       min: 0,
       default: 0,

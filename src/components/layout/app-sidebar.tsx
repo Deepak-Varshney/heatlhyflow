@@ -38,37 +38,23 @@ import {
   IconCreditCard,
   IconLogout,
   IconPhotoUp,
-  IconUserCircle
+  IconUserCircle,
+  IconBuilding
 } from '@tabler/icons-react';
 import { SignOutButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import { Icons } from '../icons';
-import { OrgSwitcher } from '../org-switcher';
 import { NavItem } from '@/types';
-export const company = {
-  name: 'Acme Inc',
-  logo: IconPhotoUp,
-  plan: 'Enterprise'
-};
 
-const tenants = [
-  { id: '1', name: 'Acme Inc' },
-  { id: '2', name: 'Beta Corp' },
-  { id: '3', name: 'Gamma Ltd' }
-];
 
-export default function AppSidebar({navItems}:{navItems:NavItem[]}) {
+
+export default function AppSidebar({navItems, organizationName = 'Organization'}:{navItems:NavItem[], organizationName?: string}) {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
   const { user } = useUser();
   const router = useRouter();
-  const handleSwitchTenant = (_tenantId: string) => {
-    // Tenant switching functionality would be implemented here
-  };
-
-  const activeTenant = tenants[0];
 
   React.useEffect(() => {
     // Side effects based on sidebar state changes
@@ -77,11 +63,25 @@ export default function AppSidebar({navItems}:{navItems:NavItem[]}) {
   return (
     <Sidebar collapsible='icon'>
       <SidebarHeader>
-        <OrgSwitcher
-          tenants={tenants}
-          defaultTenant={activeTenant}
-          onTenantSwitch={handleSwitchTenant}
-        />
+        <div className="flex flex-col gap-3">
+          {/* App Branding */}
+          <div className="flex items-center gap-2.5 px-0">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground shrink-0">
+              <span className="text-sm font-bold">M</span>
+            </div>
+            <span className="font-semibold text-sm leading-tight">MediNest</span>
+          </div>
+          
+          {/* Organization Section */}
+          <div className="bg-secondary/40 rounded-lg p-2.5 border border-secondary/60">
+            <div className="flex items-start gap-2">
+              <IconBuilding className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-foreground/80 truncate">{organizationName}</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </SidebarHeader>
       <SidebarContent className='overflow-x-hidden'>
         <SidebarGroup>
@@ -187,14 +187,6 @@ export default function AppSidebar({navItems}:{navItems:NavItem[]}) {
                   >
                     <IconUserCircle className='mr-2 h-4 w-4' />
                     Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <IconCreditCard className='mr-2 h-4 w-4' />
-                    Billing
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <IconBell className='mr-2 h-4 w-4' />
-                    Notifications
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />

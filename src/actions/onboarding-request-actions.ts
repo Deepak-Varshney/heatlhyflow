@@ -13,6 +13,7 @@ import {
 } from "@/lib/email-templates";
 import { clerkClient } from "@clerk/nextjs/server";
 import { getMongoUser } from "@/lib/CheckUser";
+import { serializeMongoDocument, serializeMongoDocuments } from "@/lib/mongodb-serializer";
 
 interface SubmitOnboardingRequestParams {
   firstName: string;
@@ -106,6 +107,9 @@ export async function submitOnboardingRequest(
 /**
  * Get all onboarding requests (for superadmin)
  */
+/**
+ * Get all onboarding requests with proper serialization for Client Components
+ */
 export async function getOnboardingRequests(
   status?: "PENDING" | "APPROVED" | "REJECTED"
 ) {
@@ -121,17 +125,40 @@ export async function getOnboardingRequests(
 
   try {
     const query = status ? { status } : {};
+    // Use toJSON() to ensure all Mongoose-specific objects are converted
     const requests = await OnboardingRequest.find(query)
       .sort({ createdAt: -1 })
       .lean();
 
-    // Ensure dates are properly serialized
-    const serializedRequests = requests.map(req => ({
-      ...req,
-      _id: req._id?.toString(),
-      createdAt: req.createdAt instanceof Date ? req.createdAt.toISOString() : req.createdAt,
-      updatedAt: req.updatedAt instanceof Date ? req.updatedAt.toISOString() : req.updatedAt,
-    }));
+    // Properly serialize all MongoDB fields for Client Components
+    // This converts ObjectId objects to strings and Date objects to ISO strings
+    const serializedRequests = requests.map((req) => {
+      if (!req) return null;
+      
+      // Ensure all fields are properly serialized
+      return {
+        _id: req._id?.toString?.() || String(req._id),
+        firstName: req.firstName,
+        lastName: req.lastName,
+        email: req.email,
+        phone: req.phone,
+        address: req.address,
+        organizationName: req.organizationName,
+        organizationType: req.organizationType,
+        status: req.status,
+        createdAt: req.createdAt instanceof Date ? req.createdAt.toISOString() : req.createdAt,
+        approvalDate: req.approvalDate instanceof Date ? req.approvalDate.toISOString() : req.approvalDate,
+        rejectionReason: req.rejectionReason,
+        approvedBy: req.approvedBy?.toString?.() || (req.approvedBy ? String(req.approvedBy) : undefined),
+        clerkUserId: req.clerkUserId,
+        specialty: req.specialty,
+        yearsOfExperience: req.yearsOfExperience,
+        organizationType: req.organizationType,
+        registrationDocument: req.registrationDocument,
+        licenseDocument: req.licenseDocument,
+        treatments: req.treatments,
+      };
+    });
 
     return {
       success: true,
@@ -170,13 +197,8 @@ export async function getOnboardingRequest(requestId: string) {
       };
     }
 
-    // Serialize the request document
-    const serialized = {
-      ...request,
-      _id: request._id?.toString(),
-      createdAt: request.createdAt instanceof Date ? request.createdAt.toISOString() : request.createdAt,
-      updatedAt: request.updatedAt instanceof Date ? request.updatedAt.toISOString() : request.updatedAt,
-    };
+    // Properly serialize all MongoDB fields for Client Components
+    const serialized = serializeMongoDocument(request);
 
     return {
       success: true,

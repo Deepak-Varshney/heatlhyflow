@@ -36,13 +36,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const treatmentSchema = z.object({
   name: z.string().min(1, "Treatment name is required"),
-  price: z.number().min(0, "Price must be positive"),
+  price: z.coerce.number().min(0, "Price must be positive"),
 });
 
 type TreatmentFormValues = z.infer<typeof treatmentSchema>;
 
 const consultationFeeSchema = z.object({
-  consultationFee: z.number().min(0, "Fee must be positive"),
+  consultationFee: z.coerce.number().min(0, "Fee must be positive"),
 });
 
 type ConsultationFeeFormValues = z.infer<typeof consultationFeeSchema>;
@@ -56,7 +56,7 @@ export default function ManageTreatmentsDialog() {
   const [isLoadingFee, setIsLoadingFee] = useState(false);
 
   const treatmentForm = useForm<TreatmentFormValues>({
-    resolver: zodResolver(treatmentSchema),
+    resolver: zodResolver(treatmentSchema as any),
     defaultValues: {
       name: "",
       price: 0,
@@ -64,7 +64,7 @@ export default function ManageTreatmentsDialog() {
   });
 
   const feeForm = useForm<ConsultationFeeFormValues>({
-    resolver: zodResolver(consultationFeeSchema),
+    resolver: zodResolver(consultationFeeSchema as any),
     defaultValues: {
       consultationFee: 0,
     },

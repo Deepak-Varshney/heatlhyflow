@@ -272,7 +272,7 @@ export default async function LandingPage() {
                       className="group relative overflow-hidden border-2 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg transition-all duration-300 bg-white dark:bg-slate-800"
                     >
                       <CardHeader className="space-y-4">
-                        <div className={`h-14 w-14 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center shadow-lg ${feature.shadow} group-hover:scale-110 transition-transform`}>
+                        <div className={`h-14 w-14 rounded-xl bg-linear-to-br ${feature.color} flex items-center justify-center shadow-lg ${feature.shadow} group-hover:scale-110 transition-transform`}>
                           <Icon className="h-7 w-7 text-white" />
                         </div>
                         <div className="space-y-2">
@@ -313,7 +313,7 @@ export default async function LandingPage() {
                       return (
                         <div key={idx} className="flex gap-4 group">
                           <div className="shrink-0">
-                            <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${colors[idx]} to-${colors[idx].split("-")[1]}-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                            <div className={`h-12 w-12 rounded-xl bg-linear-to-br ${colors[idx]} to-${colors[idx].split("-")[1]}-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
                               <Icon className="h-6 w-6 text-white" />
                             </div>
                           </div>
@@ -337,7 +337,7 @@ export default async function LandingPage() {
                     <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-slate-800">
                       <CardHeader className="p-6 md:p-8 space-y-2">
                         <div className="text-3xl">🏥</div>
-                        <CardTitle className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                        <CardTitle className="text-3xl md:text-4xl font-bold bg-linear-to-br from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                           500+
                         </CardTitle>
                         <CardDescription className="text-base font-medium text-gray-600 dark:text-gray-400">
@@ -349,7 +349,7 @@ export default async function LandingPage() {
                     <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-slate-800">
                       <CardHeader className="p-6 md:p-8 space-y-2">
                         <div className="text-3xl">👥</div>
-                        <CardTitle className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                        <CardTitle className="text-3xl md:text-4xl font-bold bg-linear-to-br from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                           100K+
                         </CardTitle>
                         <CardDescription className="text-base font-medium text-gray-600 dark:text-gray-400">
@@ -361,7 +361,7 @@ export default async function LandingPage() {
                     <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-slate-800">
                       <CardHeader className="p-6 md:p-8 space-y-2">
                         <div className="text-3xl">📅</div>
-                        <CardTitle className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                        <CardTitle className="text-3xl md:text-4xl font-bold bg-linear-to-br from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                           1M+
                         </CardTitle>
                         <CardDescription className="text-base font-medium text-gray-600 dark:text-gray-400">
@@ -373,7 +373,7 @@ export default async function LandingPage() {
                     <Card className="group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-slate-800">
                       <CardHeader className="p-6 md:p-8 space-y-2">
                         <div className="text-3xl">⚡</div>
-                        <CardTitle className="text-3xl md:text-4xl font-bold bg-gradient-to-br from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                        <CardTitle className="text-3xl md:text-4xl font-bold bg-linear-to-br from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                           99.9%
                         </CardTitle>
                         <CardDescription className="text-base font-medium text-gray-600 dark:text-gray-400">
@@ -406,10 +406,10 @@ export default async function LandingPage() {
                     return (
                       <div key={idx} className="relative">
                         {idx < steps.length - 1 && (
-                          <div className="hidden md:block absolute top-1/2 -right-3 w-6 h-px bg-gradient-to-r from-blue-400 to-transparent" />
+                          <div className="hidden md:block absolute top-1/2 -right-3 w-6 h-px bg-linear-to-r from-blue-400 to-transparent" />
                         )}
                         <div className="space-y-4">
-                          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 text-white font-bold text-lg mx-auto">
+                          <div className="flex items-center justify-center w-12 h-12 rounded-full bg-linear-to-br from-blue-600 to-blue-700 text-white font-bold text-lg mx-auto">
                             {step.number}
                           </div>
                           <div>

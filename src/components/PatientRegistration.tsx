@@ -47,6 +47,7 @@ export default function PatientRegistrationDialog() {
     bp: z.string().optional(),
     weight: z.number().nullable().optional(),
     occupation: z.string().optional(),
+    medicalHistory: z.string().optional(),
   });
 
 
@@ -56,9 +57,11 @@ export default function PatientRegistrationDialog() {
       firstName: "",
       lastName: "",
       dateOfBirth: undefined,
-      email: "",
       phoneNumber: "",
+      occupation: "",
+      email: "",
       address: "",
+      medicalHistory: "",
       emergencyContactPhone: "",
     },
   });
@@ -211,6 +214,29 @@ export default function PatientRegistrationDialog() {
               {/* Optional Fields */}
               <FormField
                 control={form.control}
+                name="occupation"
+                render={({ field }) => (
+                  <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
+                    <FormLabel className="flex shrink-0">
+                      Occupation <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
+                    </FormLabel>
+                    <div className="w-full">
+                      <FormControl>
+                        <Input
+                          placeholder="e.g. Teacher"
+                          type="text"
+                          className="w-full"
+                          {...field}
+                          value={field.value || ""}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="email"
                 render={({ field }) => (
                   <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
@@ -308,17 +334,16 @@ export default function PatientRegistrationDialog() {
 
               <FormField
                 control={form.control}
-                name="occupation"
+                name="medicalHistory"
                 render={({ field }) => (
                   <FormItem className="col-span-12 col-start-auto flex flex-col gap-2 space-y-0 items-start">
                     <FormLabel className="flex shrink-0">
-                      Occupation <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
+                      Patient History <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
                     </FormLabel>
                     <div className="w-full">
                       <FormControl>
-                        <Input
-                          placeholder="e.g. Teacher"
-                          type="text"
+                        <Textarea
+                          placeholder="e.g. Diabetes, hypertension, previous surgeries..."
                           className="w-full"
                           {...field}
                           value={field.value || ""}

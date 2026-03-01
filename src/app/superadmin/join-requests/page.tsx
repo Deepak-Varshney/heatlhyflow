@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, CheckCircle, Clock, Download } from "lucide-react";
+import PageContainer from "@/components/layout/page-container";
 import { getOnboardingRequests, approveOnboardingRequest, rejectOnboardingRequest } from "@/app/actions/onboarding-request-actions";
 
 interface OnboardingRequestData {
@@ -102,11 +103,11 @@ export default function JoinRequestsPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "PENDING":
-        return <Badge className="bg-yellow-100 text-yellow-800">Pending Review</Badge>;
+        return <Badge className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300">Pending Review</Badge>;
       case "APPROVED":
-        return <Badge className="bg-green-100 text-green-800">Approved</Badge>;
+        return <Badge className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300">Approved</Badge>;
       case "REJECTED":
-        return <Badge className="bg-red-100 text-red-800">Rejected</Badge>;
+        return <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">Rejected</Badge>;
       default:
         return null;
     }
@@ -115,11 +116,11 @@ export default function JoinRequestsPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "PENDING":
-        return <Clock className="w-5 h-5 text-yellow-600" />;
+        return <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />;
       case "APPROVED":
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
+        return <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />;
       case "REJECTED":
-        return <AlertCircle className="w-5 h-5 text-red-600" />;
+        return <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />;
       default:
         return null;
     }
@@ -133,20 +134,20 @@ export default function JoinRequestsPage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading requests...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading requests...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <PageContainer scrollable={true}>
+      <div className="w-full space-y-8">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">Join Requests</h1>
-          <p className="text-gray-600">Review and approve new clinic/hospital onboarding requests</p>
+          <h1 className="text-3xl font-bold text-primary">Join Requests</h1>
+          <p className="text-foreground">Review and approve new clinic/hospital onboarding requests</p>
         </div>
 
         {/* Stats Cards */}
@@ -155,10 +156,10 @@ export default function JoinRequestsPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Pending</p>
-                  <p className="text-3xl font-bold text-yellow-600">{pendingCount}</p>
+                  <p className="text-sm text-muted-foreground">Pending</p>
+                  <p className="text-3xl font-bold text-amber-600 dark:text-amber-400">{pendingCount}</p>
                 </div>
-                <Clock className="w-8 h-8 text-yellow-600 opacity-20" />
+                <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400 opacity-20" />
               </div>
             </CardContent>
           </Card>
@@ -167,10 +168,10 @@ export default function JoinRequestsPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Approved</p>
-                  <p className="text-3xl font-bold text-green-600">{approvedCount}</p>
+                  <p className="text-sm text-muted-foreground">Approved</p>
+                  <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{approvedCount}</p>
                 </div>
-                <CheckCircle className="w-8 h-8 text-green-600 opacity-20" />
+                <CheckCircle className="w-8 h-8 text-emerald-600 dark:text-emerald-400 opacity-20" />
               </div>
             </CardContent>
           </Card>
@@ -179,10 +180,10 @@ export default function JoinRequestsPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Rejected</p>
-                  <p className="text-3xl font-bold text-red-600">{rejectedCount}</p>
+                  <p className="text-sm text-muted-foreground">Rejected</p>
+                  <p className="text-3xl font-bold text-red-600 dark:text-red-400">{rejectedCount}</p>
                 </div>
-                <AlertCircle className="w-8 h-8 text-red-600 opacity-20" />
+                <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-400 opacity-20" />
               </div>
             </CardContent>
           </Card>
@@ -277,9 +278,9 @@ export default function JoinRequestsPage() {
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="bg-blue-50 rounded-lg p-4 space-y-2">
-              <p className="text-sm font-medium text-gray-900">Request Details:</p>
-              <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 space-y-2">
+              <p className="text-sm font-medium text-foreground">Request Details:</p>
+              <div className="grid grid-cols-2 gap-2 text-sm text-foreground">
                 <div>
                   <span className="font-medium">Name:</span> {selectedRequest?.firstName}{" "}
                   {selectedRequest?.lastName}
@@ -310,7 +311,7 @@ export default function JoinRequestsPage() {
               Cancel
             </Button>
             <Button
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800"
               onClick={handleApprove}
               disabled={isProcessing}
             >
@@ -358,7 +359,7 @@ export default function JoinRequestsPage() {
               Cancel
             </Button>
             <Button
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
               onClick={handleReject}
               disabled={isProcessing || !rejectionReason.trim()}
             >
@@ -367,7 +368,7 @@ export default function JoinRequestsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer >
   );
 }
 
@@ -381,35 +382,35 @@ function RequestCard({
   onReject: () => void;
 }) {
   return (
-    <div className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+    <div className="border border-border rounded-lg p-6 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-foreground">
               {request.firstName} {request.lastName}
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mb-4">
             <div>
-              <span className="font-medium text-gray-900">Email:</span>
+              <span className="font-medium text-foreground">Email:</span>
               <p>{request.email}</p>
             </div>
             <div>
-              <span className="font-medium text-gray-900">Phone:</span>
+              <span className="font-medium text-foreground">Phone:</span>
               <p>{request.phone}</p>
             </div>
             <div>
-              <span className="font-medium text-gray-900">Organization:</span>
+              <span className="font-medium text-foreground">Organization:</span>
               <p>{request.organizationName}</p>
             </div>
             <div>
-              <span className="font-medium text-gray-900">Type:</span>
+              <span className="font-medium text-foreground">Type:</span>
               <p>{request.organizationType}</p>
             </div>
           </div>
 
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-muted-foreground">
             Submitted: {new Date(request.createdAt).toLocaleString()}
           </div>
         </div>
@@ -417,7 +418,7 @@ function RequestCard({
         <div className="flex gap-2 ml-4">
           <Button
             size="sm"
-            className="bg-green-600 hover:bg-green-700"
+            className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800"
             onClick={onApprove}
           >
             Approve
@@ -437,42 +438,42 @@ function RequestCard({
 
 function RequestCardStatic({ request }: { request: OnboardingRequestData }) {
   return (
-    <div className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+    <div className="border border-border rounded-lg p-6 bg-muted/30">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-foreground">
               {request.firstName} {request.lastName}
             </h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mb-4">
             <div>
-              <span className="font-medium text-gray-900">Email:</span>
+              <span className="font-medium text-foreground">Email:</span>
               <p>{request.email}</p>
             </div>
             <div>
-              <span className="font-medium text-gray-900">Phone:</span>
+              <span className="font-medium text-foreground">Phone:</span>
               <p>{request.phone}</p>
             </div>
             <div>
-              <span className="font-medium text-gray-900">Organization:</span>
+              <span className="font-medium text-foreground">Organization:</span>
               <p>{request.organizationName}</p>
             </div>
             <div>
-              <span className="font-medium text-gray-900">Type:</span>
+              <span className="font-medium text-foreground">Type:</span>
               <p>{request.organizationType}</p>
             </div>
           </div>
 
           {request.rejectionReason && (
-            <div className="bg-red-50 rounded p-2 mb-2">
-              <p className="text-xs font-medium text-red-900">Rejection Reason:</p>
-              <p className="text-xs text-red-700">{request.rejectionReason}</p>
+            <div className="bg-red-50 dark:bg-red-900/20 rounded p-2 mb-2">
+              <p className="text-xs font-medium text-red-900 dark:text-red-300">Rejection Reason:</p>
+              <p className="text-xs text-red-700 dark:text-red-400">{request.rejectionReason}</p>
             </div>
           )}
 
-          <div className="text-xs text-gray-500">
+          <div className="text-xs text-muted-foreground">
             {request.status === "APPROVED"
               ? `Approved: ${new Date(request.approvalDate || "").toLocaleString()}`
               : `Submitted: ${new Date(request.createdAt).toLocaleString()}`}

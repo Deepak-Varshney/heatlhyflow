@@ -35,6 +35,7 @@ export async function createPatient(patientData: any) {
       bp: patientData.bp || undefined,
       weight: patientData.weight || undefined,
       occupation: patientData.occupation || undefined,
+      medicalHistory: patientData.medicalHistory || undefined,
     });
 
     await newPatient.save();
@@ -167,9 +168,10 @@ interface PatientUpdateData {
   email: string;
   phoneNumber: string;
   address: string;
-  bloodPressure?: string;
+  bp?: string;
   weight?: number;
-  height?: number;
+  occupation?: string;
+  medicalHistory?: string;
   // Baaki fields bhi add kar sakte hain
 }
 
