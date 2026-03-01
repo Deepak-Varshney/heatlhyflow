@@ -117,10 +117,13 @@ export function serializeMongoDocument(doc: any): any {
         typeof item === "object" && item !== null ? serializeMongoDocument(item) : item
       );
     } else if (value !== null && typeof value === "object") {
+      const objectValue = value as { buffer?: unknown; _id?: unknown; constructor?: { name?: string } };
+
       // Check if it looks like an ObjectId object (has toString, constructor name ObjectId, or has buffer property)
       if (
-        (value.constructor && value.constructor.name === "ObjectId") ||
-        (typeof value === "object" && (value.buffer || value._id))
+        (objectValue.constructor && objectValue.constructor.name === "ObjectId") ||
+        objectValue.buffer !== undefined ||
+        objectValue._id !== undefined
       ) {
         serialized[key] = serializeObjectId(value);
       } else {

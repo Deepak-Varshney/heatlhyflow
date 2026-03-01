@@ -153,7 +153,6 @@ export async function getOnboardingRequests(
         clerkUserId: req.clerkUserId,
         specialty: req.specialty,
         yearsOfExperience: req.yearsOfExperience,
-        organizationType: req.organizationType,
         registrationDocument: req.registrationDocument,
         licenseDocument: req.licenseDocument,
         treatments: req.treatments,
