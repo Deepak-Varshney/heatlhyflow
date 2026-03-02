@@ -74,8 +74,6 @@ export function UserEditForm({ user, onClose, currentUserRole }: UserEditFormPro
                 <SelectItem value="UNASSIGNED">Unassigned</SelectItem>
                 <SelectItem value="RECEPTIONIST">Receptionist</SelectItem>
                 <SelectItem value="DOCTOR">Doctor</SelectItem>
-                {/* <SelectItem value="SUPERADMIN">Super Admin</SelectItem>
-                <SelectItem value="DEVIL">🔥 DEVIL 🔥</SelectItem> */}
               </SelectContent>
             </Select>
           </div>

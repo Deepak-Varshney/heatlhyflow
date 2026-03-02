@@ -69,7 +69,9 @@ export default function AppSidebar({navItems, organizationName = 'Organization'}
             <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary text-primary-foreground shrink-0">
               <span className="text-sm font-bold">M</span>
             </div>
-            <span className="font-semibold text-sm leading-tight">MediNest</span>
+            <span className="font-semibold text-sm leading-tight group-data-[collapsible=icon]:hidden">
+              MediNest
+            </span>
           </div>
           
           {/* Organization Section */}

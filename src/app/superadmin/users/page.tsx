@@ -4,11 +4,10 @@ import PageContainer from "@/components/layout/page-container";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { getAllUsers, getUserStats } from "@/actions/superadmin-actions";
 import { UserStats } from "./components/user-stats";
 import { UserDetailsModal } from "./components/user-details-modal";
+import { UsersAutoFilters } from "./components/users-auto-filters";
 
 type UsersSearchParams = Promise<{
   page?: string;
@@ -48,7 +47,7 @@ export default async function UsersPage({ searchParams }: { searchParams: UsersS
 
     return (
       <PageContainer scrollable>
-        <div className="space-y-6">
+        <div className="space-y-6 w-full">
           <div>
             <h1 className="text-2xl font-semibold">User Management</h1>
             <p className="text-sm text-muted-foreground">
@@ -64,52 +63,13 @@ export default async function UsersPage({ searchParams }: { searchParams: UsersS
               <CardDescription>Server-rendered listing with reliable filtering and paging.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <form action="/superadmin/users" method="get" className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <div className="md:col-span-2 space-y-1">
-                  <Label htmlFor="search">Search</Label>
-                  <Input id="search" name="search" defaultValue={search} placeholder="Name, email, specialty" />
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="role">Role</Label>
-                  <select
-                    id="role"
-                    name="role"
-                    defaultValue={role ?? "ALL"}
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="ALL">All Roles</option>
-                    <option value="DOCTOR">Doctor</option>
-                    <option value="RECEPTIONIST">Receptionist</option>
-                    <option value="SUPERADMIN">Super Admin</option>
-                    <option value="DEVIL">Devil</option>
-                    <option value="UNASSIGNED">Unassigned</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="verificationStatus">Status</Label>
-                  <select
-                    id="verificationStatus"
-                    name="verificationStatus"
-                    defaultValue={verificationStatus ?? "ALL"}
-                    className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                  >
-                    <option value="ALL">All Status</option>
-                    <option value="VERIFIED">Verified</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="REJECTED">Rejected</option>
-                  </select>
-                </div>
-
-                <input type="hidden" name="limit" value={String(limit)} />
-                <div className="md:col-span-4 flex items-center gap-2">
-                  <Button type="submit">Apply Filters</Button>
-                  <Button asChild variant="outline">
-                    <Link href="/superadmin/users">Reset</Link>
-                  </Button>
-                </div>
-              </form>
+              <UsersAutoFilters
+                searchParams={{
+                  search,
+                  role: role ?? "ALL",
+                  verificationStatus: verificationStatus ?? "ALL",
+                }}
+              />
 
               <div className="overflow-x-auto rounded-md border">
                 <table className="w-full text-sm">
