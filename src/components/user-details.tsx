@@ -1,5 +1,6 @@
 'use client'
-import { notFound } from "next/navigation";
+import { useState } from "react";
+import { notFound, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { getUserById, updateUser, deleteUser, permanentlyDeleteUser } from "@/app/actions/superadmin-actions";
+import { getUserById, updateUser, deleteUser, permanentlyDeleteUser } from "@/actions/superadmin-actions";
 import { ArrowLeft, Edit, Trash2, UserCheck, UserX, Calendar, Mail, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
 
@@ -108,10 +109,25 @@ function UserEditForm({ user, onClose }: { user: any; onClose: () => void }) {
 }
 
 export default function UserDetailPage({ user }: { user: any }) {
+    const router = useRouter();
+    const [isDeleting, setIsDeleting] = useState(false);
 
     if (!user) {
         notFound();
     }
+
+    const handlePermanentDelete = async () => {
+        if (isDeleting) return;
+
+        try {
+            setIsDeleting(true);
+            await permanentlyDeleteUser(user._id);
+            router.push('/superadmin/users');
+            router.refresh();
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -189,12 +205,13 @@ export default function UserDetailPage({ user }: { user: any }) {
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
                                     <AlertDialogAction
-                                        onClick={() => permanentlyDeleteUser(user._id)}
+                                        onClick={handlePermanentDelete}
+                                        disabled={isDeleting}
                                         className="bg-red-600 hover:bg-red-700"
                                     >
-                                        Delete Permanently
+                                        {isDeleting ? "Deleting..." : "Delete Permanently"}
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>

@@ -6,9 +6,11 @@ import { Separator } from "@/components/ui/separator";
 import PageContainer from "@/components/layout/page-container";
 import connectDB from "@/lib/mongodb";
 import Organization from "@/models/Organization";
+import User from "@/models/User";
 import { getUserStats } from "@/actions/superadmin-actions";
 import { getOnboardingRequests } from "@/actions/onboarding-request-actions";
 import { RequestDetailsModal } from "@/components/request-details-modal";
+import SuperadminControls from "./superadmin-controls";
 import Link from 'next/link';
 
 const glassCardClass =
@@ -21,6 +23,35 @@ export default async function SuperAdminDashboard() {
     const organizationsTotal = await Organization.countDocuments();
     const organizationsActive = await Organization.countDocuments({ status: "ACTIVE" });
     const organizationsPending = await Organization.countDocuments({ status: "PENDING" });
+    const organizationOptions = await Organization.find({})
+        .select("_id name status")
+        .sort({ name: 1 })
+        .lean();
+    const movableUsers = await User.find({ role: { $in: ["DOCTOR", "RECEPTIONIST", "UNASSIGNED"] } })
+        .select("_id firstName lastName email role organization")
+        .populate("organization", "_id name")
+        .sort({ firstName: 1, lastName: 1 })
+        .lean();
+
+    const serializedOrganizationOptions = organizationOptions.map((organization: any) => ({
+        _id: organization._id.toString(),
+        name: organization.name,
+        status: organization.status,
+    }));
+
+    const serializedMovableUsers = movableUsers.map((user: any) => ({
+        _id: user._id.toString(),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        organization: user.organization
+            ? {
+                  _id: user.organization._id.toString(),
+                  name: user.organization.name,
+              }
+            : null,
+    }));
 
     const allRequestsResult = await getOnboardingRequests();
     const allRequests: any[] = allRequestsResult.success
@@ -179,6 +210,19 @@ export default async function SuperAdminDashboard() {
                             <AlertRow title="Pending Users" value={userStats.pendingUsers} />
                         </CardContent>
                     </Card>
+                </section>
+
+                <section className="space-y-4">
+                    <div className="space-y-1">
+                        <h2 className="text-xl font-semibold">Superadmin Exclusive Actions</h2>
+                        <p className="text-sm text-muted-foreground">
+                            Create organizations and move users between organizations from one place.
+                        </p>
+                    </div>
+                    <SuperadminControls
+                        organizations={serializedOrganizationOptions}
+                        movableUsers={serializedMovableUsers}
+                    />
                 </section>
             </div>
         </PageContainer>

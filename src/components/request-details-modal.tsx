@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import {
   approveOnboardingRequest,
+  deleteOnboardingRequest,
   rejectOnboardingRequest,
 } from "@/actions/onboarding-request-actions";
 
@@ -23,7 +24,7 @@ export function RequestDetailsModal({ request }: { request: any }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [activeAction, setActiveAction] = useState<"approve" | "reject" | null>(null);
+  const [activeAction, setActiveAction] = useState<"approve" | "reject" | "delete" | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -68,6 +69,24 @@ export function RequestDetailsModal({ request }: { request: any }) {
       } catch (error) {
         console.error(error);
         setErrorMessage("Unable to reject the request. Please try again.");
+      } finally {
+        setActiveAction(null);
+      }
+    });
+  };
+
+  const handleDelete = () => {
+    setErrorMessage(null);
+    setActiveAction("delete");
+    startTransition(async () => {
+      try {
+        await deleteOnboardingRequest(requestId);
+        setOpen(false);
+        setReason("");
+        router.refresh();
+      } catch (error) {
+        console.error(error);
+        setErrorMessage("Unable to delete the request. Please try again.");
       } finally {
         setActiveAction(null);
       }
@@ -240,6 +259,21 @@ export function RequestDetailsModal({ request }: { request: any }) {
                 <p className="text-xs text-rose-600">{errorMessage}</p>
               )}
               <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={isBusy}
+                >
+                  {activeAction === "delete" ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Deleting
+                    </span>
+                  ) : (
+                    "Delete Request"
+                  )}
+                </Button>
                 <Button
                   type="button"
                   variant="destructive"

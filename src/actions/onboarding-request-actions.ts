@@ -133,8 +133,6 @@ export async function getOnboardingRequests(
     // Properly serialize all MongoDB fields for Client Components
     // This converts ObjectId objects to strings and Date objects to ISO strings
     const serializedRequests = requests.map((req) => {
-      if (!req) return null;
-      
       // Ensure all fields are properly serialized
       return {
         _id: req._id?.toString?.() || String(req._id),
@@ -443,6 +441,48 @@ export async function rejectOnboardingRequest(
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to reject request",
+    };
+  }
+}
+
+/**
+ * Delete onboarding request
+ */
+export async function deleteOnboardingRequest(requestId: string) {
+  await connectDB();
+  const superAdmin = await getMongoUser();
+
+  if (!superAdmin || (superAdmin.role !== "SUPERADMIN" && superAdmin.role !== "DEVIL")) {
+    return {
+      success: false,
+      error: "Unauthorized",
+    };
+  }
+
+  try {
+    const request = await OnboardingRequest.findById(requestId);
+
+    if (!request) {
+      return {
+        success: false,
+        error: "Request not found",
+      };
+    }
+
+    await OnboardingRequest.findByIdAndDelete(requestId);
+
+    revalidatePath("/superadmin/join-requests");
+    revalidatePath("/superadmin/dashboard");
+
+    return {
+      success: true,
+      message: "Onboarding request deleted successfully",
+    };
+  } catch (error) {
+    console.error("Error deleting onboarding request:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete request",
     };
   }
 }

@@ -17,7 +17,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, CheckCircle, Clock, Download } from "lucide-react";
 import PageContainer from "@/components/layout/page-container";
-import { getOnboardingRequests, approveOnboardingRequest, rejectOnboardingRequest } from "@/app/actions/onboarding-request-actions";
+import {
+  getOnboardingRequests,
+  approveOnboardingRequest,
+  rejectOnboardingRequest,
+  deleteOnboardingRequest,
+} from "@/actions/onboarding-request-actions";
 
 interface OnboardingRequestData {
   _id: string;
@@ -94,6 +99,28 @@ export default function JoinRequestsPage() {
     } else {
       alert(`Error: ${result.error}`);
     }
+    setIsProcessing(false);
+  };
+
+  const handleDelete = async (requestId: string) => {
+    const confirmed = window.confirm("Delete this onboarding request? This cannot be undone.");
+    if (!confirmed) return;
+
+    setIsProcessing(true);
+    const result = await deleteOnboardingRequest(requestId);
+
+    if (result.success) {
+      if (selectedRequest?._id === requestId) {
+        setApproveDialogOpen(false);
+        setRejectDialogOpen(false);
+        setSelectedRequest(null);
+        setRejectionReason("");
+      }
+      await loadRequests();
+    } else {
+      alert(`Error: ${result.error}`);
+    }
+
     setIsProcessing(false);
   };
 
@@ -221,6 +248,7 @@ export default function JoinRequestsPage() {
                     <RequestCard
                       key={request._id}
                       request={request}
+                      isProcessing={isProcessing}
                       onApprove={() => {
                         setSelectedRequest(request);
                         setApproveDialogOpen(true);
@@ -229,6 +257,7 @@ export default function JoinRequestsPage() {
                         setSelectedRequest(request);
                         setRejectDialogOpen(true);
                       }}
+                      onDelete={() => handleDelete(request._id)}
                     />
                   ))
                 )}
@@ -243,7 +272,12 @@ export default function JoinRequestsPage() {
                   </Alert>
                 ) : (
                   filterRequests("APPROVED").map((request) => (
-                    <RequestCardStatic key={request._id} request={request} />
+                    <RequestCardStatic
+                      key={request._id}
+                      request={request}
+                      isProcessing={isProcessing}
+                      onDelete={() => handleDelete(request._id)}
+                    />
                   ))
                 )}
               </TabsContent>
@@ -257,7 +291,12 @@ export default function JoinRequestsPage() {
                   </Alert>
                 ) : (
                   filterRequests("REJECTED").map((request) => (
-                    <RequestCardStatic key={request._id} request={request} />
+                    <RequestCardStatic
+                      key={request._id}
+                      request={request}
+                      isProcessing={isProcessing}
+                      onDelete={() => handleDelete(request._id)}
+                    />
                   ))
                 )}
               </TabsContent>
@@ -374,12 +413,16 @@ export default function JoinRequestsPage() {
 
 function RequestCard({
   request,
+  isProcessing,
   onApprove,
   onReject,
+  onDelete,
 }: {
   request: OnboardingRequestData;
+  isProcessing: boolean;
   onApprove: () => void;
   onReject: () => void;
+  onDelete: () => void;
 }) {
   return (
     <div className="border border-border rounded-lg p-6 hover:shadow-md transition-shadow">
@@ -420,6 +463,7 @@ function RequestCard({
             size="sm"
             className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-700 dark:hover:bg-emerald-800"
             onClick={onApprove}
+            disabled={isProcessing}
           >
             Approve
           </Button>
@@ -427,8 +471,17 @@ function RequestCard({
             size="sm"
             variant="destructive"
             onClick={onReject}
+            disabled={isProcessing}
           >
             Reject
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onDelete}
+            disabled={isProcessing}
+          >
+            Delete
           </Button>
         </div>
       </div>
@@ -436,7 +489,15 @@ function RequestCard({
   );
 }
 
-function RequestCardStatic({ request }: { request: OnboardingRequestData }) {
+function RequestCardStatic({
+  request,
+  isProcessing,
+  onDelete,
+}: {
+  request: OnboardingRequestData;
+  isProcessing: boolean;
+  onDelete: () => void;
+}) {
   return (
     <div className="border border-border rounded-lg p-6 bg-muted/30">
       <div className="flex items-start justify-between">
@@ -478,6 +539,12 @@ function RequestCardStatic({ request }: { request: OnboardingRequestData }) {
               ? `Approved: ${new Date(request.approvalDate || "").toLocaleString()}`
               : `Submitted: ${new Date(request.createdAt).toLocaleString()}`}
           </div>
+        </div>
+
+        <div className="ml-4">
+          <Button size="sm" variant="outline" onClick={onDelete} disabled={isProcessing}>
+            Delete
+          </Button>
         </div>
       </div>
     </div>

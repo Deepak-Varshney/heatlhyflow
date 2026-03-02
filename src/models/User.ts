@@ -61,7 +61,7 @@ const UserSchema = new Schema<IUser>(
     imageUrl: { type: String },
     role: {
       type: String,
-      enum: ["UNASSIGNED", "RECEPTIONIST", "DOCTOR", "ADMIN", "SUPERADMIN", "DEVIL"],
+      enum: ["UNASSIGNED", "RECEPTIONIST", "DOCTOR", "SUPERADMIN", "DEVIL"],
       default: "UNASSIGNED",
     },
     organization: {

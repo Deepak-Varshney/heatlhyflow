@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { SignOutButton, useUser } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,9 +12,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ThemeSelector } from '@/components/theme-selector';
 import Link from 'next/link';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export function PublicHeader() {
   const { theme, setTheme } = useTheme();
+  const { user, isLoaded } = useUser();
+
+  const displayName = user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'User';
+  const email = user?.emailAddresses?.[0]?.emailAddress || '';
 
   return (
     <header className="px-4 sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -53,10 +59,28 @@ export function PublicHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Sign In Button */}
-          <Link href="/auth/sign-in">
-            <Button size="sm">Sign In</Button>
-          </Link>
+          {/* Auth Controls */}
+          {isLoaded && user ? (
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2 rounded-md border px-2 py-1">
+                <Avatar className="h-7 w-7">
+                  <AvatarImage src={user.imageUrl} alt={displayName} />
+                  <AvatarFallback>{displayName.slice(0, 2).toUpperCase()}</AvatarFallback>
+                </Avatar>
+                <div className="max-w-45 leading-tight">
+                  <p className="truncate text-xs font-medium">{displayName}</p>
+                  <p className="truncate text-[11px] text-muted-foreground">{email}</p>
+                </div>
+              </div>
+              <SignOutButton redirectUrl="/">
+                <Button size="sm" variant="outline">Sign Out</Button>
+              </SignOutButton>
+            </div>
+          ) : (
+            <Link href="/auth/sign-in">
+              <Button size="sm">Sign In</Button>
+            </Link>
+          )}
         </div>
       </div>
     </header>

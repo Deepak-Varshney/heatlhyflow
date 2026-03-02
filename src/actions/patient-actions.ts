@@ -163,7 +163,7 @@ export async function updatePatient(patientId: string, data: PatientUpdateData) 
   try {
     // Security Check: Sirf logged-in user hi edit kar sakta hai
     const user = await getMongoUser();
-    if (!user || (user.role !== 'DOCTOR' && user.role !== 'RECEPTIONIST' && user.role !== 'ADMIN')) {
+    if (!user || (user.role !== 'DOCTOR' && user.role !== 'RECEPTIONIST' && user.role !== 'SUPERADMIN' && user.role !== 'DEVIL')) {
       throw new Error("Unauthorized access.");
     }
 

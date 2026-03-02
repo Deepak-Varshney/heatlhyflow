@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { updateOrganizationStatus } from "@/app/actions/superadmin-actions";
+import { deleteOrganization, updateOrganizationStatus, createOrganizationAsSuperadmin } from "@/actions/superadmin-actions";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -31,7 +32,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Search, ChevronDown } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MoreHorizontal, Search, ChevronDown, Plus } from 'lucide-react';
 
 interface IOrganization {
   _id: string;
@@ -66,7 +74,7 @@ const ToggleStatusForm = ({ orgId, currentStatus, clerkUserId }: {
   
   const handleToggle = () => {
     startTransition(async () => {
-      await updateOrganizationStatus(orgId, newStatus === "ACTIVE");
+      await updateOrganizationStatus(orgId, newStatus, clerkUserId);
       router.refresh();
     });
   };
@@ -240,6 +248,22 @@ const ClinicDetailsModal = ({ clinic, isOpen, onClose }: { clinic: IOrganization
 
 const ClinicActionsMenu = ({ clinic, onViewDetails }: { clinic: IOrganization; onViewDetails: (clinic: IOrganization) => void }) => {
   const router = useRouter();
+  const [isDeleting, startDeleteTransition] = useTransition();
+
+  const handleDelete = () => {
+    const confirmed = window.confirm(`Delete clinic "${clinic.name}"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    startDeleteTransition(async () => {
+      const result = await deleteOrganization(clinic._id);
+      if (!result.success) {
+        alert(result.error || "Failed to delete clinic");
+        return;
+      }
+      router.refresh();
+    });
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -262,8 +286,257 @@ const ClinicActionsMenu = ({ clinic, onViewDetails }: { clinic: IOrganization; o
             </DropdownMenuItem>
           </>
         )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="text-destructive focus:text-destructive"
+          onClick={handleDelete}
+          disabled={isDeleting}
+        >
+          {isDeleting ? 'Deleting...' : 'Delete Clinic'}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  );
+};
+
+const CreateClinicDialog = () => {
+  const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  
+  // Organization fields
+  const [organizationName, setOrganizationName] = useState("");
+  const [organizationType, setOrganizationType] = useState<"CLINIC" | "HOSPITAL" | "PRIVATE_PRACTICE" | "NURSING_HOME">("CLINIC");
+  
+  // Owner/Doctor fields
+  const [ownerFirstName, setOwnerFirstName] = useState("");
+  const [ownerLastName, setOwnerLastName] = useState("");
+  const [ownerEmail, setOwnerEmail] = useState("");
+  const [ownerPhone, setOwnerPhone] = useState("");
+  const [ownerSpecialty, setOwnerSpecialty] = useState("");
+  const [ownerExperience, setOwnerExperience] = useState("");
+  
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleCreateClinic = () => {
+    setError(null);
+    setMessage(null);
+
+    // Validation
+    if (!organizationName.trim()) {
+      setError("Clinic name is required");
+      return;
+    }
+    if (!ownerFirstName.trim() || !ownerLastName.trim()) {
+      setError("Owner's first and last name are required");
+      return;
+    }
+    if (!ownerEmail.trim()) {
+      setError("Owner's email is required");
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ownerEmail)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    if (!ownerPhone.trim()) {
+      setError("Owner's phone number is required");
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await createOrganizationAsSuperadmin({
+        name: organizationName,
+        type: organizationType,
+        ownerDetails: {
+          firstName: ownerFirstName,
+          lastName: ownerLastName,
+          email: ownerEmail,
+          phone: ownerPhone,
+          specialty: ownerSpecialty || undefined,
+          yearsOfExperience: ownerExperience ? parseInt(ownerExperience) : undefined,
+        },
+      });
+
+      if (!result.success) {
+        setError(result.error || "Failed to create clinic");
+        return;
+      }
+
+      // Reset form
+      setOrganizationName("");
+      setOwnerFirstName("");
+      setOwnerLastName("");
+      setOwnerEmail("");
+      setOwnerPhone("");
+      setOwnerSpecialty("");
+      setOwnerExperience("");
+      
+      setMessage(result.message || "Clinic created successfully");
+      setTimeout(() => {
+        setIsOpen(false);
+        setMessage(null);
+        router.refresh();
+      }, 1500);
+    });
+  };
+
+  return (
+    <>
+      <Button onClick={() => setIsOpen(true)} className="gap-2">
+        <Plus className="h-4 w-4" /> Create Clinic
+      </Button>
+      
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Clinic & Owner</DialogTitle>
+            <DialogDescription>
+              Create a new clinic and set up the owner/doctor account in one step.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-6 py-4">
+            {/* Clinic Information */}
+            <div className="border rounded-lg p-4 bg-muted/30">
+              <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">1</span>
+                Clinic Information
+              </h3>
+              <div className="grid gap-3">
+                <div className="grid gap-2">
+                  <Label htmlFor="clinicName">Clinic Name *</Label>
+                  <Input
+                    id="clinicName"
+                    placeholder="e.g., City Medical Center"
+                    value={organizationName}
+                    onChange={(e) => setOrganizationName(e.target.value)}
+                    disabled={isPending}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="clinicType">Organization Type *</Label>
+                  <Select value={organizationType} onValueChange={(value: any) => setOrganizationType(value)} disabled={isPending}>
+                    <SelectTrigger id="clinicType">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CLINIC">Clinic</SelectItem>
+                      <SelectItem value="HOSPITAL">Hospital</SelectItem>
+                      <SelectItem value="PRIVATE_PRACTICE">Private Practice</SelectItem>
+                      <SelectItem value="NURSING_HOME">Nursing Home</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            
+            {/* Owner/Doctor Information */}
+            <div className="border rounded-lg p-4 bg-muted/30">
+              <h3 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs">2</span>
+                Owner/Doctor Details
+              </h3>
+              <div className="grid gap-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-2">
+                    <Label htmlFor="firstName">First Name *</Label>
+                    <Input
+                      id="firstName"
+                      placeholder="John"
+                      value={ownerFirstName}
+                      onChange={(e) => setOwnerFirstName(e.target.value)}
+                      disabled={isPending}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="lastName">Last Name *</Label>
+                    <Input
+                      id="lastName"
+                      placeholder="Doe"
+                      value={ownerLastName}
+                      onChange={(e) => setOwnerLastName(e.target.value)}
+                      disabled={isPending}
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email *</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="doctor@example.com"
+                    value={ownerEmail}
+                    onChange={(e) => setOwnerEmail(e.target.value)}
+                    disabled={isPending}
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Input
+                    id="phone"
+                    placeholder="+1 234 567 8900"
+                    value={ownerPhone}
+                    onChange={(e) => setOwnerPhone(e.target.value)}
+                    disabled={isPending}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-2">
+                    <Label htmlFor="specialty">Specialty (Optional)</Label>
+                    <Input
+                      id="specialty"
+                      placeholder="e.g., Cardiology"
+                      value={ownerSpecialty}
+                      onChange={(e) => setOwnerSpecialty(e.target.value)}
+                      disabled={isPending}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="experience">Years of Experience (Optional)</Label>
+                    <Input
+                      id="experience"
+                      type="number"
+                      placeholder="10"
+                      min="0"
+                      value={ownerExperience}
+                      onChange={(e) => setOwnerExperience(e.target.value)}
+                      disabled={isPending}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {message && (
+              <div className="rounded-lg bg-green-50 dark:bg-green-950 p-3 text-sm text-green-800 dark:text-green-200">
+                {message}
+              </div>
+            )}
+            
+            {error && (
+              <div className="rounded-lg bg-red-50 dark:bg-red-950 p-3 text-sm text-red-800 dark:text-red-200">
+                {error}
+              </div>
+            )}
+          </div>
+          
+          <div className="flex justify-end gap-3">
+            <DialogClose asChild>
+              <Button variant="outline" disabled={isPending}>Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleCreateClinic} disabled={isPending}>
+              {isPending ? "Creating..." : "Create Clinic"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
@@ -295,11 +568,16 @@ export const ManageClinicsPageContent = ({ allOrgs }: { allOrgs: IOrganization[]
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6 lg:p-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Manage Clinics</h1>
-        <p className="text-muted-foreground mt-2">
-          Monitor and manage all clinics on the platform. Control their status and access.
-        </p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Manage Clinics</h1>
+          <p className="text-muted-foreground mt-2">
+            Monitor and manage all clinics on the platform. Control their status and access.
+          </p>
+        </div>
+        <div className="shrink-0">
+          <CreateClinicDialog />
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -436,7 +714,7 @@ export const ManageClinicsPageContent = ({ allOrgs }: { allOrgs: IOrganization[]
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          {clinic.status !== 'REJECTED' && (
+                          {clinic.status !== 'REJECTED' && clinic.owner.clerkUserId !== 'N/A' && (
                             <ToggleStatusForm 
                               orgId={clinic._id} 
                               currentStatus={clinic.status as "ACTIVE" | "DISABLED"}

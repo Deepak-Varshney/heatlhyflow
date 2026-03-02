@@ -179,7 +179,7 @@ export async function updatePatient(patientId: string, data: PatientUpdateData) 
   try {
     // Security Check: Sirf logged-in user hi edit kar sakta hai
     const user = await getMongoUser();
-    if (!user || (user.role !== 'DOCTOR' && user.role !== 'RECEPTIONIST' && user.role !== 'ADMIN')) {
+    if (!user || (user.role !== 'DOCTOR' && user.role !== 'RECEPTIONIST' && user.role !== 'SUPERADMIN' && user.role !== 'DEVIL')) {
       throw new Error("Unauthorized access.");
     }
 
@@ -204,7 +204,7 @@ export async function deletePatient(patientId: string) {
     await connectDB();
     const user = await getMongoUser();
     if (!user) throw new Error("User not authenticated");
-    if (user.role !== 'DOCTOR' && user.role !== 'RECEPTIONIST' && user.role !== 'ADMIN' && user.role !== 'SUPERADMIN') {
+    if (user.role !== 'DOCTOR' && user.role !== 'RECEPTIONIST' && user.role !== 'SUPERADMIN' && user.role !== 'DEVIL') {
       throw new Error("Unauthorized access.");
     }
 

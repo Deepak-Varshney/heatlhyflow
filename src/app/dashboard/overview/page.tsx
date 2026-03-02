@@ -153,16 +153,6 @@ export default async function OverviewPage(props: PageProps) {
       ]
     : [
         {
-          label: 'Register Patient',
-          icon: <IconUserCheck className='h-4 w-4' />,
-          href: '/dashboard/patients'
-        },
-        {
-          label: 'Schedule Visit',
-          icon: <IconCalendar className='h-4 w-4' />,
-          href: '/dashboard/appointments'
-        },
-        {
           label: 'View Appointments',
           icon: <IconClock className='h-4 w-4' />,
           href: '/dashboard/appointments'

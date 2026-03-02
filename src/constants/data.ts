@@ -105,10 +105,6 @@ export const getNavItemsForRole = (role?: string) => {
     return superAdminNavItems;
   }
 
-  if (role === 'ADMIN') {
-    return navItems;
-  }
-
   if (role === 'RECEPTIONIST') {
     return navItems.filter((item) => item.title !== 'Organization');
   }

@@ -7,6 +7,7 @@ import type { Metadata, Viewport } from 'next';
 import { cookies } from 'next/headers';
 import NextTopLoader from 'nextjs-toploader';
 import { NuqsAdapter } from 'nuqs/adapters/next/app';
+import CursorTrail from '@/components/effects/cursor-trail';
 import './globals.css';
 import './theme.css';
 import { ThemePasteDialog } from './superadmin/dashboard/theme-editor';
@@ -70,6 +71,7 @@ export default async function RootLayout({
             enableColorScheme
           >
             <Providers activeThemeValue={activeThemeValue as string}>
+              <CursorTrail />
               <Toaster />
               {/* <ThemePasteDialog /> */}
 

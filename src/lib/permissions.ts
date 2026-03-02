@@ -1,4 +1,4 @@
-export type UserRole = 'SUPERADMIN' | 'ADMIN' | 'DOCTOR' | 'RECEPTIONIST' | 'UNASSIGNED' | 'DEVIL';
+export type UserRole = 'SUPERADMIN' | 'DOCTOR' | 'RECEPTIONIST' | 'UNASSIGNED' | 'DEVIL';
 
 export const PERMISSIONS = {
   superadmin: {

@@ -31,27 +31,31 @@ const ManageClinicsPage = async () => {
     .populate("members")
     .sort({ createdAt: -1 });
 
-  const serializedOrgs: IOrganization[] = allOrgs.map(org => ({
-    _id: org._id.toString(),
-    name: org.name,
-    owner: {
-      firstName: org.owner.firstName,
-      lastName: org.owner.lastName,
-      clerkUserId: org.owner.clerkUserId,
-    },
-    status: org.status,
-    createdAt: org.createdAt.toISOString(),
-    email: org.email,
-    phone: org.phone,
-    members: (org.members || []).map((member: any) => ({
-      _id: member._id.toString(),
-      firstName: member.firstName,
-      lastName: member.lastName,
-      email: member.email,
-      role: member.role,
-      specialty: member.specialty,
-    })),
-  }));
+  const serializedOrgs: IOrganization[] = allOrgs.map((org) => {
+    const owner = org.owner as any;
+
+    return {
+      _id: org._id.toString(),
+      name: org.name,
+      owner: {
+        firstName: owner?.firstName || "Unassigned",
+        lastName: owner?.lastName || "",
+        clerkUserId: owner?.clerkUserId || "N/A",
+      },
+      status: org.status,
+      createdAt: org.createdAt.toISOString(),
+      email: org.email,
+      phone: org.phone,
+      members: (org.members || []).map((member: any) => ({
+        _id: member._id.toString(),
+        firstName: member.firstName,
+        lastName: member.lastName,
+        email: member.email,
+        role: member.role,
+        specialty: member.specialty,
+      })),
+    };
+  });
 
   return <ManageClinicsPageContent allOrgs={serializedOrgs} />;
 };

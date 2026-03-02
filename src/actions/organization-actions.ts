@@ -32,7 +32,7 @@ interface InviteMemberParams {
   firstName: string;
   lastName: string;
   email: string;
-  role: "DOCTOR" | "RECEPTIONIST" | "ADMIN";
+  role: "DOCTOR" | "RECEPTIONIST";
 }
 
 export async function inviteOrganizationMember(params: InviteMemberParams) {
@@ -48,7 +48,7 @@ export async function inviteOrganizationMember(params: InviteMemberParams) {
   }
 
   const isOwner = organization.owner?.toString() === currentUser._id.toString();
-  const canInvite = currentUser.role === "SUPERADMIN" || currentUser.role === "ADMIN" || isOwner;
+  const canInvite = currentUser.role === "SUPERADMIN" || isOwner;
   if (!canInvite) {
     return { success: false, error: "You are not allowed to invite members." };
   }
@@ -64,7 +64,7 @@ export async function inviteOrganizationMember(params: InviteMemberParams) {
       skipPasswordRequirement: true,
       publicMetadata: {
         role: params.role,
-        verificationStatus: "PENDING",
+        verificationStatus: "VERIFIED",
         organizationId: organization._id.toString(),
         organizationStatus: "ACTIVE",
       },
@@ -96,7 +96,7 @@ export async function inviteOrganizationMember(params: InviteMemberParams) {
       lastName: params.lastName,
       role: params.role,
       organization: organization._id,
-      verificationStatus: "PENDING",
+      verificationStatus: "VERIFIED",
     },
     { upsert: true, new: true }
   );
@@ -108,7 +108,7 @@ export async function inviteOrganizationMember(params: InviteMemberParams) {
   await client.users.updateUserMetadata(clerkUser.id, {
     publicMetadata: {
       role: params.role,
-      verificationStatus: "PENDING",
+      verificationStatus: "VERIFIED",
       organizationId: organization._id.toString(),
       organizationStatus: "ACTIVE",
     },

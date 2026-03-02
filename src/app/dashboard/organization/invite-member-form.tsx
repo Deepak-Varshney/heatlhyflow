@@ -19,7 +19,7 @@ export default function InviteMemberForm() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<'DOCTOR' | 'RECEPTIONIST' | 'ADMIN'>('DOCTOR');
+  const [role, setRole] = useState<'DOCTOR' | 'RECEPTIONIST'>('DOCTOR');
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();

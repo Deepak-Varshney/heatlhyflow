@@ -22,7 +22,8 @@ import {
 } from "lucide-react";
 import { PublicHeader } from "@/components/public-header";
 import PageContainer from "@/components/layout/page-container";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
+import { getPublicMetadataFromClaims } from "@/lib/auth-claims";
 import { redirect } from "next/navigation";
 
 export const metadata = {
@@ -32,9 +33,18 @@ export const metadata = {
 };
 
 export default async function LandingPage() {
-  const User = await currentUser();
-  if (User) {
+  const { userId, sessionClaims } = await auth();
+
+  if (userId) {
+    const { role, organizationStatus, organizationId } = getPublicMetadataFromClaims(sessionClaims);
+    const canAccessDashboard =
+      role === "SUPERADMIN" ||
+      role === "DEVIL" ||
+      (!!organizationId && organizationStatus === "ACTIVE");
+
+    if (canAccessDashboard) {
     redirect("/dashboard");
+    }
   }
 
   const features = [

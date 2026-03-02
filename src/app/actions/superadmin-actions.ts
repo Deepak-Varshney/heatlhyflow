@@ -222,7 +222,7 @@ interface UpdateUserData {
   firstName?: string;
   lastName?: string;
   email?: string;
-  role?: "UNASSIGNED" | "RECEPTIONIST" | "DOCTOR" | "ADMIN" | "SUPERADMIN";
+  role?: "UNASSIGNED" | "RECEPTIONIST" | "DOCTOR" | "SUPERADMIN" | "DEVIL";
   specialty?: string;
   experience?: number;
   description?: string;
@@ -291,7 +291,6 @@ export async function updateUser(userId: string, data: UpdateUserData) {
   }
 
   revalidatePath("/superadmin/users");
-  revalidatePath(`/superadmin/users/${userId}`);
 
   return { success: true, user: updatedUser };
 }

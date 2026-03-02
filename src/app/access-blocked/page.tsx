@@ -3,6 +3,12 @@
 import { useSearchParams } from 'next/navigation';
 import { AlertTriangle, Lock, XCircle, Building2 } from 'lucide-react';
 import Link from 'next/link';
+import { PublicHeader } from '@/components/public-header';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 export default function AccessBlockedPage() {
   const searchParams = useSearchParams();
@@ -60,65 +66,56 @@ export default function AccessBlockedPage() {
   const IconComponent = content.icon;
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="w-full max-w-md">
-        <div className={`${content.bgColor} rounded-lg shadow-lg border border-gray-200 p-8`}>
-          <div className="flex justify-center mb-6">
-            <IconComponent className={`${content.color} w-16 h-16`} />
-          </div>
+    <div className="min-h-screen bg-muted/20">
+      <PublicHeader />
+      <main className="min-h-[calc(100vh-3.5rem)]">
+        <section className="mx-auto w-full max-w-2xl px-4 py-10 sm:py-16">
+          <Card className="border-border/60 shadow-sm">
+            <CardHeader className="space-y-4 text-center">
+              <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-muted">
+                <IconComponent className="size-7 text-destructive" />
+              </div>
+              <div className="space-y-1">
+                <CardTitle className="text-2xl tracking-tight">{content.title}</CardTitle>
+                <CardDescription className="text-base">{content.description}</CardDescription>
+              </div>
+            </CardHeader>
 
-          <h1 className={`${content.color} text-2xl font-bold text-center mb-2`}>
-            {content.title}
-          </h1>
+            <CardContent className="space-y-6">
+              <Alert>
+                <AlertTitle>Why this happened</AlertTitle>
+                <AlertDescription>{message || content.message}</AlertDescription>
+              </Alert>
 
-          <p className="text-gray-700 text-center mb-4">{content.description}</p>
+              <div className="rounded-lg border bg-card p-4">
+                <p className="text-sm font-medium">Recommended next steps</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+                  <li>Contact your organization administrator to verify account access.</li>
+                  <li>Reach support if your access status should be active.</li>
+                </ul>
+              </div>
 
-          <div className="bg-white rounded p-4 mb-6 border-l-4 border-gray-300">
-            <p className="text-sm text-gray-600">{content.message}</p>
-          </div>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button asChild className="w-full sm:w-auto">
+                  <a href="mailto:support@healthyflow.com?subject=Access%20Blocked%20Support%20Request">
+                    {content.actionText}
+                  </a>
+                </Button>
+                <Button asChild variant="outline" className="w-full sm:w-auto">
+                  <Link href="/">Go to Home</Link>
+                </Button>
+              </div>
 
-          <div className="space-y-3">
-            <a
-              href="mailto:support@healthyflow.com?subject=Access Blocked"
-              className={`${content.color} w-full inline-flex items-center justify-center px-4 py-3 rounded-lg font-medium hover:opacity-80 transition-opacity`}
-            >
-              {content.actionText}
-            </a>
-            <Link
-              href="/"
-              className="w-full inline-flex items-center justify-center px-4 py-3 bg-gray-200 text-gray-800 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-            >
-              Go to Home
-            </Link>
-          </div>
-        </div>
+              <Separator />
 
-        <div className="mt-8 text-center">
-          <p className="text-sm text-gray-600 mb-2">
-            Need additional help? Try these resources:
-          </p>
-          <div className="flex justify-center gap-4">
-            <Link
-              href="/contact-us"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Help Center
-            </Link>
-            <span className="text-gray-400">•</span>
-            <Link
-              href="/"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Home Page
-            </Link>
-          </div>
-        </div>
-
-        <div className="mt-6 text-center text-xs text-gray-500">
-          <p>Issue ID: {reason || 'ACCESS_DENIED'}</p>
-          <p>{new Date().toLocaleString()}</p>
-        </div>
-      </div>
+              <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                <span>Issue Code</span>
+                <Badge variant="secondary">{reason || 'ACCESS_DENIED'}</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      </main>
     </div>
   );
 }

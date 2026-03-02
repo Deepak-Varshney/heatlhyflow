@@ -7,6 +7,7 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/auth/(.*)",
   "/onboarding(.*)",
+  "/access-blocked",
   "/api/webhooks/(.*)",
   "/billing(.*)",
 ]);
@@ -41,7 +42,7 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
 
   // Organization not active - don't allow access to protected routes
   if (!organizationId || organizationStatus !== "ACTIVE") {
-    return NextResponse.redirect(new URL("/onboarding", req.url));
+    return NextResponse.redirect(new URL("/access-blocked", req.url));
   }
 
   // All checks passed - allow access

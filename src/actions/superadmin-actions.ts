@@ -7,13 +7,14 @@ import User from "@/models/User";
 import Organization from "@/models/Organization";
 import { getMongoUser } from "@/lib/CheckUser";
 import { parseSortParameter } from "@/lib/utils";
+import { sendEmail } from "@/lib/email-service";
 
 import { clerkClient } from "@clerk/nextjs/server";
 
 export async function updateOrganizationStatus(
   orgId: string, // MongoDB document _id
   status: "ACTIVE" | "DISABLED" | "REJECTED",
-  clerkUserId: string
+  clerkUserId?: string
 ) {
   // Security Check: Ensure the current user is a SUPERADMIN or DEVIL
   const user = await getMongoUser();
@@ -24,12 +25,15 @@ export async function updateOrganizationStatus(
   await connectDB();
 
   await Organization.findByIdAndUpdate(orgId, { status });
-  const client = await clerkClient();
-  await client.users.updateUserMetadata(clerkUserId, {
-    publicMetadata: {
-      organizationStatus: status
-    },
-  });
+
+  if (clerkUserId && clerkUserId !== "N/A") {
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(clerkUserId, {
+      publicMetadata: {
+        organizationStatus: status
+      },
+    });
+  }
   // Revalidate paths to refresh the data on the pages
   revalidatePath("/superadmin/dashboard");
   revalidatePath("/superadmin/clinics");
@@ -226,7 +230,7 @@ interface UpdateUserData {
   firstName?: string;
   lastName?: string;
   email?: string;
-  role?: "UNASSIGNED" | "RECEPTIONIST" | "DOCTOR" | "ADMIN" | "SUPERADMIN";
+  role?: "UNASSIGNED" | "RECEPTIONIST" | "DOCTOR" | "SUPERADMIN" | "DEVIL";
   specialty?: string;
   experience?: number;
   description?: string;
@@ -295,7 +299,6 @@ export async function updateUser(userId: string, data: UpdateUserData) {
   }
 
   revalidatePath("/superadmin/users");
-  revalidatePath(`/superadmin/users/${userId}`);
 
   return { success: true, user: updatedUser };
 }
@@ -435,4 +438,399 @@ export async function getUserStats() {
     receptionists,
     unassignedUsers
   };
+}
+
+export async function deleteOrganization(orgId: string) {
+  await connectDB();
+  const currentUser = await getMongoUser();
+
+  if (!currentUser || (currentUser.role !== "SUPERADMIN" && currentUser.role !== "DEVIL")) {
+    return { success: false, error: "Permission denied: Not a Super Admin" };
+  }
+
+  const organization = await Organization.findById(orgId).select("members owner");
+  if (!organization) {
+    return { success: false, error: "Organization not found" };
+  }
+
+  const memberIds = [
+    ...(organization.members || []).map((memberId: any) => memberId.toString()),
+    organization.owner ? organization.owner.toString() : null,
+  ].filter((id): id is string => Boolean(id));
+
+  if (memberIds.length > 0) {
+    await User.updateMany(
+      { _id: { $in: memberIds } },
+      { $unset: { organization: 1 } }
+    );
+
+    const membersWithClerk = await User.find({ _id: { $in: memberIds } })
+      .select("clerkUserId role verificationStatus")
+      .lean();
+
+    const client = await clerkClient();
+    for (const member of membersWithClerk) {
+      if (!member.clerkUserId) continue;
+
+      await client.users.updateUserMetadata(member.clerkUserId, {
+        publicMetadata: {
+          role: member.role,
+          verificationStatus: member.verificationStatus,
+          organizationId: null,
+          organizationStatus: "DISABLED",
+        },
+      });
+    }
+  }
+
+  await Organization.findByIdAndDelete(orgId);
+
+  revalidatePath("/superadmin/clinics");
+  revalidatePath("/superadmin/dashboard");
+  revalidatePath("/superadmin/users");
+
+  return { success: true, message: "Clinic deleted successfully" };
+}
+
+interface CreateOrganizationParams {
+  name: string;
+  type?: "CLINIC" | "HOSPITAL" | "PRIVATE_PRACTICE" | "NURSING_HOME";
+  ownerUserId?: string; // Use existing user as owner
+  ownerDetails?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    specialty?: string;
+    yearsOfExperience?: number;
+  }; // Create new owner
+}
+
+function slugifyOrganizationName(name: string) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+async function generateUniqueOrganizationSlug(name: string) {
+  const baseSlug = slugifyOrganizationName(name) || "organization";
+  let slug = baseSlug;
+  let counter = 1;
+
+  while (await Organization.exists({ slug })) {
+    counter += 1;
+    slug = `${baseSlug}-${counter}`;
+  }
+
+  return slug;
+}
+
+export async function createOrganizationAsSuperadmin(params: CreateOrganizationParams) {
+  await connectDB();
+  const currentUser = await getMongoUser();
+
+  if (!currentUser || (currentUser.role !== "SUPERADMIN" && currentUser.role !== "DEVIL")) {
+    return { success: false, error: "Permission denied: Not a Super Admin" };
+  }
+
+  const name = params.name?.trim();
+  if (!name) {
+    return { success: false, error: "Organization name is required" };
+  }
+
+  const existingName = await Organization.findOne({ name: { $regex: `^${name}$`, $options: "i" } });
+  if (existingName) {
+    return { success: false, error: "Organization with this name already exists" };
+  }
+
+  try {
+    let ownerUser = null;
+    let newClerkUserId: string | null = null;
+
+    // Case 1: Create new owner from provided details
+    if (params.ownerDetails) {
+      const { firstName, lastName, email, phone, specialty, yearsOfExperience } = params.ownerDetails;
+
+      // Check if email already exists
+      const existingUser = await User.findOne({ email: email.toLowerCase() });
+      if (existingUser) {
+        return { success: false, error: "A user with this email already exists" };
+      }
+
+      // Create user in Clerk
+      const client = await clerkClient();
+      let clerkUser;
+      
+      try {
+        clerkUser = await client.users.createUser({
+          emailAddress: [email],
+          firstName,
+          lastName,
+          skipPasswordRequirement: true,
+          publicMetadata: {
+            role: "DOCTOR",
+            verificationStatus: "VERIFIED",
+            organizationId: null, // Will be set after org creation
+          },
+        });
+      } catch (clerkError: any) {
+        console.error("Clerk createUser failed:", clerkError);
+        if (clerkError.code === "user_exists") {
+          const existingUsers = await client.users.getUserList({ emailAddress: [email] });
+          if (existingUsers.data && existingUsers.data.length > 0) {
+            clerkUser = existingUsers.data[0];
+          } else {
+            return { success: false, error: "Email already exists in authentication system" };
+          }
+        } else {
+          const details = Array.isArray(clerkError?.errors)
+            ? clerkError.errors.map((err: any) => err?.message).filter(Boolean).join(" | ")
+            : "Unknown error";
+          return { success: false, error: `Failed to create user account: ${details}` };
+        }
+      }
+
+      newClerkUserId = clerkUser.id;
+
+      // Create MongoDB user (will link to org after org is created)
+      ownerUser = await User.create({
+        clerkUserId: clerkUser.id,
+        email: email.toLowerCase(),
+        firstName,
+        lastName,
+        phone,
+        imageUrl: clerkUser.imageUrl || undefined,
+        role: "DOCTOR",
+        organization: null, // Will update after org creation
+        verificationStatus: "VERIFIED",
+        specialty,
+        experience: yearsOfExperience,
+        weeklyAvailability: [],
+        appointments: [],
+      });
+    }
+    // Case 2: Use existing user
+    else if (params.ownerUserId) {
+      ownerUser = await User.findById(params.ownerUserId);
+      if (!ownerUser) {
+        return { success: false, error: "Selected owner user not found" };
+      }
+      if (ownerUser.role === "SUPERADMIN" || ownerUser.role === "DEVIL") {
+        return { success: false, error: "Superadmin/Devil cannot be assigned as organization owner" };
+      }
+    }
+
+    const slug = await generateUniqueOrganizationSlug(name);
+
+    // Create organization
+    const organization = await Organization.create({
+      name,
+      slug,
+      type: params.type || "CLINIC",
+      status: "ACTIVE",
+      owner: ownerUser?._id,
+      members: ownerUser ? [ownerUser._id] : [],
+      settings: {
+        timezone: "Asia/Kolkata",
+        locale: "en-IN",
+        branding: {
+          logoUrl: undefined,
+          primaryColor: undefined,
+        },
+      },
+    });
+
+    // Link owner to organization
+    if (ownerUser) {
+      ownerUser.organization = organization._id;
+      await ownerUser.save();
+
+      // Update Clerk metadata
+      if (ownerUser.clerkUserId) {
+        const client = await clerkClient();
+        await client.users.updateUserMetadata(ownerUser.clerkUserId, {
+          publicMetadata: {
+            role: ownerUser.role,
+            verificationStatus: ownerUser.verificationStatus,
+            organizationId: organization._id.toString(),
+            organizationStatus: "ACTIVE",
+          },
+        });
+      }
+
+      // Send organization assignment notification email
+      try {
+        const emailHtml = `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${params.ownerDetails ? 'Welcome to HealthyFlow!' : 'Organization Owner Assignment'}</title>
+  </head>
+  <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f9f9f9;">
+    <div style="max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
+      <div style="background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); color: white; padding: 40px 20px; text-align: center;">
+        <h1 style="margin: 0; font-size: 28px; font-weight: bold;">${params.ownerDetails ? 'Welcome to HealthyFlow! 🎉' : 'Organization Owner Assignment'}</h1>
+      </div>
+      
+      <div style="padding: 40px 30px;">
+        <p style="font-size: 16px; margin-bottom: 20px;">Dear ${ownerUser.firstName} ${ownerUser.lastName},</p>
+        
+        ${params.ownerDetails ? `
+        <div style="background-color: #e8f5e9; border-left: 4px solid #4caf50; padding: 20px; margin: 20px 0; border-radius: 4px;">
+          <p style="margin: 0; font-size: 16px;">
+            Your account has been successfully created, and you have been assigned as the <strong>Owner</strong> of <strong>${organization.name}</strong>!
+          </p>
+        </div>
+        ` : `
+        <div style="background-color: #e8f5e9; border-left: 4px solid #4caf50; padding: 20px; margin: 20px 0; border-radius: 4px;">
+          <p style="margin: 0; font-size: 16px;">
+            You have been assigned as the <strong>Owner</strong> of <strong>${organization.name}</strong>.
+          </p>
+        </div>
+        `}
+        
+        <div style="background-color: #f5f5f5; padding: 20px; border-radius: 4px; margin: 20px 0;">
+          <h3 style="margin-top: 0; color: #667eea;">Organization Details</h3>
+          <div style="padding: 10px 0; border-bottom: 1px solid #ddd;">
+            <span style="font-weight: bold; color: #667eea;">Organization Name:</span> ${organization.name}
+          </div>
+          <div style="padding: 10px 0; border-bottom: 1px solid #ddd;">
+            <span style="font-weight: bold; color: #667eea;">Type:</span> ${organization.type}
+          </div>
+          <div style="padding: 10px 0;">
+            <span style="font-weight: bold; color: #667eea;">Status:</span> <span style="display: inline-block; background-color: #4caf50; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">ACTIVE</span>
+          </div>
+        </div>
+        
+        ${params.ownerDetails ? `
+        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 20px 0; border-radius: 4px;">
+          <h3 style="margin-top: 0; color: #997404;">Getting Started</h3>
+          <p style="margin: 10px 0;">Your account is ready to use. You can sign in using your email address through Google authentication.</p>
+          <ul style="margin: 10px 0; padding-left: 20px;">
+            <li style="margin: 8px 0;">Access your organization dashboard</li>
+            <li style="margin: 8px 0;">Invite team members (doctors, receptionists)</li>
+            <li style="margin: 8px 0;">Set up clinic availability and services</li>
+            <li style="margin: 8px 0;">Start managing patient appointments</li>
+          </ul>
+        </div>
+        ` : `
+        <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; margin: 20px 0; border-radius: 4px;">
+          <h3 style="margin-top: 0; color: #997404;">What's Next?</h3>
+          <ul style="margin: 10px 0; padding-left: 20px;">
+            <li style="margin: 8px 0;">Access your organization dashboard to configure settings</li>
+            <li style="margin: 8px 0;">Invite team members (doctors, receptionists) to join your organization</li>
+            <li style="margin: 8px 0;">Set up your clinic's availability and services</li>
+            <li style="margin: 8px 0;">Start managing patient appointments</li>
+          </ul>
+        </div>
+        `}
+        
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/auth/sign-in" style="display: inline-block; background-color: #4caf50; color: white; padding: 14px 30px; text-decoration: none; border-radius: 4px; font-weight: bold;">${params.ownerDetails ? 'Sign In Now' : 'Go to Dashboard'}</a>
+        </div>
+        
+        <p style="font-size: 14px; color: #666; margin-top: 30px;">If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
+        
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+        
+        <p style="font-size: 12px; color: #999; text-align: center; margin: 0;">
+          &copy; ${new Date().getFullYear()} HealthyFlow. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
+        `;
+
+        await sendEmail({
+          to: ownerUser.email,
+          subject: params.ownerDetails 
+            ? `Welcome to HealthyFlow! Your ${organization.name} account is ready 🎉`
+            : `You've been assigned as owner of ${organization.name} 🏥`,
+          html: emailHtml,
+        });
+      } catch (emailError) {
+        console.error("Failed to send organization assignment email:", emailError);
+        // Continue execution even if email fails
+      }
+    }
+
+    revalidatePath("/superadmin/dashboard");
+    revalidatePath("/superadmin/clinics");
+    revalidatePath("/superadmin/users");
+
+    return {
+      success: true,
+      organizationId: organization._id.toString(),
+      message: params.ownerDetails 
+        ? "Clinic and owner account created successfully! Welcome email sent."
+        : "Organization created successfully" + (ownerUser ? " and owner notified via email" : ""),
+    };
+  } catch (error) {
+    console.error("Error creating organization:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to create organization",
+    };
+  }
+}
+
+export async function moveUserToOrganization(userId: string, organizationId: string) {
+  await connectDB();
+  const currentUser = await getMongoUser();
+
+  if (!currentUser || (currentUser.role !== "SUPERADMIN" && currentUser.role !== "DEVIL")) {
+    return { success: false, error: "Permission denied: Not a Super Admin" };
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    return { success: false, error: "User not found" };
+  }
+
+  if (user.role === "SUPERADMIN" || user.role === "DEVIL") {
+    return { success: false, error: "Superadmin/Devil cannot be moved to organizations" };
+  }
+
+  const targetOrganization = await Organization.findById(organizationId);
+  if (!targetOrganization) {
+    return { success: false, error: "Target organization not found" };
+  }
+
+  const previousOrganizationId = user.organization?.toString();
+
+  user.organization = targetOrganization._id;
+  await user.save();
+
+  await Organization.findByIdAndUpdate(targetOrganization._id, {
+    $addToSet: { members: user._id },
+  });
+
+  if (previousOrganizationId && previousOrganizationId !== organizationId) {
+    await Organization.findByIdAndUpdate(previousOrganizationId, {
+      $pull: { members: user._id },
+    });
+  }
+
+  if (user.clerkUserId) {
+    const client = await clerkClient();
+    await client.users.updateUserMetadata(user.clerkUserId, {
+      publicMetadata: {
+        role: user.role,
+        verificationStatus: user.verificationStatus,
+        organizationId: targetOrganization._id.toString(),
+        organizationStatus: targetOrganization.status,
+      },
+    });
+  }
+
+  revalidatePath("/superadmin/dashboard");
+  revalidatePath("/superadmin/clinics");
+  revalidatePath("/superadmin/users");
+
+  return { success: true, message: "User moved successfully" };
 }

@@ -47,8 +47,8 @@ export async function createOrganization(data: {
   const user = await currentUser();
   if (!user) throw new Error('Not authenticated');
   const role = user.publicMetadata?.role as string;
-  if (role !== 'ADMIN' && role !== 'SUPERADMIN' && role !== 'DEVIL') {
-    throw new Error('Unauthorized: Admin access required');
+  if (role !== 'SUPERADMIN' && role !== 'DEVIL') {
+    throw new Error('Unauthorized: Superadmin access required');
   }
 
   await connectDB();
@@ -98,8 +98,8 @@ export async function updateOrganization(orgId: string, data: {
   const user = await currentUser();
   if (!user) throw new Error('Not authenticated');
   const role = user.publicMetadata?.role as string;
-  if (role !== 'ADMIN' && role !== 'SUPERADMIN' && role !== 'DEVIL') {
-    throw new Error('Unauthorized: Admin access required');
+  if (role !== 'SUPERADMIN' && role !== 'DEVIL') {
+    throw new Error('Unauthorized: Superadmin access required');
   }
 
   await connectDB();
